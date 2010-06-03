@@ -13,6 +13,8 @@
 
 class QAbstractItemModel;
 
+namespace qdatacube {
+
 /**
  * container filter for recaps interface
  */
@@ -32,4 +34,5 @@ class QDATACUBE_EXPORT abstract_filter_t {
     virtual const QList<QString>& categories(const QAbstractItemModel* model) const = 0;
 };
 
+}
 #endif // QDATACUBE_ABSTRACT_FILTER_H

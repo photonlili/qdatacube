@@ -15,6 +15,9 @@
 #include <memory>
 
 class QAbstractItemModel;
+
+namespace qdatacube {
+
 class abstract_filter_t;
 class qdatacube_colrow_t;
 
@@ -115,5 +118,6 @@ class QDATACUBE_EXPORT qdatacube_t : public QObject {
     std::auto_ptr<qdatacube_colrow_t> m_columns;
     std::auto_ptr<qdatacube_colrow_t> m_rows;
 };
+}
 
 #endif // QDATACUBE_QDATACUBE_H

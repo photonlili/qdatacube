@@ -10,6 +10,8 @@
 
 #include <algorithm>
 
+namespace qdatacube {
+
 qdatacube_colrow_t::qdatacube_colrow_t( const QAbstractItemModel* model, abstract_filter_t* filter, const QList< int >& active) :
     m_buckets(),
     m_children(),
@@ -274,6 +276,7 @@ int qdatacube_colrow_t::fanthom_span(int maxdepth) const {
 QList< int > qdatacube_colrow_t::all_container_indexes(int section) const {
   int index = index_for_section(section);
   return m_buckets[index];
+}
 }
 
 #include "qdatacube_colrow.moc"

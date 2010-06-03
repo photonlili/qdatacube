@@ -5,8 +5,9 @@
 SET(QDATACUBE_SRC
   qdatacube.cpp
   qdatacube_colrow.cpp
-  abstract_filter.cpp
-
+  qdatacube_header.cpp
+  qdatacube_header_model.cpp
+  qdatacube_model.cpp
 )
 
 QT4_AUTOMOC(${QDATACUBE_SRC})
@@ -23,6 +24,9 @@ set_target_properties(qdatacube PROPERTIES VERSION "${QDATACUBE_SO_VERSION}.0.0"
 SET(CONTAINERS_PUBLIC_HEADERS
   qdatacube.h
   qdatacube_colrow.h
+  qdatacube_model.h
+  qdatacube_header.h
+  qdatacube_header_model.h
   abstract_filter.h
 )
 

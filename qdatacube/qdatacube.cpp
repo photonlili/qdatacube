@@ -10,6 +10,8 @@
 
 #include <QAbstractItemModel>
 
+namespace qdatacube {
+
 qdatacube_t::qdatacube_t(const QAbstractItemModel* model,
                  abstract_filter_t* row_filter,
                  abstract_filter_t* column_filter,
@@ -117,6 +119,8 @@ void qdatacube_t::readd(int index) {
   m_columns->readd(index);
   m_rows->readd(index);
   emit changed();
+}
+
 }
 
 #include "qdatacube.moc"

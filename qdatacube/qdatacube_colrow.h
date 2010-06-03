@@ -16,6 +16,8 @@
 #include "qdatacube-export.h"
 
 class QAbstractItemModel;
+
+namespace qdatacube {
 class abstract_filter_t;
 
 /**
@@ -164,5 +166,5 @@ class QDATACUBE_EXPORT qdatacube_colrow_t : public QObject {
     int index_for_section(int section) const;
 
 };
-
+}
 #endif // QDATACUBE_QDATACUBE_COLROW_H
