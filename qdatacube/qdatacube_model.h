@@ -12,7 +12,7 @@
 #include <QItemSelectionModel>
 #include <QList>
 
-#include "qdatacube-export.h"
+#include "qdatacube_export.h"
 
 namespace qdatacube {
 

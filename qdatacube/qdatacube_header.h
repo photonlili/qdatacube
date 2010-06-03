@@ -12,7 +12,7 @@
 
 class QLayout;
 
-#include "qdatacube-export.h"
+#include "qdatacube_export.h"
 
 namespace qdatacube {
 

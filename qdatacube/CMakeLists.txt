@@ -28,6 +28,7 @@ SET(CONTAINERS_PUBLIC_HEADERS
   qdatacube_header.h
   qdatacube_header_model.h
   abstract_filter.h
+  qdatacube_export.h
 )
 
 GET_TARGET_PROPERTY(LIB_OUT_NAME qdatacube LOCATION)

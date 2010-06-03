@@ -13,7 +13,7 @@
 #include <tr1/memory>
 #include <QPair>
 
-#include "qdatacube-export.h"
+#include "qdatacube_export.h"
 
 class QAbstractItemModel;
 

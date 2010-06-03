@@ -9,7 +9,7 @@
 #define QDATACUBE_ABSTRACT_FILTER_H
 #include <QList>
 
-#include "qdatacube-export.h"
+#include "qdatacube_export.h"
 
 class QAbstractItemModel;
 

@@ -8,7 +8,7 @@
 #ifndef QDATACUBE_QDATACUBE_H
 #define QDATACUBE_QDATACUBE_H
 
-#include "qdatacube-export.h"
+#include "qdatacube_export.h"
 
 #include <QObject>
 #include <QHash>
