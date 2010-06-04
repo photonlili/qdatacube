@@ -21,16 +21,23 @@ namespace {
   }
 }
 
+class datacube_model_t::secret_t {
+  public:
+    datacube_t* datacube;
+
+    secret_t(datacube_t* datacube) : datacube(datacube) {}
+};
+
 datacube_model_t::datacube_model_t(datacube_t* datacube, QObject* parent) :
     QAbstractTableModel(parent),
-    m_datacube(datacube)
+    d(new secret_t(datacube))
 {
-  connect(m_datacube, SIGNAL(changed()), SLOT(slot_qdatacube_changed()));
-  connect(m_datacube,SIGNAL(begin_remove_column(int)), SLOT(slot_begin_remove_column(int)));
-  connect(m_datacube,SIGNAL(begin_remove_row(int)), SLOT(slot_begin_remove_row(int)));
-  connect(m_datacube,SIGNAL(remove_column(int)), SLOT(slot_remove_column(int)));
-  connect(m_datacube,SIGNAL(remove_row(int)),SLOT(slot_remove_row(int)));
-  connect(m_datacube,SIGNAL(data_changed(int,int)),SLOT(slot_data_changed(int,int)));
+  connect(d->datacube, SIGNAL(changed()), SLOT(slot_datacube_changed()));
+  connect(d->datacube,SIGNAL(column_about_to_be_removed(int)), SLOT(slot_begin_remove_column(int)));
+  connect(d->datacube,SIGNAL(row_about_to_be_removed(int)), SLOT(slot_begin_remove_row(int)));
+  connect(d->datacube,SIGNAL(column_removed(int)), SLOT(slot_remove_column(int)));
+  connect(d->datacube,SIGNAL(row_removed(int)),SLOT(slot_remove_row(int)));
+  connect(d->datacube,SIGNAL(data_changed(int,int)),SLOT(slot_data_changed(int,int)));
 }
 
 datacube_model_t::~datacube_model_t() {
@@ -38,17 +45,17 @@ datacube_model_t::~datacube_model_t() {
 
 QVariant datacube_model_t::data(const QModelIndex& index, int role) const {
   if (role == Qt::DisplayRole) {
-    return m_datacube->cellCount(index.row(), index.column());
+    return d->datacube->cellCount(index.row(), index.column());
   }
   return QVariant();
 }
 
 int datacube_model_t::columnCount(const QModelIndex& ) const {
-  return m_datacube->columnCount();
+  return d->datacube->columnCount();
 }
 
 int datacube_model_t::rowCount(const QModelIndex& ) const {
-  return m_datacube->rowCount();
+  return d->datacube->rowCount();
 }
 
 QVariant datacube_model_t::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -62,15 +69,15 @@ void datacube_model_t::slot_datacube_changed() {
 }
 
 void datacube_model_t::remove(int container_index) {
-  m_datacube->remove(container_index);
+  d->datacube->remove(container_index);
 }
 
 void datacube_model_t::readd(int container_index) {
-  m_datacube->readd(container_index);
+  d->datacube->readd(container_index);
 }
 
 void datacube_model_t::restrict_to_indexes(QList< int > list) {
-  m_datacube->restrict(list);
+  d->datacube->restrict(list);
 }
 
 void datacube_model_t::slot_begin_remove_column(int column ) {
@@ -84,11 +91,17 @@ void datacube_model_t::slot_begin_remove_row(int row ){
 void datacube_model_t::slot_remove_column(int ) {
   endRemoveColumns();
 }
+
 void datacube_model_t::slot_remove_row(int ){
   endRemoveRows();
 }
+
 void datacube_model_t::slot_data_changed(int row , int column ) {
   dataChanged(index(row,column),index(row,column));
+}
+
+datacube_t* datacube_model_t::datacube() const {
+  return d->datacube;
 }
 
 }

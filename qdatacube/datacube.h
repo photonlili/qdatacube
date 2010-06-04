@@ -11,8 +11,8 @@
 #include "qdatacube_export.h"
 
 #include <QObject>
-#include <QHash>
-#include <memory>
+#include <QPair>
+#include <tr1/memory>
 
 class QAbstractItemModel;
 
@@ -37,12 +37,25 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
             QObject* parent = 0);
 
     /**
+     * Construct simple 2-dimensional datacube with the 2 filters
+     * @param row_filter initial filter.
+     * @param column_filter initial filter.
+     * @param active limited to these containers
+     */
+    datacube_t(const QAbstractItemModel* model,
+            std::tr1::shared_ptr<abstract_filter_t> row_filter,
+            std::tr1::shared_ptr<abstract_filter_t> column_filter,
+            const QList<int>& active,
+            QObject* parent = 0);
+
+    /**
      * Destructor
      */
     ~datacube_t();
 
     /**
      * restrict to this subset
+     * TODO: Remove, see ticket #115
      */
     void restrict(QList<int> set);
 
@@ -62,14 +75,14 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     int columnCount() const;
 
     /**
-     * Name of header
+     * @return name of header, number of columns spanned
      * @param orientation
      * @param index 0 is first header, 1 is next and so on, up until headerCount(orientation)
      */
     QList<QPair<QString,int> > headers(Qt::Orientation orientation, int index) const;
 
     /**
-     * @returns The number of containers for the given row, column
+     * @returns The number of elements for the given row, column
      */
     int cellCount(int row, int column) const;
 
@@ -81,42 +94,64 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     /**
      * @returns the rows toplevel header
      */
-    datacube_colrow_t& toplevel_row_header() {
-      return *m_rows;
-    }
+    datacube_colrow_t& toplevel_row_header() ;
 
     /**
      * @returns the columns
      */
-    datacube_colrow_t& toplevel_column_header() {
-      return *m_columns;
-    }
+    datacube_colrow_t& toplevel_column_header() ;
 
     /**
-     * @return depth for orientation
+     * @return depth (number of headers/filters) for orientation
      */
     int depth(Qt::Orientation orientation);
   public slots:
     /**
      * remove this container from set
+     * TODO: Should be superflous with ticket #115
      */
     void remove(int container_index);
 
     /**
      * readds this container to set
+     * TODO: Should be superflous with ticket #115
      */
     void readd(int container_index);
   signals:
+    /**
+     * Datacube has changed in some way.
+     * TODO: Should be superflous with ticket #115
+     */
     void changed();
-    void begin_remove_row(int);
-    void begin_remove_column(int);
-    void remove_row(int);
-    void remove_column(int);
+
+    /**
+     * A row is about to be removed
+     */
+    void row_about_to_be_removed(int index);
+
+    /**
+     * A row is about to be removed
+     */
+    void column_about_to_be_removed(int);
+
+    /**
+     * A row has been removed
+     */
+    void row_removed(int);
+
+    /**
+     * A column has been removed
+     */
+    void column_removed(int);
+
+    /**
+     * The value in cell has changed
+     */
     void data_changed(int row,int column);
 
   private:
-    std::auto_ptr<datacube_colrow_t> m_columns;
-    std::auto_ptr<datacube_colrow_t> m_rows;
+    class secret_t;
+    QScopedPointer<secret_t> d;
 };
 }
 

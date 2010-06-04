@@ -18,6 +18,10 @@ namespace qdatacube {
 
 class datacube_t;
 
+/**
+ * This class is a replacement for the stadn QHeaderView, to be plugged into QTableViews to
+ * show all the headers that a datacube features.
+ */
 class QDATACUBE_EXPORT datacube_header_t : public QHeaderView {
   Q_OBJECT
   public:
@@ -37,18 +41,8 @@ class QDATACUBE_EXPORT datacube_header_t : public QHeaderView {
     virtual void reset();
 
   private:
-    QSize m_size;
-    QList<QHeaderView*> m_headers;
-    bool m_lock;
-    QLayout* m_layout;
-    /**
-     * Helper function to partition the size changed (oldsize-size) into
-     * span integer pieces. This function will fetch the i'th piece.
-     * The essential property of this function is that given a larger number
-     * of resizes, the size changed should be evenly distributed across the
-     * pieces
-     */
-    int getnewlhsize(int oldsize, int size, int i, int span);
+    class secret_t;
+    QScopedPointer<secret_t> d;
 
 };
 

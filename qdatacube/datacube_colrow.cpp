@@ -10,59 +10,106 @@
 
 #include <algorithm>
 
+using std::tr1::shared_ptr;
+
 namespace qdatacube {
 
-datacube_colrow_t::datacube_colrow_t( const QAbstractItemModel* model, abstract_filter_t* filter, const QList< int >& active) :
-    m_buckets(),
-    m_children(),
-    m_model(model),
-    m_filter(filter)
+class datacube_colrow_t::secret_t {
+  public:
+    QList<QList<int> > buckets;
+    QList<datacube_colrow_t*> children;
+    const QAbstractItemModel* model;
+    std::tr1::shared_ptr<abstract_filter_t> filter;
+
+    secret_t(const QAbstractItemModel* model,
+             std::tr1::shared_ptr<abstract_filter_t> filter);
+
+    /**
+     * Sort the list into buckets
+     */
+    void sort_to_buckets(const QList<int>& list);
+
+    /**
+     * Split the childindex *including* the empty ones
+     * @param index
+     * @param filter an abstract filter direviate, wrapped in a shared_ptr for convenience.
+     */
+    void split_including_empty(int index, std::tr1::shared_ptr<abstract_filter_t> filter);
+
+    /**
+     * @returns Span of current to depth
+     */
+    int span(int maxdepth) const;
+
+    /**
+     * @returns the index for section
+     * @param section
+     */
+    int index_for_section(int section) const;
+
+    /**
+     * @return the nth direct child
+     */
+    datacube_colrow_t* child(int section) const;
+
+    /**
+     * span of current to maxdepth
+     */
+    int fanthom_span(int maxdepth) const;
+};
+
+datacube_colrow_t::secret_t::secret_t(const QAbstractItemModel* model,
+                                      std::tr1::shared_ptr< abstract_filter_t > filter) :
+    buckets(),
+    children(),
+    model(model),
+    filter(filter)
 {
-  for (int i=0; i<m_filter->categories(model).size(); ++i) {
-    m_buckets << QList<int>();
-    m_children << 0L;
+  for (int i=0; i<filter->categories(model).size(); ++i) {
+    buckets << QList<int>();
+    children << 0L;
   }
-  sort_to_buckets(active);
-  Q_ASSERT(m_buckets.size() == m_children.size());
+
 }
 
-datacube_colrow_t::datacube_colrow_t(const QAbstractItemModel* model,
-                               const QList< int >& indexes,
-                               std::tr1::shared_ptr< abstract_filter_t > filter) :
-    m_buckets(),
-    m_children(),
-    m_model(model),
-    m_filter(filter)
-{
-  for (int i=0; i<m_filter->categories(model).size(); ++i) {
-    m_buckets << QList<int>();
-    m_children << 0L;
+datacube_colrow_t* datacube_colrow_t::secret_t::child(int section) const {
+  int index = index_for_section(section);
+  if (index>=0) {
+    return children[index];
   }
-  sort_to_buckets(indexes);
-  Q_ASSERT(m_buckets.size() == m_children.size());
+  return 0L;
 
 }
+
+datacube_colrow_t::datacube_colrow_t( const QAbstractItemModel* model, std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, const QList< int >& active
+) :
+    d(new secret_t(model, std::tr1::shared_ptr<abstract_filter_t>(filter)))
+{
+  d->sort_to_buckets(active);
+  Q_ASSERT(d->buckets.size() == d->children.size());
+}
+
 
 void datacube_colrow_t::restrict(QList< int > set) {
-  for (int i=0; i<m_buckets.size(); ++i) {
-    m_buckets[i].clear();
+  for (int i=0; i<d->buckets.size(); ++i) {
+    d->buckets[i].clear();
   }
-  sort_to_buckets(set);
-  for(int i=0; i<m_children.size(); ++i) {
-    datacube_colrow_t* child = m_children[i];
+  d->sort_to_buckets(set);
+  for(int i=0; i<d->children.size(); ++i) {
+    datacube_colrow_t* child = d->children[i];
     if (child) {
-      child->restrict(m_buckets[i]);
+      child->restrict(d->buckets[i]);
     }
   }
 
 }
 
-void datacube_colrow_t::remove(int container_index) {
-  for (int i=0; i<m_buckets.size(); ++i) {
-    if (m_buckets[i].contains(container_index)) {
-      m_buckets[i].removeOne(container_index);
-      if (datacube_colrow_t* child = m_children[i]) {
-        child->remove(container_index);
+void datacube_colrow_t::remove(int index) {
+  for (int i=0; i<d->buckets.size(); ++i) {
+    if (d->buckets[i].contains(index)) {
+      d->buckets[i].removeOne(index);
+      if (datacube_colrow_t* child = d->children[i]) {
+        child->remove(index);
       }
       break; // Optimization
     }
@@ -70,22 +117,22 @@ void datacube_colrow_t::remove(int container_index) {
 
 }
 
-int datacube_colrow_t::bucket_for_container(int container_index) const {
+int datacube_colrow_t::bucket_for_index(int index) const {
   int section =0;
-  for (int i=0; i<m_buckets.size(); ++i) {
-    if (m_buckets[i].contains(container_index)) {
-      if (datacube_colrow_t* child = m_children[i]) {
-        int rv = child->bucket_for_container(container_index);
+  for (int i=0; i<d->buckets.size(); ++i) {
+    if (d->buckets[i].contains(index)) {
+      if (datacube_colrow_t* child = d->children[i]) {
+        int rv = child->bucket_for_index(index);
         Q_ASSERT(rv>=0);
         return section+rv;
       } else {
         return section;
       }
     } else {
-      if(datacube_colrow_t* child = m_children[i]) {
+      if(datacube_colrow_t* child = d->children[i]) {
         section+=child->size();
       } else {
-        if(!m_buckets[i].empty()) {
+        if(!d->buckets[i].empty()) {
           section++;
         }
       }
@@ -95,20 +142,20 @@ int datacube_colrow_t::bucket_for_container(int container_index) const {
 }
 
 void datacube_colrow_t::readd(int index) {
-  int bucket_index = (*m_filter)(m_model, index);
-  QList<int>& bucket = m_buckets[bucket_index];
+  int bucket_index = (*d->filter)(d->model, index);
+  QList<int>& bucket = d->buckets[bucket_index];
   QList<int>::iterator it = std::lower_bound(bucket.begin(), bucket.end(), index);
   bucket.insert(it, index);
-  if(datacube_colrow_t* child = m_children[bucket_index]) {
+  if(datacube_colrow_t* child = d->children[bucket_index]) {
     child->readd(index);
   }
 }
 
 int datacube_colrow_t::size() const {
   int rv = 0;
-  for (int i=0; i<m_buckets.size(); ++i) {
-    if ( m_buckets[i].size() > 0 ) {
-      rv += m_children[i] ? m_children[i]->size() : 1;
+  for (int i=0; i<d->buckets.size(); ++i) {
+    if ( d->buckets[i].size() > 0 ) {
+      rv += d->children[i] ? d->children[i]->size() : 1;
     }
   }
   return rv;
@@ -116,8 +163,8 @@ int datacube_colrow_t::size() const {
 
 int datacube_colrow_t::sectionCount() const {
   int rv = 0;
-  for (int i=0; i<m_buckets.size(); ++i) {
-    if ( m_buckets[i].size() > 0 ) {
+  for (int i=0; i<d->buckets.size(); ++i) {
+    if ( d->buckets[i].size() > 0 ) {
       ++rv;
     }
   }
@@ -126,17 +173,17 @@ int datacube_colrow_t::sectionCount() const {
 
 QList< QPair<QString,int> > datacube_colrow_t::active_headers(int depth) const {
   QList<QPair<QString,int> > rv;
-  const QList<QString> cat(m_filter->categories(m_model));
+  const QList<QString> cat(d->filter->categories(d->model));
   for (int i=0; i<cat.size(); ++i) {
-    if (!m_buckets[i].isEmpty()) {
+    if (!d->buckets[i].isEmpty()) {
       if (depth>0) {
-        if (datacube_colrow_t* child = m_children[i]) {
+        if (datacube_colrow_t* child = d->children[i]) {
           rv.append(child->active_headers(depth-1));
         } else {
           rv << QPair<QString,int>(QString(),1);
         }
       } else {
-        rv << QPair<QString,int>(cat.at(i),m_children[i] ? m_children[i]->size() : 1);
+        rv << QPair<QString,int>(cat.at(i),d->children[i] ? d->children[i]->size() : 1);
       }
     }
   }
@@ -144,47 +191,44 @@ QList< QPair<QString,int> > datacube_colrow_t::active_headers(int depth) const {
 }
 
 datacube_colrow_t* datacube_colrow_t::child(int section) const {
-  int index = index_for_section(section);
-  if (index>=0) {
-    return m_children[index];
-  }
-  return 0L;
+  return d->child(section);
 }
 
-void datacube_colrow_t::sort_to_buckets(const QList< int >& list) {
+void datacube_colrow_t::secret_t::sort_to_buckets(const QList< int >& list) {
   foreach (int index, list) {
-    int bucket = (*m_filter)(m_model, index);
-    m_buckets[bucket] << index;
+    int bucket = (*filter)(model, index);
+    buckets[bucket] << index;
   }
 }
 
 int datacube_colrow_t::span(int section) const {
-  datacube_colrow_t* c = child(section);
+  datacube_colrow_t* c = d->child(section);
   return c ? c->size() : 1;
 }
 
 int datacube_colrow_t::depth() const {
   int rv = 0;
-  for (int i=0; i<m_children.size(); ++i) {
-    if (m_children[i] && !m_buckets[i].isEmpty()) {
-      rv = std::max(m_children[i]->depth(), rv);
+  for (int i=0; i<d->children.size(); ++i) {
+    if (d->children[i] && !d->buckets[i].isEmpty()) {
+      rv = std::max(d->children[i]->depth(), rv);
     }
   }
   return rv+1; // Include self, hence +1
 }
 
-QList< int > datacube_colrow_t::container_indexes(int section) const {
+QList< int > datacube_colrow_t::indexes
+(int section) const {
   int i=0;
   int child = 0;
   while (true) {
     Q_ASSERT(i<=section);
     int sp = span(child);
     if (i+sp > section) {
-      int index = index_for_section(child);
-      if (datacube_colrow_t* c = m_children[index]) {
-        return c->container_indexes(section-i);
+      int index = d->index_for_section(child);
+      if (datacube_colrow_t* c = d->children[index]) {
+        return c->indexes(section-i);
       } else {
-        return m_buckets[index];
+        return d->buckets[index];
       }
     }
     i+=sp;
@@ -195,10 +239,10 @@ QList< int > datacube_colrow_t::container_indexes(int section) const {
 
 }
 
-int datacube_colrow_t::index_for_section(int section) const {
+int datacube_colrow_t::secret_t::index_for_section(int section) const {
   // Skip empty buckets
-  for (int i=0; i<m_buckets.size();++i) {
-    if (m_buckets[i].isEmpty()) {
+  for (int i=0; i<buckets.size();++i) {
+    if (buckets[i].isEmpty()) {
       continue;
     }
     if (section == 0) {
@@ -211,27 +255,31 @@ int datacube_colrow_t::index_for_section(int section) const {
 }
 
 void datacube_colrow_t::split(int section, std::tr1::shared_ptr< abstract_filter_t > filter) {
-  int index = index_for_section(section);
-  split_including_empty(index, filter);
+  int index = d->index_for_section(section);
+  d->split_including_empty(index, filter);
 }
 
 void datacube_colrow_t::split(std::tr1::shared_ptr< abstract_filter_t > filter) {
-  for (int i=0; i<m_children.size(); ++i) {
-    split_including_empty(i, filter);
+  for (int i=0; i<d->children.size(); ++i) {
+    d->split_including_empty(i, filter);
   }
 }
 
-void datacube_colrow_t::split_including_empty(int index, std::tr1::shared_ptr< abstract_filter_t > filter) {
-  datacube_colrow_t* newchild = new datacube_colrow_t(m_model, m_buckets[index], filter);
-  if (datacube_colrow_t* oldchild = m_children[index]) {
-    for(int i=0; i<newchild->m_children.size(); ++i) {
-      datacube_colrow_t*& grandchild = newchild->m_children[i];
+void datacube_colrow_t::split(abstract_filter_t* filter) {
+  split(shared_ptr<abstract_filter_t>(filter));
+}
+
+void datacube_colrow_t::secret_t::split_including_empty(int index, std::tr1::shared_ptr< abstract_filter_t > filter) {
+  datacube_colrow_t* newchild = new datacube_colrow_t(model, filter, buckets[index]);
+  if (datacube_colrow_t* oldchild = children[index]) {
+    for(int i=0; i<newchild->d->children.size(); ++i) {
+      datacube_colrow_t*& grandchild = newchild->d->children[i];
       Q_ASSERT(grandchild == 0);
-      grandchild = new datacube_colrow_t(m_model, newchild->m_buckets[i], oldchild->m_filter);
+      grandchild = new datacube_colrow_t(model, oldchild->d->filter, newchild->d->buckets[i]);
     }
     delete oldchild;
   }
-  m_children[index] = newchild;
+  children[index] = newchild;
 
 }
 
@@ -240,9 +288,9 @@ QPair<datacube_colrow_t*,int> datacube_colrow_t::descendant_section(int depth, i
     return QPair<datacube_colrow_t*,int>(this,section);
   } else {
     int i = 0;
-    for (int c = 0;c<m_children.size();++c) {
-      if (datacube_colrow_t* chld = m_children[c]) {
-        int s = chld->fanthom_span(depth-1);
+    for (int c = 0;c<d->children.size();++c) {
+      if (datacube_colrow_t* chld = d->children[c]) {
+        int s = chld->d->fanthom_span(depth-1);
         if (s+i>section) {
           return chld->descendant_section(depth-1, section-i);
         } else {
@@ -258,14 +306,14 @@ QPair<datacube_colrow_t*,int> datacube_colrow_t::descendant_section(int depth, i
   }
 }
 
-int datacube_colrow_t::fanthom_span(int maxdepth) const {
+int datacube_colrow_t::secret_t::fanthom_span(int maxdepth) const {
   if (maxdepth == 0) {
-    return m_buckets.count() - m_buckets.count(QList<int>());
+    return buckets.count() - buckets.count(QList<int>());
   }
   int rv = 0;
-  foreach(datacube_colrow_t* child, m_children) {
+  foreach(datacube_colrow_t* child, children) {
     if (child) {
-      rv += child->fanthom_span(maxdepth-1);
+      rv += child->d->fanthom_span(maxdepth-1);
     } else {
       rv += 1;
     }
@@ -273,10 +321,16 @@ int datacube_colrow_t::fanthom_span(int maxdepth) const {
   return rv;
 }
 
-QList< int > datacube_colrow_t::all_container_indexes(int section) const {
-  int index = index_for_section(section);
-  return m_buckets[index];
+QList< int > datacube_colrow_t::all_indexes
+(int section) const {
+  int index = d->index_for_section(section);
+  return d->buckets[index];
 }
+
+qdatacube::datacube_colrow_t::~datacube_colrow_t() {
+  // Only declared so that the QScopedPointer knows the destructor to secret_t
+}
+
 }
 
 #include "datacube_colrow.moc"

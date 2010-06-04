@@ -10,38 +10,56 @@
 #include "datacube.h"
 
 namespace qdatacube {
+class datacube_header_model_t::secret_t {
+  public:
+    Qt::Orientation orientation;
+    datacube_model_t* datacube_model;
+    int index;
+    QList<QPair<QString, int> > header_data;
+
+    secret_t(datacube_model_t* qdatacube_model, Qt::Orientation orientation, int index);
+};
+
+datacube_header_model_t::secret_t::secret_t(datacube_model_t* datacube_model,
+                                            Qt::Orientation orientation,
+                                            int index) :
+    orientation(orientation),
+    datacube_model(datacube_model),
+    index(index),
+    header_data(datacube_model->datacube()->headers(orientation, index))
+{
+
+}
+
 
 datacube_header_model_t::datacube_header_model_t(datacube_model_t* qdatacube_model, Qt::Orientation orientation, int index):
     QAbstractItemModel(qdatacube_model),
-    m_orientation(orientation),
-    m_datacube_model(qdatacube_model),
-    m_index(index),
-    m_header_data(qdatacube_model->datacube()->headers(m_orientation, m_index))
+    d(new secret_t(qdatacube_model, orientation, index))
 {
   if(index==0) {
-    if(m_orientation == Qt::Horizontal) {
-      connect(m_datacube_model,SIGNAL(columnsRemoved(const QModelIndex&,int,int)),SLOT(slot_remove(const QModelIndex&, int,int)));
+    if(d->orientation == Qt::Horizontal) {
+      connect(d->datacube_model,SIGNAL(columnsRemoved(const QModelIndex&,int,int)),SLOT(slot_remove(const QModelIndex&, int,int)));
     } else {
-      connect(m_datacube_model,SIGNAL(rowsRemoved(const QModelIndex&,int,int)),SLOT(slot_remove(const QModelIndex&, int,int)));
+      connect(d->datacube_model,SIGNAL(rowsRemoved(const QModelIndex&,int,int)),SLOT(slot_remove(const QModelIndex&, int,int)));
     }
   }
 }
 
 int datacube_header_model_t::columnCount(const QModelIndex& ) const {
-  return m_orientation == Qt::Horizontal ? m_header_data.size() : 0;
+  return d->orientation == Qt::Horizontal ? d->header_data.size() : 0;
 }
 
 int datacube_header_model_t::rowCount(const QModelIndex& ) const {
-  return m_orientation == Qt::Vertical ? m_header_data.size() : 0;
+  return d->orientation == Qt::Vertical ? d->header_data.size() : 0;
 
 }
 
 QVariant datacube_header_model_t::headerData(int section, Qt::Orientation orientation, int role) const {
   switch(role) {
     case Qt::DisplayRole:
-      return m_header_data[section].first;
+      return d->header_data[section].first;
     case Qt::UserRole+1:
-      return m_header_data[section].second;
+      return d->header_data[section].second;
     default:
       return QAbstractItemModel::headerData(section, orientation, role);
   }

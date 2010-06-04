@@ -21,10 +21,11 @@ namespace qdatacube {
 class abstract_filter_t;
 
 /**
- * A row or column header in the recap table. Note that for recaps, there might
+ * A row or column header in the datacube table. Note that for datacubes, there might
  * might be several row and column headers.
  * Note also the concept of index, which is a raw index, and section, which excludes
- * empty columns/rows. Index should not appear in the public interface.
+ * empty columns/rows. Index should not appear in the public interface. Not to be confused with the indexes
+ * which are row indexes in the underlying model.
  */
 class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
   Q_OBJECT
@@ -36,21 +37,24 @@ class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
      * @param filter that defines the (top-level) columns. This takes ownership
      *        of filter, and deletes the filter when done.
      * @param active
-     *   list of containers to limit to, will only show the containers that has their
+     *   list of indexes to limit to, will only show the elements that has their (FIXME: Ticket #115)
      *   index from the model in this list
      */
-    datacube_colrow_t( const QAbstractItemModel* model, abstract_filter_t* filter, const QList< int >& active);
+    datacube_colrow_t(const QAbstractItemModel* model, std::tr1::shared_ptr<abstract_filter_t> filter, const QList< int >& active);
 
     /**
-     * @return the model for this row/col
+     * destructor
      */
-    const QAbstractItemModel* model() const {
-      return m_model;
-    }
+    virtual ~datacube_colrow_t();
 
     /**
-     * @returns the number of headers, excluding the once without any containers,
-     * recursively
+     * @return the underlying model for this row/col
+     */
+    const QAbstractItemModel* model() const ;
+
+    /**
+     * @returns the number of headers, excluding the once without any elements,
+     * recursively (that is, including subheaders)
      */
     int size() const;
 
@@ -60,7 +64,7 @@ class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
     int sectionCount() const;
 
     /**
-     * @returns a list of active headers, that is, those who are not empty
+     * @returns a list of active headers, that is, those who are not empty. The second
      * @param depth how many layers down to fetch the headers
      */
     QList<QPair<QString,int> > active_headers(int depth=0) const;
@@ -72,7 +76,7 @@ class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
 
     /**
      * @returns the section descendant at the depth depth together with the correct section
-     * the return value can then be used directly in e.g. split() or container_indexes();
+     * the return value can then be used directly in e.g. split() or indexes();
      */
     QPair<datacube_colrow_t*,int> descendant_section(int depth, int section);
 
@@ -85,18 +89,18 @@ class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
      * @returns container indexes for (sub) bucket
      *  recurses as needed
      */
-    QList<int> container_indexes(int section) const;
+    QList<int> indexes(int section) const;
 
     /**
      * @returns the bucket this container fits in. Recurses all the way to the bottom
      */
-    int bucket_for_container(int container_index) const;
+    int bucket_for_index(int index) const;
 
     /**
-     * @returns container indexes for all containers under this
+     * @returns container indexes for all elements under this
      * section (no recursion)
      */
-    QList<int> all_container_indexes(int section) const;
+    QList<int> all_indexes(int section) const;
 
     /**
      * @returns Span of section, recursively to the bottom
@@ -117,14 +121,19 @@ class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
     void split(std::tr1::shared_ptr<abstract_filter_t> filter);
 
     /**
+     * Convience method for split. As above, but claims ownership of filter, which will be deleted at some point
+     */
+    void split(abstract_filter_t* filter);
+
+    /**
      * Restrict colrow and descendants to this list.
      */
     void restrict(QList<int> set);
 
     /**
-     * remove this container from set
+     * remove index set
      */
-    void remove(int container_index);
+    void remove(int index);
 
     /**
      * readds a container with the specific index
@@ -132,38 +141,8 @@ class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
     void readd(int container_index);
 
   private:
-    QList<QList<int> > m_buckets;
-    QList<datacube_colrow_t*> m_children;
-    const QAbstractItemModel* m_model;
-    std::tr1::shared_ptr<abstract_filter_t> m_filter;
-
-    /**
-     * Reconstruct child datacube_colrow_t
-     */
-    datacube_colrow_t(const QAbstractItemModel* model,
-                   const QList<int>& indexes,
-                   std::tr1::shared_ptr<abstract_filter_t> filter);
-
-    /**
-     * Sort the list into buckets
-     */
-    void sort_to_buckets(const QList<int>& list);
-
-    /**
-     * Split the childindex *including* the empty ones
-     */
-    void split_including_empty(int index, std::tr1::shared_ptr<abstract_filter_t> filter);
-
-    /**
-     * @returns Span of current to depth
-     */
-    int fanthom_span(int maxdepth) const;
-
-    /**
-     * @returns the index for section
-     * @param section
-     */
-    int index_for_section(int section) const;
+    class secret_t;
+    QScopedPointer<secret_t> d;
 
 };
 }

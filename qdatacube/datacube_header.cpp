@@ -21,16 +21,45 @@
 
 namespace qdatacube {
 
+class datacube_header_t::secret_t {
+  public:
+    QSize size;
+    QList<QHeaderView*> headers;
+    bool lock;
+    QLayout* layout;
+    /**
+     * Helper function to partition the size changed (oldsize-size) into
+     * span integer pieces. This function will fetch the i'th piece.
+     * The essential property of this function is that given a larger number
+     * of resizes, the size changed should be evenly distributed across the
+     * pieces
+     */
+    int getnewlhsize(int oldsize, int size, int i, int span);
+
+    secret_t();
+};
+
+datacube_header_t::secret_t::secret_t() :
+    size(),
+    headers(),
+    lock(false),
+    layout(0L)
+{
+
+}
+
+
 datacube_header_t::datacube_header_t(Qt::Orientation orientation, QWidget* parent):
     QHeaderView(orientation, parent),
-    m_layout(0L){
+    d(new secret_t)
+{
   if (orientation == Qt::Horizontal) {
-    m_layout = new QVBoxLayout(this);
+    d->layout = new QVBoxLayout(this);
   } else {
-    m_layout = new QHBoxLayout(this);
+    d->layout = new QHBoxLayout(this);
   }
-  m_layout->setSpacing(0);
-  m_layout->setMargin(0);
+  d->layout->setSpacing(0);
+  d->layout->setMargin(0);
   connect(this, SIGNAL(sectionResized(int,int,int)), this, SLOT(slotSectionResized(int,int,int)));
   QAbstractScrollArea* scroll_area =  dynamic_cast<QAbstractScrollArea*>(parent);
   connect(orientation == Qt::Horizontal ? scroll_area->horizontalScrollBar() : scroll_area->verticalScrollBar(),
@@ -40,20 +69,20 @@ datacube_header_t::datacube_header_t(Qt::Orientation orientation, QWidget* paren
 QSize datacube_header_t::sizeHint() const {
   QSize rv;
   if (orientation() == Qt::Horizontal) {
-    foreach (QHeaderView* headerview, m_headers) {
+    foreach (QHeaderView* headerview, d->headers) {
       QSize size = headerview->sizeHint();
       rv.setHeight(std::max(rv.height()+size.height(),20));
     }
-    if (!m_headers.isEmpty()) {
-      rv.setWidth(std::max(m_headers.last()->width(),100));
+    if (!d->headers.isEmpty()) {
+      rv.setWidth(std::max(d->headers.last()->width(),100));
     }
   } else {
-    foreach (QHeaderView* headerview, m_headers) {
+    foreach (QHeaderView* headerview, d->headers) {
       QSize size = headerview->sizeHint();
       rv.setWidth(std::max(rv.width()+size.width(),10));
     }
-    if (!m_headers.isEmpty()) {
-      rv.setHeight(std::max(m_headers.last()->height(),200));
+    if (!d->headers.isEmpty()) {
+      rv.setHeight(std::max(d->headers.last()->height(),200));
     }
   }
   return rv;
@@ -72,33 +101,33 @@ void datacube_header_t::setAllOffset(int value) {
   Q_ASSERT(bar);
   int max = bar->maximum();
   if (value != max) {
-    foreach (QHeaderView* headerview, m_headers) {
+    foreach (QHeaderView* headerview, d->headers) {
       headerview->setOffsetToSectionPosition(value);
     }
   } else if (max>0) {
-    foreach (QHeaderView* headerview, m_headers) {
+    foreach (QHeaderView* headerview, d->headers) {
       headerview->setOffsetToLastSection();
     }
   }
 }
 
 void datacube_header_t::updateSizes() {
-  if (m_headers.empty()) {
+  if (d->headers.empty()) {
     return;
   }
-  QHeaderView* lastheader = m_headers.last();
-  for (int index = 0; index<m_headers.size(); ++index) {
-    QHeaderView* headerview = m_headers[index];
+  QHeaderView* lastheader = d->headers.last();
+  for (int index = 0; index<d->headers.size(); ++index) {
+    QHeaderView* headerview = d->headers[index];
     if (headerview != lastheader) {
       int lhindex = 0;
-      for (int j=0;j<m_headers[index]->count();++j) {
+      for (int j=0;j<d->headers[index]->count();++j) {
         int span = headerview->model()->headerData(j, orientation(), Qt::UserRole+1).toInt();
         int size = 0;
         for (int k=0; k<span; ++k) {
           size += lastheader->sectionSize(lhindex++);
         }
         headerview->resizeSection(j, size);
-        m_headers[index]->resizeSection(j,size);
+        d->headers[index]->resizeSection(j,size);
       }
     }
     ++index;
@@ -107,13 +136,13 @@ void datacube_header_t::updateSizes() {
 }
 
 void datacube_header_t::setSectionSize(int section,int oldsize, int size) {
-  if (m_lock) {
+  if (d->lock) {
     return;
   }
-  m_lock = true;
+  d->lock = true;
   if (QHeaderView* header = qobject_cast<QHeaderView*>(sender())) {
-    int index = m_headers.indexOf(header);
-    if (index < m_headers.size()-1) {
+    int index = d->headers.indexOf(header);
+    if (index < d->headers.size()-1) {
       int lhindex = 0;
       for (int i=0;i<section;++i) {
         int span = header->model()->headerData(i, orientation(), Qt::UserRole+1).toInt();
@@ -121,10 +150,10 @@ void datacube_header_t::setSectionSize(int section,int oldsize, int size) {
       }
       int span = header->model()->headerData(section, orientation(), Qt::UserRole+1).toInt();
       for (int i=0; i<span;++i) {
-        int oldlhsize = m_headers.last()->sectionSize(i+lhindex);
-        int newlhsize = oldlhsize + getnewlhsize(oldsize, size, i, span );
+        int oldlhsize = d->headers.last()->sectionSize(i+lhindex);
+        int newlhsize = oldlhsize + d->getnewlhsize(oldsize, size, i, span );
 
-        m_headers.last()->resizeSection(lhindex+i, newlhsize);
+        d->headers.last()->resizeSection(lhindex+i, newlhsize);
         resizeSection(lhindex+i, newlhsize);
       }
     } else {
@@ -132,10 +161,10 @@ void datacube_header_t::setSectionSize(int section,int oldsize, int size) {
     }
   }
   updateSizes();
-  m_lock = false;
+  d->lock = false;
 }
 
-int datacube_header_t::getnewlhsize(int oldsize, int size, int i, int span) {
+int datacube_header_t::secret_t::getnewlhsize(int oldsize, int size, int i, int span) {
   int sizechange = size-oldsize;
   int rv;
   if (sizechange > 0) {
@@ -149,25 +178,25 @@ int datacube_header_t::getnewlhsize(int oldsize, int size, int i, int span) {
 }
 
 void datacube_header_t::slotSectionResized(int section, int /*oldsize*/, int size) {
-  m_headers.last()->resizeSection(section, size);
+  d->headers.last()->resizeSection(section, size);
 }
 
 void datacube_header_t::reset() {
   const Qt::Orientation orientation = this->orientation();
-  foreach(QHeaderView* header, m_headers) {
+  foreach(QHeaderView* header, d->headers) {
     QAbstractItemModel* header_model = header->model();
     delete header;
     delete header_model;
   }
-  m_headers.clear();
+  d->headers.clear();
   if (datacube_model_t* datacube_model = qobject_cast<datacube_model_t*>(model())) {
     datacube_t* datacube = datacube_model->datacube();
     for (int i=0, iend = datacube->depth(orientation); i<iend; ++i) {
 
       QHeaderView* headerview = new QHeaderView(orientation, this);
-      m_layout->addWidget(headerview);
+      d->layout->addWidget(headerview);
       connect(headerview, SIGNAL(sectionResized(int,int,int)), SLOT(setSectionSize(int,int,int)));
-      m_headers << headerview;
+      d->headers << headerview;
       if (datacube_model) {
         datacube_header_model_t* rhm = new datacube_header_model_t(datacube_model, orientation, i);
         connect(rhm,SIGNAL(modelReset()),this,SLOT(reset()));
@@ -179,33 +208,33 @@ void datacube_header_t::reset() {
     return;
   }
   // Set minimum sizes for headers
-  QHeaderView* lastheader = m_headers.last();
+  QHeaderView* lastheader = d->headers.last();
   Q_ASSERT(lastheader);
   for (int section=0; section < lastheader->count(); ++section) {
     setMinimumSectionSize(std::max(lastheader->minimumSectionSize(),20));
   }
-  foreach (QHeaderView* header, m_headers) {
+  foreach (QHeaderView* header, d->headers) {
     if (header != lastheader) {
       for (int i=0; i<header->count(); ++i) {
         int span = header->model()->headerData(i, orientation, Qt::UserRole+1).toInt();
         int minsize = qMax(qMax(span*lastheader->minimumSectionSize(), header->minimumSectionSize()),30);
-        int key = m_headers.indexOf(header);
+        int key = d->headers.indexOf(header);
         header->setMinimumSectionSize(minsize);
-        m_headers.value(key)->setMinimumSectionSize(minsize);
+        d->headers.value(key)->setMinimumSectionSize(minsize);
 
       }
     }
   }
-  m_lock = true;
+  d->lock = true;
   for (int i=0; i<count();++i) {
-    m_headers.last()->resizeSection(i,sectionSize(i));
+    d->headers.last()->resizeSection(i,sectionSize(i));
     lastheader->resizeSection(i, sectionSize(i));
-    m_headers.last()->showSection(i);
+    d->headers.last()->showSection(i);
   }
 
   updateSizes();
-  m_lock = false;
-  m_layout->update();
+  d->lock = false;
+  d->layout->update();
   if(size().width() ==0){
     resize(20,size().height());
   }

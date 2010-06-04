@@ -39,10 +39,8 @@ class datacube_header_model_t : public QAbstractItemModel {
   private Q_SLOTS:
     void slot_remove(const QModelIndex&, int start,int end);
   private:
-    Qt::Orientation m_orientation;
-    datacube_model_t* m_datacube_model;
-    int m_index;
-    QList<QPair<QString, int> > m_header_data;
+    class secret_t;
+    QScopedPointer<secret_t> d;
 };
 
 }
