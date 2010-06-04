@@ -16,6 +16,18 @@ class testplaincube : public QObject {
     testplaincube(QObject* parent = 0);
   private Q_SLOTS:
     void test_basics();
+  private:
+    QAbstractItemModel* m_model;
+    enum columns_t {
+      FIRST_NAME,
+      LAST_NAME,
+      SEX,
+      AGE,
+      WEIGHT,
+      KOMMUNE,
+      N_COLUMNS
+
+    };
 };
 
 #endif // TESTPLAINCUBE_H
