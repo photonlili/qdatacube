@@ -5,7 +5,7 @@
 
 */
 
-#include "qdatacube_header.h"
+#include "datacube_header.h"
 
 #include <QPaintEvent>
 #include <QPainter>
@@ -15,13 +15,13 @@
 #include <QTableView>
 #include <QLayout>
 
-#include "qdatacube.h"
-#include "qdatacube_header_model.h"
-#include "qdatacube_model.h"
+#include "datacube.h"
+#include "datacube_header_model.h"
+#include "datacube_model.h"
 
 namespace qdatacube {
 
-qdatacube_header_t::qdatacube_header_t(Qt::Orientation orientation, QWidget* parent):
+datacube_header_t::datacube_header_t(Qt::Orientation orientation, QWidget* parent):
     QHeaderView(orientation, parent),
     m_layout(0L){
   if (orientation == Qt::Horizontal) {
@@ -37,7 +37,7 @@ qdatacube_header_t::qdatacube_header_t(Qt::Orientation orientation, QWidget* par
           SIGNAL(valueChanged(int)), this, SLOT(setAllOffset(int)));
 }
 
-QSize qdatacube_header_t::sizeHint() const {
+QSize datacube_header_t::sizeHint() const {
   QSize rv;
   if (orientation() == Qt::Horizontal) {
     foreach (QHeaderView* headerview, m_headers) {
@@ -59,11 +59,11 @@ QSize qdatacube_header_t::sizeHint() const {
   return rv;
 }
 
-void qdatacube_header_t::setModel(QAbstractItemModel* model) {
+void datacube_header_t::setModel(QAbstractItemModel* model) {
   QHeaderView::setModel(model);
 }
 
-void qdatacube_header_t::setAllOffset(int value) {
+void datacube_header_t::setAllOffset(int value) {
   QAbstractScrollArea* scroll_area =  dynamic_cast<QAbstractScrollArea*>(parent());
   if (!scroll_area) {
     return;
@@ -82,7 +82,7 @@ void qdatacube_header_t::setAllOffset(int value) {
   }
 }
 
-void qdatacube_header_t::updateSizes() {
+void datacube_header_t::updateSizes() {
   if (m_headers.empty()) {
     return;
   }
@@ -106,7 +106,7 @@ void qdatacube_header_t::updateSizes() {
 
 }
 
-void qdatacube_header_t::setSectionSize(int section,int oldsize, int size) {
+void datacube_header_t::setSectionSize(int section,int oldsize, int size) {
   if (m_lock) {
     return;
   }
@@ -135,7 +135,7 @@ void qdatacube_header_t::setSectionSize(int section,int oldsize, int size) {
   m_lock = false;
 }
 
-int qdatacube_header_t::getnewlhsize(int oldsize, int size, int i, int span) {
+int datacube_header_t::getnewlhsize(int oldsize, int size, int i, int span) {
   int sizechange = size-oldsize;
   int rv;
   if (sizechange > 0) {
@@ -148,11 +148,11 @@ int qdatacube_header_t::getnewlhsize(int oldsize, int size, int i, int span) {
   return rv;
 }
 
-void qdatacube_header_t::slotSectionResized(int section, int /*oldsize*/, int size) {
+void datacube_header_t::slotSectionResized(int section, int /*oldsize*/, int size) {
   m_headers.last()->resizeSection(section, size);
 }
 
-void qdatacube_header_t::reset() {
+void datacube_header_t::reset() {
   const Qt::Orientation orientation = this->orientation();
   foreach(QHeaderView* header, m_headers) {
     QAbstractItemModel* header_model = header->model();
@@ -160,16 +160,16 @@ void qdatacube_header_t::reset() {
     delete header_model;
   }
   m_headers.clear();
-  if (qdatacube_model_t* qdatacube_model = qobject_cast<qdatacube_model_t*>(model())) {
-    qdatacube_t* qdatacube = qdatacube_model->qdatacube();
-    for (int i=0, iend = qdatacube->depth(orientation); i<iend; ++i) {
+  if (datacube_model_t* datacube_model = qobject_cast<datacube_model_t*>(model())) {
+    datacube_t* datacube = datacube_model->datacube();
+    for (int i=0, iend = datacube->depth(orientation); i<iend; ++i) {
 
       QHeaderView* headerview = new QHeaderView(orientation, this);
       m_layout->addWidget(headerview);
       connect(headerview, SIGNAL(sectionResized(int,int,int)), SLOT(setSectionSize(int,int,int)));
       m_headers << headerview;
-      if (qdatacube_model) {
-        qdatacube_header_model_t* rhm = new qdatacube_header_model_t(qdatacube_model, orientation, i);
+      if (datacube_model) {
+        datacube_header_model_t* rhm = new datacube_header_model_t(datacube_model, orientation, i);
         connect(rhm,SIGNAL(modelReset()),this,SLOT(reset()));
         headerview->setModel(rhm);
       }
@@ -216,16 +216,16 @@ void qdatacube_header_t::reset() {
 
 }
 
-void qdatacube_header_t::paintEvent(QPaintEvent* e) {
+void datacube_header_t::paintEvent(QPaintEvent* e) {
   QWidget::paintEvent(e);
 }
 
-int qdatacube_header_t::sizeHintForColumn(int ) const {
+int datacube_header_t::sizeHintForColumn(int ) const {
   return -1; // Perhaps TODO, but this avoid unforunate recursion
 }
 
-int qdatacube_header_t::sizeHintForRow(int ) const {
+int datacube_header_t::sizeHintForRow(int ) const {
   return -1; // Perhaps TODO, but this avoid unforunate recursion
 }
 }
-#include "qdatacube_header.moc"
+#include "datacube_header.moc"

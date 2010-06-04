@@ -5,41 +5,41 @@
 
 */
 
-#include "qdatacube.h"
-#include "qdatacube_colrow.h"
+#include "datacube.h"
+#include "datacube_colrow.h"
 
 #include <QAbstractItemModel>
 
 namespace qdatacube {
 
-qdatacube_t::qdatacube_t(const QAbstractItemModel* model,
+datacube_t::datacube_t(const QAbstractItemModel* model,
                  abstract_filter_t* row_filter,
                  abstract_filter_t* column_filter,
                  const QList<int>& active,
                  QObject* parent):
     QObject(parent),
-    m_columns(new qdatacube_colrow_t(model, column_filter, active)),
-    m_rows(new qdatacube_colrow_t(model, row_filter, active)) {
+    m_columns(new datacube_colrow_t(model, column_filter, active)),
+    m_rows(new datacube_colrow_t(model, row_filter, active)) {
 
 }
 
-int qdatacube_t::headerCount(Qt::Orientation orientation) const {
+int datacube_t::headerCount(Qt::Orientation orientation) const {
   return orientation == Qt::Horizontal ? m_columns->depth() : m_rows->depth();
 }
 
-int qdatacube_t::cellCount(int row, int column) const {
+int datacube_t::cellCount(int row, int column) const {
   return cellrows(row,column).size();
 }
 
-int qdatacube_t::columnCount() const {
+int datacube_t::columnCount() const {
   return m_columns->size();
 }
 
-int qdatacube_t::rowCount() const {
+int datacube_t::rowCount() const {
   return m_rows->size();
 }
 
-QList< int > qdatacube_t::cellrows(int row, int column) const {
+QList< int > datacube_t::cellrows(int row, int column) const {
   // Return the intersection of the row's and the column's container indexes
   QList<int> rowindex = m_rows->container_indexes(row);
   QList<int> colindex = m_columns->container_indexes(column);
@@ -62,7 +62,7 @@ QList< int > qdatacube_t::cellrows(int row, int column) const {
 
 }
 
-QList< QPair<QString,int> > qdatacube_t::headers(Qt::Orientation orientation, int index) const {
+QList< QPair<QString,int> > datacube_t::headers(Qt::Orientation orientation, int index) const {
   if (orientation == Qt::Horizontal) {
     return m_columns->active_headers(index);
   } else {
@@ -70,21 +70,21 @@ QList< QPair<QString,int> > qdatacube_t::headers(Qt::Orientation orientation, in
   }
 }
 
-qdatacube_t::~qdatacube_t() {
-  // Need to declare here so qdatacube_colrow_t's destructor is visible
+datacube_t::~datacube_t() {
+  // Need to declare here so datacube_colrow_t's destructor is visible
 }
 
-int qdatacube_t::depth(Qt::Orientation orientation) {
+int datacube_t::depth(Qt::Orientation orientation) {
   return orientation == Qt::Horizontal ? m_columns->depth() : m_rows->depth();
 }
 
-void qdatacube_t::restrict(QList< int > set) {
+void datacube_t::restrict(QList< int > set) {
   m_columns->restrict(set);
   m_rows->restrict(set);
   emit changed();
 }
 
-void qdatacube_t::remove(int container_index) {
+void datacube_t::remove(int container_index) {
   int row_index = m_rows->bucket_for_container(container_index);
   if (row_index == -1) {
     // Our qdatacube does not cover that container. Just ignore it.
@@ -115,7 +115,7 @@ void qdatacube_t::remove(int container_index) {
   }
 }
 
-void qdatacube_t::readd(int index) {
+void datacube_t::readd(int index) {
   m_columns->readd(index);
   m_rows->readd(index);
   emit changed();
@@ -123,5 +123,5 @@ void qdatacube_t::readd(int index) {
 
 }
 
-#include "qdatacube.moc"
+#include "datacube.moc"
 

@@ -16,12 +16,12 @@ class QLayout;
 
 namespace qdatacube {
 
-class qdatacube_t;
+class datacube_t;
 
-class QDATACUBE_EXPORT qdatacube_header_t : public QHeaderView {
+class QDATACUBE_EXPORT datacube_header_t : public QHeaderView {
   Q_OBJECT
   public:
-    qdatacube_header_t(Qt::Orientation orientation, QWidget* parent = 0);
+    datacube_header_t(Qt::Orientation orientation, QWidget* parent = 0);
     virtual QSize sizeHint() const;
     virtual void setModel(QAbstractItemModel* model);
   protected:

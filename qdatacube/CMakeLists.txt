@@ -3,11 +3,11 @@
 #
 
 SET(QDATACUBE_SRC
-  qdatacube.cpp
-  qdatacube_colrow.cpp
-  qdatacube_header.cpp
-  qdatacube_header_model.cpp
-  qdatacube_model.cpp
+  datacube.cpp
+  datacube_colrow.cpp
+  datacube_header.cpp
+  datacube_header_model.cpp
+  datacube_model.cpp
 )
 
 QT4_AUTOMOC(${QDATACUBE_SRC})
@@ -16,20 +16,22 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 ADD_LIBRARY(qdatacube SHARED ${QDATACUBE_SRC})
 
-target_link_libraries(qdatacube ${QT_CORE_LIBRARY} ${QT_GUI_LIBRARY})
+target_link_libraries(qdatacube ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
 SET(QDATACUBE_SO_VERSION 0)
 SET(QDATACUBE_VERSION "0.1")
 set_target_properties(qdatacube PROPERTIES VERSION "${QDATACUBE_SO_VERSION}.0.0" SOVERSION "${QDATACUBE_SO_VERSION}" DEFINE_SYMBOL BUILDING_QDATACUBE )
 
 SET(CONTAINERS_PUBLIC_HEADERS
-  qdatacube.h
-  qdatacube_colrow.h
-  qdatacube_model.h
-  qdatacube_header.h
-  qdatacube_header_model.h
+  datacube.h
+  datacube_colrow.h
+  datacube_model.h
+  datacube_header.h
+  datacube_header_model.h
   abstract_filter.h
   qdatacube_export.h
 )
+
+add_subdirectory(test)
 
 GET_TARGET_PROPERTY(LIB_OUT_NAME qdatacube LOCATION)
 GET_FILENAME_COMPONENT(LIB_OUT_NAME  ${LIB_OUT_NAME} NAME)

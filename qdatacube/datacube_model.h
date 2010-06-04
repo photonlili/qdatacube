@@ -5,8 +5,8 @@
 
 */
 
-#ifndef QDATACUBE_QDATACUBE_MODEL_H
-#define QDATACUBE_QDATACUBE_MODEL_H
+#ifndef Q_DATACUBE_DATACUBE_MODEL_H
+#define Q_DATACUBE_DATACUBE_MODEL_H
 
 #include <QAbstractItemModel>
 #include <QItemSelectionModel>
@@ -16,16 +16,16 @@
 
 namespace qdatacube {
 
-class qdatacube_t;
+class datacube_t;
 
 /**
  * Bridge between the qdatacube model and Qt's model-view framework
  */
-class QDATACUBE_EXPORT qdatacube_model_t : public QAbstractTableModel {
+class QDATACUBE_EXPORT datacube_model_t : public QAbstractTableModel {
     Q_OBJECT
   public:
-    qdatacube_model_t(qdatacube_t* datacube, QObject* parent = 0);
-    ~qdatacube_model_t();
+    datacube_model_t(datacube_t* datacube, QObject* parent = 0);
+    ~datacube_model_t();
     virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
     virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
@@ -34,8 +34,8 @@ class QDATACUBE_EXPORT qdatacube_model_t : public QAbstractTableModel {
     /**
      * The qdatacube model behind the model
      */
-    qdatacube_t* qdatacube() const {
-      return m_qdatacube;
+    datacube_t* datacube() const {
+      return m_datacube;
     }
   signals:
     /**
@@ -58,6 +58,7 @@ class QDATACUBE_EXPORT qdatacube_model_t : public QAbstractTableModel {
      * Only show the container indexes in list
      */
     void restrict_to_indexes(QList< int > list);
+
     void slot_begin_remove_column(int);
     void slot_begin_remove_row(int);
     void slot_remove_column(int);
@@ -65,12 +66,12 @@ class QDATACUBE_EXPORT qdatacube_model_t : public QAbstractTableModel {
     void slot_data_changed(int,int);
 
   private slots:
-    void slot_qdatacube_changed();
+    void slot_datacube_changed();
 
   private:
-    qdatacube_t* m_qdatacube;
+    datacube_t* m_datacube;
 };
 
 }
 
-#endif // QDATACUBE_QDATACUBE_MODEL_H
+#endif // Q_DATACUBE_DATACUBE_MODEL_H

@@ -5,8 +5,8 @@
 
 */
 
-#ifndef QDATACUBE_QDATACUBE_COLROW_H
-#define QDATACUBE_QDATACUBE_COLROW_H
+#ifndef Q_DATACUBE_DATACUBE_COLROW_H
+#define Q_DATACUBE_DATACUBE_COLROW_H
 
 #include <QList>
 #include <QObject>
@@ -26,7 +26,7 @@ class abstract_filter_t;
  * Note also the concept of index, which is a raw index, and section, which excludes
  * empty columns/rows. Index should not appear in the public interface.
  */
-class QDATACUBE_EXPORT qdatacube_colrow_t : public QObject {
+class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
   Q_OBJECT
   public:
 
@@ -39,7 +39,7 @@ class QDATACUBE_EXPORT qdatacube_colrow_t : public QObject {
      *   list of containers to limit to, will only show the containers that has their
      *   index from the model in this list
      */
-    qdatacube_colrow_t( const QAbstractItemModel* model, abstract_filter_t* filter, const QList< int >& active);
+    datacube_colrow_t( const QAbstractItemModel* model, abstract_filter_t* filter, const QList< int >& active);
 
     /**
      * @return the model for this row/col
@@ -68,13 +68,13 @@ class QDATACUBE_EXPORT qdatacube_colrow_t : public QObject {
     /**
      * @returns the nth direct child
      */
-    qdatacube_colrow_t* child(int section) const;
+    datacube_colrow_t* child(int section) const;
 
     /**
      * @returns the section descendant at the depth depth together with the correct section
      * the return value can then be used directly in e.g. split() or container_indexes();
      */
-    QPair<qdatacube_colrow_t*,int> descendant_section(int depth, int section);
+    QPair<datacube_colrow_t*,int> descendant_section(int depth, int section);
 
     /**
      * @returns max depth of children
@@ -133,14 +133,14 @@ class QDATACUBE_EXPORT qdatacube_colrow_t : public QObject {
 
   private:
     QList<QList<int> > m_buckets;
-    QList<qdatacube_colrow_t*> m_children;
+    QList<datacube_colrow_t*> m_children;
     const QAbstractItemModel* m_model;
     std::tr1::shared_ptr<abstract_filter_t> m_filter;
 
     /**
-     * Reconstruct child qdatacube_colrow_t
+     * Reconstruct child datacube_colrow_t
      */
-    qdatacube_colrow_t(const QAbstractItemModel* model,
+    datacube_colrow_t(const QAbstractItemModel* model,
                    const QList<int>& indexes,
                    std::tr1::shared_ptr<abstract_filter_t> filter);
 
@@ -167,4 +167,4 @@ class QDATACUBE_EXPORT qdatacube_colrow_t : public QObject {
 
 };
 }
-#endif // QDATACUBE_QDATACUBE_COLROW_H
+#endif // Q_DATACUBE_DATACUBE_COLROW_H

@@ -5,8 +5,8 @@
 
 */
 
-#ifndef QDATACUBE_QDATACUBE_H
-#define QDATACUBE_QDATACUBE_H
+#ifndef Q_DATACUBE_DATACUBE_H
+#define Q_DATACUBE_DATACUBE_H
 
 #include "qdatacube_export.h"
 
@@ -19,18 +19,18 @@ class QAbstractItemModel;
 namespace qdatacube {
 
 class abstract_filter_t;
-class qdatacube_colrow_t;
+class datacube_colrow_t;
 
-class QDATACUBE_EXPORT qdatacube_t : public QObject {
+class QDATACUBE_EXPORT datacube_t : public QObject {
   Q_OBJECT
   public:
     /**
-     * Construct simple 2-dimensional qdatacube with the 2 filters
+     * Construct simple 2-dimensional datacube with the 2 filters
      * @param row_filter initial filter. Ownership is claimed, and filter will be deleted
      * @param column_filter initial filter. Ownership is claimed, and filter will be deleted
      * @param active limited to these containers
      */
-    qdatacube_t(const QAbstractItemModel* model,
+    datacube_t(const QAbstractItemModel* model,
             abstract_filter_t* row_filter,
             abstract_filter_t* column_filter,
             const QList<int>& active,
@@ -39,7 +39,7 @@ class QDATACUBE_EXPORT qdatacube_t : public QObject {
     /**
      * Destructor
      */
-    ~qdatacube_t();
+    ~datacube_t();
 
     /**
      * restrict to this subset
@@ -81,14 +81,14 @@ class QDATACUBE_EXPORT qdatacube_t : public QObject {
     /**
      * @returns the rows toplevel header
      */
-    qdatacube_colrow_t& toplevel_row_header() {
+    datacube_colrow_t& toplevel_row_header() {
       return *m_rows;
     }
 
     /**
      * @returns the columns
      */
-    qdatacube_colrow_t& toplevel_column_header() {
+    datacube_colrow_t& toplevel_column_header() {
       return *m_columns;
     }
 
@@ -115,9 +115,9 @@ class QDATACUBE_EXPORT qdatacube_t : public QObject {
     void data_changed(int row,int column);
 
   private:
-    std::auto_ptr<qdatacube_colrow_t> m_columns;
-    std::auto_ptr<qdatacube_colrow_t> m_rows;
+    std::auto_ptr<datacube_colrow_t> m_columns;
+    std::auto_ptr<datacube_colrow_t> m_rows;
 };
 }
 
-#endif // QDATACUBE_QDATACUBE_H
+#endif // Q_DATACUBE_DATACUBE_H

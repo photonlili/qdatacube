@@ -6,22 +6,22 @@
 
 */
 
-#ifndef QDATACUBE_QDATACUBE_HEADER_MODEL_H
-#define QDATACUBE_QDATACUBE_HEADER_MODEL_H
+#ifndef Q_DATACUBE_DATACUBE_HEADER_MODEL_H
+#define Q_DATACUBE_DATACUBE_HEADER_MODEL_H
 
 #include <QAbstractItemModel>
 
 namespace qdatacube {
 
-class qdatacube_model_t;
+class datacube_model_t;
 
 /**
  * Most of this class is just dummy implementation of the interface, as only headerData is actually used
  */
-class qdatacube_header_model_t : public QAbstractItemModel {
+class datacube_header_model_t : public QAbstractItemModel {
   Q_OBJECT
   public:
-    qdatacube_header_model_t(qdatacube_model_t* qdatacube_model, Qt::Orientation orientation, int index);
+    datacube_header_model_t(datacube_model_t* qdatacube_model, Qt::Orientation orientation, int index);
 
     virtual QVariant data(const QModelIndex& /*index*/, int /*role*/ = Qt::DisplayRole) const {
       return QVariant();
@@ -40,11 +40,11 @@ class qdatacube_header_model_t : public QAbstractItemModel {
     void slot_remove(const QModelIndex&, int start,int end);
   private:
     Qt::Orientation m_orientation;
-    qdatacube_model_t* m_qdatacube_model;
+    datacube_model_t* m_datacube_model;
     int m_index;
     QList<QPair<QString, int> > m_header_data;
 };
 
 }
 
-#endif // QDATACUBE_QDATACUBE_HEADER_MODEL_H
+#endif // Q_DATACUBE_DATACUBE_HEADER_MODEL_H
