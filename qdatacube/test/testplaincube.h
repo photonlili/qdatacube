@@ -10,11 +10,13 @@
 
 #include <QObject>
 #include <QtTest/QtTest>
+
 class testplaincube : public QObject {
   Q_OBJECT
   public:
     testplaincube(QObject* parent = 0);
   private Q_SLOTS:
+    void test_columnfilter();
     void test_basics();
   private:
     QAbstractItemModel* m_model;

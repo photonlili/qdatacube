@@ -3,6 +3,7 @@
 #
 
 SET(QDATACUBE_SRC
+  column_filter.cpp
   datacube.cpp
   datacube_colrow.cpp
   datacube_header.cpp
@@ -12,7 +13,7 @@ SET(QDATACUBE_SRC
 
 QT4_AUTOMOC(${QDATACUBE_SRC})
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 
 ADD_LIBRARY(qdatacube SHARED ${QDATACUBE_SRC})
 
@@ -21,6 +22,7 @@ SET(QDATACUBE_SO_VERSION 0)
 set_target_properties(qdatacube PROPERTIES VERSION "${QDATACUBE_SO_VERSION}.0.0" SOVERSION "${QDATACUBE_SO_VERSION}" DEFINE_SYMBOL BUILDING_QDATACUBE )
 
 SET(CONTAINERS_PUBLIC_HEADERS
+  column_filter.h
   datacube.h
   datacube_colrow.h
   datacube_model.h
