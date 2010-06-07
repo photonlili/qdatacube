@@ -100,13 +100,17 @@ void datacube_header_t::setAllOffset(int value) {
   QScrollBar* bar = orientation() == Qt::Horizontal ? scroll_area->horizontalScrollBar() : scroll_area->verticalScrollBar();
   Q_ASSERT(bar);
   int max = bar->maximum();
-  if (value != max) {
-    foreach (QHeaderView* headerview, d->headers) {
-      headerview->setOffsetToSectionPosition(value);
+  // Calculate the scroll value for the innermost (and therefore span-free) header, then use that offset to set
+  // the remaining headers' offset.
+  if (!d->headers.isEmpty()) {
+    QHeaderView* last = d->headers.last();
+    if (value != max) {
+      last->setOffsetToSectionPosition(value);
+    } else if (max>0) {
+      last->setOffsetToLastSection();
     }
-  } else if (max>0) {
-    foreach (QHeaderView* headerview, d->headers) {
-      headerview->setOffsetToLastSection();
+    for (int i=0; i<d->headers.size()-1; ++i) {
+      d->headers[i]->setOffset(last->offset());
     }
   }
 }
