@@ -16,8 +16,25 @@ class testplaincube : public QObject {
   public:
     testplaincube(QObject* parent = 0);
   private Q_SLOTS:
+    /**
+     * Test the column filter
+     */
     void test_columnfilter();
+
+    /**
+     * Test a basic 2dim datacube
+     */
     void test_basics();
+
+    /**
+     * Test spliiting a cube
+     */
+    void test_split();
+
+    /**
+     * Test that empty rows are collapsed
+     */
+    void test_collapse();
   private:
     QAbstractItemModel* m_model;
     enum columns_t {
