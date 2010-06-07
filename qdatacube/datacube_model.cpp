@@ -44,8 +44,10 @@ datacube_model_t::~datacube_model_t() {
 }
 
 QVariant datacube_model_t::data(const QModelIndex& index, int role) const {
-  if (role == Qt::DisplayRole) {
-    return d->datacube->cellCount(index.row(), index.column());
+  if (index.isValid()) {
+    if (role == Qt::DisplayRole) {
+      return d->datacube->cellCount(index.row(), index.column());
+    }
   }
   return QVariant();
 }
