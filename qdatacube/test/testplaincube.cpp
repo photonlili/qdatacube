@@ -172,7 +172,6 @@ void testplaincube::test_collapse() {
   // While splitting last names should. -1 because there are no
   datacube.toplevel_column_header().split(sex_filter);
   // -1 since there are no female Thomsen in our set
-  printdatacube(&datacube);
   QCOMPARE(datacube.columnCount(), lastname_filter->categories(m_model).size()*sex_filter->categories(m_model).size() - 1);
 
 }
