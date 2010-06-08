@@ -42,22 +42,6 @@ class QDATACUBE_EXPORT datacube_model_t : public QAbstractTableModel {
      * so use this signal to transport between view and document until the selection thing is straightened out.
      */
     void changed();
-  public slots:
-    /**
-     * remove this container from view
-     */
-    void remove(int container_index);
-
-    /**
-     * Adds this container to view
-     */
-    void readd(int container_index);
-
-    /**
-     * Only show the container indexes in list
-     */
-    void restrict_to_indexes(QList< int > list);
-
   private Q_SLOTS:
     void slot_begin_remove_column(int);
     void slot_begin_remove_row(int);

@@ -50,15 +50,10 @@ int main() {
   qDebug() << "Read " << underlyingmodel->rowCount() << " rows";
 
 
-  QList<int> allactive;
-  const int nrows = underlyingmodel->rowCount();
-  for (int i=0; i<nrows;++i) {
-    allactive << i;
-  }
   column_filter_t* firstname_filter = new column_filter_t(0);
   column_filter_t* lastname_filter = new column_filter_t(1);
   std::tr1::shared_ptr<abstract_filter_t> sex_filter(new column_filter_t(2));
-  datacube_t* datacube = new datacube_t(underlyingmodel, firstname_filter, lastname_filter, allactive);
+  datacube_t* datacube = new datacube_t(underlyingmodel, firstname_filter, lastname_filter);
   datacube->toplevel_row_header().split(sex_filter);
   datacube->toplevel_column_header().split(sex_filter);
   datacube_model_t* model = new datacube_model_t(datacube);

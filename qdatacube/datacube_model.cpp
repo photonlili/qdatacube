@@ -70,18 +70,6 @@ void datacube_model_t::slot_datacube_changed() {
   emit changed();
 }
 
-void datacube_model_t::remove(int container_index) {
-  d->datacube->remove(container_index);
-}
-
-void datacube_model_t::readd(int container_index) {
-  d->datacube->readd(container_index);
-}
-
-void datacube_model_t::restrict_to_indexes(QList< int > list) {
-  d->datacube->restrict(list);
-}
-
 void datacube_model_t::slot_begin_remove_column(int column ) {
   beginRemoveColumns(QModelIndex(),column,column);
 }

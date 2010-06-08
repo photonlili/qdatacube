@@ -41,15 +41,10 @@ testheaders::testheaders(QObject* parent) : QObject(parent) {
   m_underlying_model = model;
   qDebug() << "Read " << m_underlying_model->rowCount() << " rows";
 
-  QList<int> allactive;
-  const int nrows = m_underlying_model->rowCount();
-  for (int i=0; i<nrows;++i) {
-    allactive << i;
-  }
   column_filter_t* firstname_filter = new column_filter_t(0);
   column_filter_t* lastname_filter = new column_filter_t(1);
   std::tr1::shared_ptr<abstract_filter_t> sex_filter(new column_filter_t(2));
-  datacube_t* datacube = new datacube_t(m_underlying_model, firstname_filter, lastname_filter, allactive);
+  datacube_t* datacube = new datacube_t(m_underlying_model, firstname_filter, lastname_filter);
   datacube->toplevel_row_header().split(sex_filter);
   datacube->toplevel_column_header().split(sex_filter);
   m_model = new datacube_model_t(datacube);

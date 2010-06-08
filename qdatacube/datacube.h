@@ -33,7 +33,6 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     datacube_t(const QAbstractItemModel* model,
             abstract_filter_t* row_filter,
             abstract_filter_t* column_filter,
-            const QList<int>& active,
             QObject* parent = 0);
 
     /**
@@ -45,19 +44,12 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     datacube_t(const QAbstractItemModel* model,
             std::tr1::shared_ptr<abstract_filter_t> row_filter,
             std::tr1::shared_ptr<abstract_filter_t> column_filter,
-            const QList<int>& active,
             QObject* parent = 0);
 
     /**
      * Destructor
      */
     ~datacube_t();
-
-    /**
-     * restrict to this subset
-     * TODO: Remove, see ticket #115
-     */
-    void restrict(QList<int> set);
 
     /**
      * Return the number of headers in the given direction
@@ -105,25 +97,13 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * @return depth (number of headers/filters) for orientation
      */
     int depth(Qt::Orientation orientation);
-  public slots:
-    /**
-     * remove this container from set
-     * TODO: Should be superflous with ticket #115
-     */
-    void remove(int container_index);
 
     /**
-     * readds this container to set
-     * TODO: Should be superflous with ticket #115
+     * Set global filter. Containers in category are included, the rest is rejected.
      */
-    void readd(int container_index);
+    void set_global_filter(std::tr1::shared_ptr<abstract_filter_t> filter, int category);
+
   signals:
-    /**
-     * Datacube has changed in some way.
-     * TODO: Should be superflous with ticket #115
-     */
-    void changed();
-
     /**
      * A row is about to be removed
      */
@@ -145,11 +125,34 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void column_removed(int);
 
     /**
+     * A row is about to be removed
+     */
+    void row_about_to_be_added(int index);
+
+    /**
+     * A row is about to be added
+     */
+    void column_about_to_be_added(int);
+
+    /**
+     * A row has been added
+     */
+    void row_added(int);
+
+    /**
+     * A column has been added
+     */
+    void column_added(int);
+
+    /**
      * The value in cell has changed
      */
     void data_changed(int row,int column);
 
   private:
+    void remove(int index);
+    void add(int index);
+
     class secret_t;
     QScopedPointer<secret_t> d;
 };

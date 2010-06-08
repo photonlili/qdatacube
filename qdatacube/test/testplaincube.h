@@ -35,6 +35,11 @@ class testplaincube : public QObject {
      * Test that empty rows are collapsed
      */
     void test_collapse();
+
+    /**
+     * Test global filter
+     */
+    void test_global_filter();
   private:
     QAbstractItemModel* m_model;
     enum columns_t {

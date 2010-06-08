@@ -19,30 +19,39 @@ class datacube_t::secret_t {
   public:
     secret_t(const QAbstractItemModel* model,
              shared_ptr<abstract_filter_t> row_filter,
-             shared_ptr<abstract_filter_t> column_filter,
-             const QList<int>& active);
+             shared_ptr<abstract_filter_t> column_filter);
+    const QAbstractItemModel* model;
     QScopedPointer<datacube_colrow_t> columns;
     QScopedPointer<datacube_colrow_t> rows;
+    std::tr1::shared_ptr<abstract_filter_t> global_filter;
+    int global_filter_category;
 
 };
 
 datacube_t::secret_t::secret_t(const QAbstractItemModel* model,
                                shared_ptr<abstract_filter_t> row_filter,
-                               shared_ptr<abstract_filter_t> column_filter,
-                               const QList< int >& active) :
-    columns(new datacube_colrow_t(model, column_filter, active)),
-    rows(new datacube_colrow_t(model, row_filter, active))
+                               shared_ptr<abstract_filter_t> column_filter) :
+    model(model),
+    columns(0L),
+    rows(0L),
+    global_filter(),
+    global_filter_category(-1)
 {
+  QList<int> active;
+  for (int row = 0, nrows = model->rowCount(); row<nrows; ++row) {
+    active << row;
+  }
+  columns.reset(new datacube_colrow_t(model, column_filter, active));
+  rows.reset(new datacube_colrow_t(model, row_filter, active));
 
 }
 
 datacube_t::datacube_t(const QAbstractItemModel* model,
                        shared_ptr<abstract_filter_t> row_filter,
                        shared_ptr<abstract_filter_t> column_filter,
-                       const QList<int>& active,
                        QObject* parent):
     QObject(parent),
-    d(new secret_t(model, row_filter, column_filter, active))
+    d(new secret_t(model, row_filter, column_filter))
 {
 
 }
@@ -50,11 +59,24 @@ datacube_t::datacube_t(const QAbstractItemModel* model,
 datacube_t::datacube_t(const QAbstractItemModel* model,
                        abstract_filter_t* row_filter,
                        abstract_filter_t* column_filter,
-                       const QList< int >& active,
                        QObject* parent):
     QObject(parent),
-    d(new secret_t(model, shared_ptr<abstract_filter_t>(row_filter), shared_ptr<abstract_filter_t>(column_filter), active))
+    d(new secret_t(model, shared_ptr<abstract_filter_t>(row_filter), shared_ptr<abstract_filter_t>(column_filter)))
 {
+}
+
+void datacube_t::set_global_filter(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, int category) {
+  for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
+    const bool was_included = d->global_filter.get() ? (*d->global_filter)(d->model, row) == d->global_filter_category : true;
+    const bool to_be_included = filter.get() ? (*filter)(d->model, row) == category : true;
+    if (!was_included && to_be_included) {
+      add(row);
+    } else if (was_included && !to_be_included) {
+      remove(row);
+    }
+  }
+  d->global_filter = filter;
+  d->global_filter_category = category;
 }
 
 int datacube_t::headerCount(Qt::Orientation orientation) const {
@@ -112,32 +134,58 @@ int datacube_t::depth(Qt::Orientation orientation) {
   return orientation == Qt::Horizontal ? d->columns->depth() : d->rows->depth();
 }
 
-void datacube_t::restrict(QList< int > set) {
-  d->columns->restrict(set);
-  d->rows->restrict(set);
-  emit changed();
-}
-
-void datacube_t::remove(int container_index) {
-  int row_index = d->rows->bucket_for_index(container_index);
-  if (row_index == -1) {
-    // Our qdatacube does not cover that container. Just ignore it.
+void datacube_t::add(int index) {
+  int row_section = d->rows->section_for_index(index);
+  if (row_section == -1) {
+    // Our datacube does not cover that container. Just ignore it.
     return;
   }
-  int column_index = d->columns->bucket_for_index(container_index);
-  Q_ASSERT(column_index>=0); // Every container should be in both rows and columns, or neither place.
+  int column_section = d->columns->section_for_index(index);
+  Q_ASSERT(column_section>=0); // Every container should be in both rows and columns, or neither place.
+  int row_to_add = -1;
+  int column_to_add = -1;
+  if(d->rows->sibling_indexes(index).isEmpty()) {
+    row_to_add = row_section;
+    emit row_about_to_be_added(row_section);
+  }
+  if(d->columns->sibling_indexes(index).isEmpty()) {
+    column_to_add = column_section;
+    emit column_about_to_be_added(column_section);
+  }
+  d->columns->add(index);
+  d->rows->add(index);
+  if(column_to_add>=0) {
+    emit column_added(column_to_add);
+  }
+  if(row_to_add>=0) {
+    emit row_added(row_to_add);
+  }
+  if(row_to_add==-1 && column_to_add==-1) {
+    emit data_changed(row_section,column_section);
+  }
+}
+
+void datacube_t::remove(int index) {
+  int row_section = d->rows->section_for_index(index);
+  if (row_section == -1) {
+    // Our datacube does not cover that container. Just ignore it.
+    return;
+  }
+  int column_section = d->columns->section_for_index
+(index);
+  Q_ASSERT(column_section>=0); // Every container should be in both rows and columns, or neither place.
   int row_to_remove = -1;
   int column_to_remove = -1;
-  if(d->rows->indexes(row_index).size()==1) {
-    row_to_remove = row_index;
-    emit row_about_to_be_removed(row_index);
+  if(d->rows->indexes(row_section).size()==1) {
+    row_to_remove = row_section;
+    emit row_about_to_be_removed(row_section);
   }
-  if(d->columns->indexes(column_index).size()==1) {
-    column_to_remove = column_index;
-    emit column_about_to_be_removed(column_index);
+  if(d->columns->indexes(column_section).size()==1) {
+    column_to_remove = column_section;
+    emit column_about_to_be_removed(column_section);
   }
-  d->columns->remove(container_index);
-  d->rows->remove(container_index);
+  d->columns->remove(index);
+  d->rows->remove(index);
   if(column_to_remove>=0) {
     emit column_removed(column_to_remove);
   }
@@ -145,15 +193,10 @@ void datacube_t::remove(int container_index) {
     emit row_removed(row_to_remove);
   }
   if(row_to_remove==-1 && column_to_remove==-1) {
-    emit data_changed(row_index,column_index);
+    emit data_changed(row_section,column_section);
   }
 }
 
-void datacube_t::readd(int index) {
-  d->columns->readd(index);
-  d->rows->readd(index);
-  emit changed();
-}
 datacube_colrow_t& datacube_t::toplevel_row_header() {
   return *d->rows;
 }

@@ -90,20 +90,6 @@ datacube_colrow_t::datacube_colrow_t( const QAbstractItemModel* model, std::tr1:
 }
 
 
-void datacube_colrow_t::restrict(QList< int > set) {
-  for (int i=0; i<d->buckets.size(); ++i) {
-    d->buckets[i].clear();
-  }
-  d->sort_to_buckets(set);
-  for(int i=0; i<d->children.size(); ++i) {
-    datacube_colrow_t* child = d->children[i];
-    if (child) {
-      child->restrict(d->buckets[i]);
-    }
-  }
-
-}
-
 void datacube_colrow_t::remove(int index) {
   for (int i=0; i<d->buckets.size(); ++i) {
     if (d->buckets[i].contains(index)) {
@@ -117,12 +103,12 @@ void datacube_colrow_t::remove(int index) {
 
 }
 
-int datacube_colrow_t::bucket_for_index(int index) const {
+int datacube_colrow_t::section_for_index(int index) const {
   int section =0;
   for (int i=0; i<d->buckets.size(); ++i) {
-    if (d->buckets[i].contains(index)) {
+    if (i == (*d->filter)(d->model, index)) {
       if (datacube_colrow_t* child = d->children[i]) {
-        int rv = child->bucket_for_index(index);
+        int rv = child->section_for_index(index);
         Q_ASSERT(rv>=0);
         return section+rv;
       } else {
@@ -141,13 +127,22 @@ int datacube_colrow_t::bucket_for_index(int index) const {
   return -1;
 }
 
-void datacube_colrow_t::readd(int index) {
+QList<int> datacube_colrow_t::sibling_indexes(int index) const {
+  const int bucketno = (*d->filter)(d->model, index);
+  if (const datacube_colrow_t* child = d->children[bucketno]) {
+    return child->sibling_indexes(index);
+  } else {
+    return d->buckets[bucketno];
+  }
+}
+
+void datacube_colrow_t::add(int index) {
   int bucket_index = (*d->filter)(d->model, index);
   QList<int>& bucket = d->buckets[bucket_index];
   QList<int>::iterator it = std::lower_bound(bucket.begin(), bucket.end(), index);
   bucket.insert(it, index);
   if(datacube_colrow_t* child = d->children[bucket_index]) {
-    child->readd(index);
+    child->add(index);
   }
 }
 

@@ -86,15 +86,21 @@ class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
     int depth() const;
 
     /**
-     * @returns container indexes for (sub) bucket
+     * @returns indexes for (sub) bucket
      *  recurses as needed
      */
     QList<int> indexes(int section) const;
 
     /**
-     * @returns the bucket this container fits in. Recurses all the way to the bottom
+     * @returns the section this container fits in. Recurses all the way to the bottom. Note that if index is not
+     * currently in the datacube (due to a filter), the section returned is the section it will be in if inserted now.
      */
-    int bucket_for_index(int index) const;
+    int section_for_index(int index) const;
+
+    /**
+     * @returns all indexes in the same (sub)category as the supplied index. Recurses as needed.
+     */
+    QList<int> sibling_indexes(int index) const;
 
     /**
      * @returns container indexes for all elements under this
@@ -126,11 +132,6 @@ class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
     void split(abstract_filter_t* filter);
 
     /**
-     * Restrict colrow and descendants to this list.
-     */
-    void restrict(QList<int> set);
-
-    /**
      * remove index set
      */
     void remove(int index);
@@ -138,7 +139,7 @@ class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
     /**
      * readds a container with the specific index
      */
-    void readd(int container_index);
+    void add(int index);
 
   private:
     class secret_t;
