@@ -18,6 +18,7 @@
 #include "datacube.h"
 #include "datacube_header_model.h"
 #include "datacube_model.h"
+#include "internal_header_view.h"
 
 namespace qdatacube {
 
@@ -197,7 +198,7 @@ void datacube_header_t::reset() {
     datacube_t* datacube = datacube_model->datacube();
     for (int i=0, iend = datacube->depth(orientation); i<iend; ++i) {
 
-      QHeaderView* headerview = new QHeaderView(orientation, this);
+      QHeaderView* headerview = new internal_header_view_t(orientation, this);
       d->layout->addWidget(headerview);
       connect(headerview, SIGNAL(sectionResized(int,int,int)), SLOT(setSectionSize(int,int,int)));
       d->headers << headerview;

@@ -9,6 +9,7 @@ SET(QDATACUBE_SRC
   datacube_header.cpp
   datacube_header_model.cpp
   datacube_model.cpp
+  internal_header_view.cpp
 )
 
 QT4_AUTOMOC(${QDATACUBE_SRC})
