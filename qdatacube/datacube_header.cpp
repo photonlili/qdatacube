@@ -67,7 +67,7 @@ datacube_header_t::datacube_header_t(Qt::Orientation orientation, QWidget* paren
 }
 
 QSize datacube_header_t::sizeHint() const {
-  QSize rv;
+  QSize rv(0,0);
   if (orientation() == Qt::Horizontal) {
     foreach (QHeaderView* headerview, d->headers) {
       QSize size = headerview->sizeHint();
@@ -78,7 +78,7 @@ QSize datacube_header_t::sizeHint() const {
     }
   } else {
     foreach (QHeaderView* headerview, d->headers) {
-      QSize size = headerview->sizeHint();
+      QSize size = headerview->sizeHint().expandedTo(headerview->minimumSizeHint());
       rv.setWidth(std::max(rv.width()+size.width(),10));
     }
     if (!d->headers.isEmpty()) {
