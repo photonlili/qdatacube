@@ -45,7 +45,6 @@ class testplaincube : public QObject {
       WEIGHT,
       KOMMUNE,
       N_COLUMNS
-
     };
 };
 
