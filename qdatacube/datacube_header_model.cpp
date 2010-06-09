@@ -38,9 +38,11 @@ datacube_header_model_t::datacube_header_model_t(datacube_model_t* qdatacube_mod
 {
   if(index==0) {
     if(d->orientation == Qt::Horizontal) {
-      connect(d->datacube_model,SIGNAL(columnsRemoved(const QModelIndex&,int,int)),SLOT(slot_remove(const QModelIndex&, int,int)));
+      connect(d->datacube_model,SIGNAL(columnsRemoved(const QModelIndex&,int,int)),SLOT(reset_headers(const QModelIndex&, int,int)));
+      connect(d->datacube_model,SIGNAL(columnsInserted(const QModelIndex&,int,int)),SLOT(reset_headers(const QModelIndex&, int,int)));
     } else {
-      connect(d->datacube_model,SIGNAL(rowsRemoved(const QModelIndex&,int,int)),SLOT(slot_remove(const QModelIndex&, int,int)));
+      connect(d->datacube_model,SIGNAL(rowsRemoved(const QModelIndex&,int,int)),SLOT(reset_headers(const QModelIndex&, int,int)));
+      connect(d->datacube_model,SIGNAL(rowsInserted(const QModelIndex&,int,int)),SLOT(reset_headers(const QModelIndex&, int,int)));
     }
   }
 }
@@ -65,12 +67,12 @@ QVariant datacube_header_model_t::headerData(int section, Qt::Orientation orient
   }
 }
 
-void datacube_header_model_t::slot_remove(const QModelIndex& , int start, int end) {
+void datacube_header_model_t::reset_headers(const QModelIndex& , int start, int end) {
   Q_ASSERT(start==end);
   Q_UNUSED(start);
   Q_UNUSED(end);
   reset();
 }
-
 }
+
 #include "datacube_header_model.moc"

@@ -72,7 +72,22 @@ void testheaders::slot_set_model() {
   m_view->setModel(m_model);
   m_view->resizeColumnsToContents();
   m_view->resizeRowsToContents();
-//  QTimer::singleShot(2000, this, SLOT(slot_set_filter()));
+  QTimer::singleShot(2000, this, SLOT(slot_set_data()));
+
+}
+
+void testheaders::slot_set_data() {
+  QModelIndex index = m_underlying_model->index(15, FIRST_NAME); // Lulu Petersen
+  QList<QString> names;
+  names << "Andersine" << "Bertrand" << "Lulu";
+  static int nameno = 0;
+  QString newname = names[nameno++];
+  m_underlying_model->setData(index, newname);
+  if (nameno == names.size()) {
+    nameno = 0;
+  }
+  QTimer::singleShot(2000, this, SLOT(slot_set_data()));
+
 
 }
 

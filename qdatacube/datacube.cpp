@@ -53,6 +53,7 @@ datacube_t::datacube_t(const QAbstractItemModel* model,
     QObject(parent),
     d(new secret_t(model, row_filter, column_filter))
 {
+  connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(update_data(QModelIndex,QModelIndex)));
 
 }
 
@@ -63,6 +64,7 @@ datacube_t::datacube_t(const QAbstractItemModel* model,
     QObject(parent),
     d(new secret_t(model, shared_ptr<abstract_filter_t>(row_filter), shared_ptr<abstract_filter_t>(column_filter)))
 {
+  connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(update_data(QModelIndex,QModelIndex)));
 }
 
 void datacube_t::set_global_filter(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, int category) {
@@ -170,13 +172,12 @@ void datacube_t::add(int index) {
 }
 
 void datacube_t::remove(int index) {
-  int row_section = d->rows->section_for_index(index);
+  int row_section = d->rows->section_for_index_internal(index);
   if (row_section == -1) {
     // Our datacube does not cover that container. Just ignore it.
     return;
   }
-  int column_section = d->columns->section_for_index
-(index);
+  int column_section = d->columns->section_for_index_internal(index);
   Q_ASSERT(column_section>=0); // Every container should be in both rows and columns, or neither place.
   int row_to_remove = -1;
   int column_to_remove = -1;
@@ -208,6 +209,19 @@ datacube_colrow_t& datacube_t::toplevel_column_header() {
   return *d->columns;
 }
 
+}
+
+void qdatacube::datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
+  const int toprow = topleft.row();
+  const int buttomrow = bottomRight.row();
+  for (int row = toprow; row <= buttomrow; ++row) {
+    const bool rowchanged = !d->rows->sibling_indexes(row).contains(row);
+    const bool colchanged = !d->rows->sibling_indexes(row).contains(row);
+    if (rowchanged || colchanged) {
+      remove(row);
+      add(row);
+    }
+  }
 }
 
 #include "datacube.moc"

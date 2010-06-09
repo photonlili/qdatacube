@@ -13,6 +13,7 @@
 #include <QObject>
 #include <QPair>
 #include <tr1/memory>
+#include <QAbstractItemModel>
 
 class QAbstractItemModel;
 
@@ -154,12 +155,16 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      */
     void data_changed(int row,int column);
 
+  private Q_SLOTS:
+
   private:
     void remove(int index);
     void add(int index);
 
     class secret_t;
     QScopedPointer<secret_t> d;
+public slots:
+    void update_data(QModelIndex topleft, QModelIndex bottomRight);
 };
 }
 

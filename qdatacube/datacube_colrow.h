@@ -98,6 +98,12 @@ class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
     int section_for_index(int index) const;
 
     /**
+     * @returns the section this container resides in. Recurses all the way to the bottom. Note that if index is not
+     * currently in the datacube (due to a filter), -1 is returned.
+     */
+    int section_for_index_internal(int index);
+
+    /**
      * @returns all indexes in the same (sub)category as the supplied index. Recurses as needed.
      */
     QList<int> sibling_indexes(int index) const;

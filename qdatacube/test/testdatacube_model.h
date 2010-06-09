@@ -13,6 +13,7 @@
 #include "abstract_filter.h"
 #include <QAbstractItemModel>
 
+class QStandardItemModel;
 namespace qdatacube {
 class datacube_t;
 }
@@ -36,8 +37,9 @@ class testdatacube_model : public QObject {
     void rowsAdded ( const QModelIndex & parent, int start, int end );
   private Q_SLOTS:
     void testplain();
+    void testdatachange();
   private:
-    QAbstractItemModel* m_model;
+    QStandardItemModel* m_model;
     datacube_t* m_cube;
     std::tr1::shared_ptr<abstract_filter_t> first_name_filter;
     std::tr1::shared_ptr<abstract_filter_t> last_name_filter;

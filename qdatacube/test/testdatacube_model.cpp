@@ -122,6 +122,15 @@ void testdatacube_model::testplain() {
 
 }
 
+void testdatacube_model::testdatachange() {
+  datacube_model_t* m = new datacube_model_t(m_cube, this);
+  QCOMPARE(m->rowCount(), m_cube->rowCount());
+  QCOMPARE(m->columnCount(), m_cube->columnCount());
+  connect_rowcol_changed(m);
+  clear_rowcol_changed();
+
+}
+
 void testdatacube_model::connect_rowcol_changed(QAbstractItemModel* m) {
   connect(m, SIGNAL(columnsAboutToBeRemoved ( const QModelIndex & , int , int )),
           SLOT(columnsAboutToBeRemoved(QModelIndex,int,int)));

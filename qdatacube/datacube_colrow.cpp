@@ -127,6 +127,31 @@ int datacube_colrow_t::section_for_index(int index) const {
   return -1;
 }
 
+int datacube_colrow_t::section_for_index_internal(int index) {
+  int section =0;
+  for (int i=0; i<d->buckets.size(); ++i) {
+    if (d->buckets[i].contains(index)) {
+      if (datacube_colrow_t* child = d->children[i]) {
+        int rv = child->section_for_index(index);
+        Q_ASSERT(rv>=0);
+        return section+rv;
+      } else {
+        return section;
+      }
+    } else {
+      if(datacube_colrow_t* child = d->children[i]) {
+        section+=child->size();
+      } else {
+        if(!d->buckets[i].empty()) {
+          section++;
+        }
+      }
+    }
+  }
+  return -1;
+
+}
+
 QList<int> datacube_colrow_t::sibling_indexes(int index) const {
   const int bucketno = (*d->filter)(d->model, index);
   if (const datacube_colrow_t* child = d->children[bucketno]) {
