@@ -45,6 +45,10 @@ column_filter_t::column_filter_t(int section): abstract_filter_t(), d(new secret
 int column_filter_t::operator()(const QAbstractItemModel* model, int row) const {
   Q_ASSERT(model);
   Q_ASSERT(model->rowCount() > row);
+  if (d->categories.isEmpty()) {
+    // Create categories
+    categories(model);
+  }
   QString data = model->data(model->index(row, d->section)).toString();
   int rv = d->cat_map.value(data, -1);
   Q_ASSERT(rv>=0);

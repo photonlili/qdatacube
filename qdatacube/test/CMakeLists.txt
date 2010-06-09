@@ -1,5 +1,5 @@
 
-QT4_AUTOMOC(testplaincube.cpp testheaders.cpp modeltest.cpp)
+QT4_AUTOMOC(testplaincube.cpp testheaders.cpp modeltest.cpp testdatacube_model.cpp)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -9,9 +9,13 @@ ADD_EXECUTABLE(testplaincube testplaincube.cpp)
 TARGET_LINK_LIBRARIES(testplaincube qdatacube ${QT_QTTEST_LIBRARY})
 ADD_EXECUTABLE(modeltest modeltest.cpp)
 TARGET_LINK_LIBRARIES(modeltest qdatacube ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
+ADD_EXECUTABLE(testdatacube_model testdatacube_model)
+TARGET_LINK_LIBRARIES(testdatacube_model qdatacube ${QT_QTTEST_LIBRARY} ${QT_QTGUI_LIBRARY})
 
 ADD_EXECUTABLE(testheaders testheaders.cpp)
 TARGET_LINK_LIBRARIES(testheaders qdatacube ${QT_QTTEST_LIBRARY} )
 
 ADD_TEST(testplaincube testplaincube)
+ADD_TEST(testdatacube_model testdatacube_model)
 ADD_TEST(modeltest modeltest)
+ADD_TEST(testdatacube_model testdatacube_model)

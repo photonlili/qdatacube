@@ -11,16 +11,6 @@
 
 namespace qdatacube {
 
-namespace {
-  QList<int> all_rows_from_model(QAbstractItemModel* model) {
-    QList<int> rv;
-    for (int i=0,n=model->rowCount(); i<n; ++i) {
-      rv << i;
-    }
-    return rv;
-  }
-}
-
 class datacube_model_t::secret_t {
   public:
     datacube_t* datacube;
@@ -32,11 +22,14 @@ datacube_model_t::datacube_model_t(datacube_t* datacube, QObject* parent) :
     QAbstractTableModel(parent),
     d(new secret_t(datacube))
 {
-  connect(d->datacube, SIGNAL(changed()), SLOT(slot_datacube_changed()));
-  connect(d->datacube,SIGNAL(column_about_to_be_removed(int)), SLOT(slot_begin_remove_column(int)));
-  connect(d->datacube,SIGNAL(row_about_to_be_removed(int)), SLOT(slot_begin_remove_row(int)));
-  connect(d->datacube,SIGNAL(column_removed(int)), SLOT(slot_remove_column(int)));
-  connect(d->datacube,SIGNAL(row_removed(int)),SLOT(slot_remove_row(int)));
+  connect(d->datacube,SIGNAL(column_about_to_be_removed(int)), SLOT(slot_datacube_about_to_remove_column(int)));
+  connect(d->datacube,SIGNAL(row_about_to_be_removed(int)), SLOT(slot_datacube_about_to_remove_row(int)));
+  connect(d->datacube,SIGNAL(column_removed(int)), SLOT(slot_datacube_removed_column(int)));
+  connect(d->datacube,SIGNAL(row_removed(int)),SLOT(slot_datacube_removed_row(int)));
+  connect(d->datacube,SIGNAL(column_about_to_be_added(int)), SLOT(slot_datacube_about_to_add_column(int)));
+  connect(d->datacube,SIGNAL(row_about_to_be_added(int)), SLOT(slot_datacube_about_to_add_row(int)));
+  connect(d->datacube,SIGNAL(column_added(int)), SLOT(slot_datacube_added_column(int)));
+  connect(d->datacube,SIGNAL(row_added(int)),SLOT(slot_datacube_added_row(int)));
   connect(d->datacube,SIGNAL(data_changed(int,int)),SLOT(slot_data_changed(int,int)));
 }
 
@@ -65,25 +58,36 @@ QVariant datacube_model_t::headerData(int section, Qt::Orientation orientation, 
 }
 
 
-void datacube_model_t::slot_datacube_changed() {
-  reset();
-  emit changed();
-}
-
-void datacube_model_t::slot_begin_remove_column(int column ) {
+void datacube_model_t::slot_datacube_about_to_remove_column(int column ) {
   beginRemoveColumns(QModelIndex(),column,column);
 }
 
-void datacube_model_t::slot_begin_remove_row(int row ){
+void datacube_model_t::slot_datacube_about_to_remove_row(int row ){
   beginRemoveRows(QModelIndex(),row,row);
 }
 
-void datacube_model_t::slot_remove_column(int ) {
+void datacube_model_t::slot_datacube_removed_column(int ) {
   endRemoveColumns();
 }
 
-void datacube_model_t::slot_remove_row(int ){
+void datacube_model_t::slot_datacube_removed_row(int ){
   endRemoveRows();
+}
+
+void datacube_model_t::slot_datacube_about_to_add_column(int column) {
+  beginInsertColumns(QModelIndex(), column, column);
+}
+
+void datacube_model_t::slot_datacube_about_to_add_row(int row) {
+  beginInsertRows(QModelIndex(), row, row);
+}
+
+void datacube_model_t::slot_datacube_added_column(int) {
+  endInsertColumns();
+}
+
+void datacube_model_t::slot_datacube_added_row(int) {
+  endInsertRows();
 }
 
 void datacube_model_t::slot_data_changed(int row , int column ) {

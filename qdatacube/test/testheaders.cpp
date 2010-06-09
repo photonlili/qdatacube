@@ -72,12 +72,20 @@ void testheaders::slot_set_model() {
   m_view->setModel(m_model);
   m_view->resizeColumnsToContents();
   m_view->resizeRowsToContents();
+//  QTimer::singleShot(2000, this, SLOT(slot_set_filter()));
 
+}
+
+void testheaders::slot_set_filter() {
+  static int count = 0;
+  std::tr1::shared_ptr<abstract_filter_t> filter(new column_filter_t(SEX));
+  m_model->datacube()->set_global_filter(filter, (count++%2));
+  QTimer::singleShot(2000, this, SLOT(slot_set_filter()));
 }
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
-  app.setFont(QFont("serif", 5));
+  app.setFont(QFont("serif", 10));
   testheaders test;
   test.createtableview();
   qDebug() << "Starting now!";

@@ -33,6 +33,7 @@ class testheaders : public QObject {
     };
   public Q_SLOTS:
     void slot_set_model();
+    void slot_set_filter();
   private:
     qdatacube::datacube_model_t* m_model;
     QAbstractItemModel* m_underlying_model;

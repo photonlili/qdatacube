@@ -103,6 +103,11 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      */
     void set_global_filter(std::tr1::shared_ptr<abstract_filter_t> filter, int category);
 
+    /**
+     * Remove global filter.
+     */
+    void reset_global_filter();
+
   signals:
     /**
      * A row is about to be removed

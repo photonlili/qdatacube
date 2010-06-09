@@ -36,21 +36,16 @@ class QDATACUBE_EXPORT datacube_model_t : public QAbstractTableModel {
      */
     datacube_t* datacube() const;
 
-  Q_SIGNALS:
-    /**
-     * The selection model is on document (but belongs in the view). The qdatacube is in the view (where it belongs)
-     * so use this signal to transport between view and document until the selection thing is straightened out.
-     */
-    void changed();
   private Q_SLOTS:
-    void slot_begin_remove_column(int);
-    void slot_begin_remove_row(int);
-    void slot_remove_column(int);
-    void slot_remove_row(int);
+    void slot_datacube_about_to_remove_column(int);
+    void slot_datacube_about_to_remove_row(int);
+    void slot_datacube_removed_column(int);
+    void slot_datacube_removed_row(int);
+    void slot_datacube_about_to_add_column(int);
+    void slot_datacube_about_to_add_row(int);
+    void slot_datacube_added_column(int);
+    void slot_datacube_added_row(int);
     void slot_data_changed(int,int);
-
-    void slot_datacube_changed();
-
   private:
     class secret_t;
     QScopedPointer<secret_t> d;

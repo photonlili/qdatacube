@@ -79,6 +79,10 @@ void datacube_t::set_global_filter(std::tr1::shared_ptr< qdatacube::abstract_fil
   d->global_filter_category = category;
 }
 
+void datacube_t::reset_global_filter() {
+  set_global_filter(std::tr1::shared_ptr<abstract_filter_t>(), -1);
+}
+
 int datacube_t::headerCount(Qt::Orientation orientation) const {
   return orientation == Qt::Horizontal ? d->columns->depth() : d->rows->depth();
 }
