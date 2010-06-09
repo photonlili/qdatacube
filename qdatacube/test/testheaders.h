@@ -10,6 +10,7 @@
 
 #include <QObject>
 
+class QStandardItemModel;
 class QTableView;
 namespace qdatacube {
 class datacube_model_t;
@@ -35,9 +36,11 @@ class testheaders : public QObject {
     void slot_set_model();
     void slot_set_filter();
     void slot_set_data();
+    void slot_insert_data();
+    void slot_remove_data();
   private:
     qdatacube::datacube_model_t* m_model;
-    QAbstractItemModel* m_underlying_model;
+    QStandardItemModel* m_underlying_model;
     QTableView* m_view;
 };
 

@@ -138,15 +138,31 @@ class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
     void split(abstract_filter_t* filter);
 
     /**
-     * remove index set
+     * remove index set, recursively
+     * @return section where the index was removed from
      */
-    void remove(int index);
+    int remove(int index);
 
     /**
      * readds a container with the specific index
      */
     void add(int index);
 
+    /**
+     * Compresses indexes after index has been removed. Used internally to adjust after the underlying model has removed
+     * rows; users would probably not need to call this function.
+     * The function assumes that the index has already been remove() from the colrow.
+     */
+    void adjust_after_remove(int index);
+
+    /**
+     * Adjust indexes before new indexes are added. Used internally to adjust before the underlying model insert new
+     * rows; users would probably not need to call this function.
+     * The function handles insertion of a range.
+     * @param cutoff the smallest index that needs to be adjusted (i.e., the first index after the to-be-inserted range)
+     * @param amoutn the number of indexes that will be inserted.
+     */
+    void adjust_before_add(int cutoff, int amount);
   private:
     class secret_t;
     QScopedPointer<secret_t> d;

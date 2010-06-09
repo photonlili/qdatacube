@@ -72,7 +72,7 @@ void testheaders::slot_set_model() {
   m_view->setModel(m_model);
   m_view->resizeColumnsToContents();
   m_view->resizeRowsToContents();
-  QTimer::singleShot(2000, this, SLOT(slot_set_data()));
+  QTimer::singleShot(2000, this, SLOT(slot_insert_data()));
 
 }
 
@@ -96,6 +96,46 @@ void testheaders::slot_set_filter() {
   std::tr1::shared_ptr<abstract_filter_t> filter(new column_filter_t(SEX));
   m_model->datacube()->set_global_filter(filter, (count++%2));
   QTimer::singleShot(2000, this, SLOT(slot_set_filter()));
+}
+
+void testheaders::slot_insert_data() {
+  QFile data(DATADIR "/100extra.txt");
+  data.open(QIODevice::ReadOnly);
+  int n=0;
+  while (!data.atEnd()) {
+    QString line = QString::fromLocal8Bit(data.readLine());
+    QStringList columns = line.split(' ');
+    Q_ASSERT(columns.size() == N_COLUMNS);
+    QList<QStandardItem*> cell_items;
+    Q_FOREACH(QString cell, columns) {
+      cell.remove("\n");
+      cell_items << new QStandardItem(cell);
+    }
+    int row = qrand() % (m_underlying_model->rowCount()+1);
+    if (row == m_underlying_model->rowCount()) {
+      m_underlying_model->appendRow(cell_items);
+    } else {
+      m_underlying_model->insertRow(row, cell_items);
+    }
+    ++n;
+  }
+  qDebug() << "Inserted " << n << " rows";
+  QTimer::singleShot(200, this, SLOT(slot_remove_data()));
+}
+
+void testheaders::slot_remove_data() {
+  const int N = 60;
+  if (m_underlying_model->rowCount() < N) {
+    return;
+  }
+  for (int i=0; i<N; ) {
+    int row = qrand() % m_underlying_model->rowCount();
+    int count = qrand() % std::min(m_underlying_model->rowCount()-row, N);
+    m_underlying_model->removeRows(row, count);
+    qDebug() << "Removed " << count << " rows";
+    i+=count;
+  }
+  QTimer::singleShot(200, this, SLOT(slot_insert_data()));
 }
 
 int main(int argc, char* argv[]) {

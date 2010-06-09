@@ -90,16 +90,26 @@ datacube_colrow_t::datacube_colrow_t( const QAbstractItemModel* model, std::tr1:
 }
 
 
-void datacube_colrow_t::remove(int index) {
+int datacube_colrow_t::remove(int index) {
+  int section = 0;
   for (int i=0; i<d->buckets.size(); ++i) {
     if (d->buckets[i].contains(index)) {
       d->buckets[i].removeOne(index);
       if (datacube_colrow_t* child = d->children[i]) {
-        child->remove(index);
+        section += child->remove(index);
       }
-      break; // Optimization
+      return section;
+    } else {
+      if(datacube_colrow_t* child = d->children[i]) {
+        section+=child->size();
+      } else {
+        if(!d->buckets[i].empty()) {
+          section++;
+        }
+      }
     }
   }
+  return -1;
 
 }
 
@@ -350,6 +360,47 @@ QList< int > datacube_colrow_t::all_indexes
 qdatacube::datacube_colrow_t::~datacube_colrow_t() {
   // Only declared so that the QScopedPointer knows the destructor to secret_t
 }
+
+}
+
+void qdatacube::datacube_colrow_t::adjust_after_remove(int index) {
+  for (int bucketno = 0; bucketno<d->buckets.size(); ++bucketno) {
+    bool any_adjusted = false;
+    QList<int>& bucket = d->buckets[bucketno];
+    for (int i=0; i<bucket.size(); ++i) {
+      int& idx =bucket[i];
+      Q_ASSERT(idx!=index); // index assumed already removed
+      if (idx>index) {
+        --idx;
+        any_adjusted = true;
+      }
+    }
+    if (any_adjusted) {
+      if (datacube_colrow_t* child = d->children[bucketno]) {
+        child->adjust_after_remove(index);
+      }
+    }
+  }
+}
+
+void qdatacube::datacube_colrow_t::adjust_before_add(int cutoff, int amount) {
+  for (int bucketno = 0; bucketno<d->buckets.size(); ++bucketno) {
+    bool any_adjusted = false;
+    QList<int>& bucket = d->buckets[bucketno];
+    for (int i=0; i<bucket.size(); ++i) {
+      int& idx =bucket[i];
+      if (idx>=cutoff) {
+        idx+=amount;
+        any_adjusted = true;
+      }
+      Q_ASSERT((*d->filter)(d->model,idx) == bucketno);
+    }
+    if (any_adjusted) {
+      if (datacube_colrow_t* child = d->children[bucketno]) {
+        child->adjust_before_add(cutoff, amount);
+      }
+    }
+  }
 
 }
 

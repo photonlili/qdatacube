@@ -105,6 +105,11 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void set_global_filter(std::tr1::shared_ptr<abstract_filter_t> filter, int category);
 
     /**
+     * Set global filter. Convenience overload. Filter is claimed by this datacube and will be deleted at some point
+     */
+    void set_global_filter(abstract_filter_t* filter, int category);
+
+    /**
      * Remove global filter.
      */
     void reset_global_filter();
@@ -156,6 +161,9 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void data_changed(int row,int column);
 
   private Q_SLOTS:
+    void update_data(QModelIndex topleft, QModelIndex bottomRight);
+    void remove_data(QModelIndex parent, int start, int end);
+    void insert_data(QModelIndex parent, int start, int end);
 
   private:
     void remove(int index);
@@ -163,8 +171,6 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
 
     class secret_t;
     QScopedPointer<secret_t> d;
-public slots:
-    void update_data(QModelIndex topleft, QModelIndex bottomRight);
 };
 }
 

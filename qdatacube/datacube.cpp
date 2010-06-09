@@ -54,6 +54,8 @@ datacube_t::datacube_t(const QAbstractItemModel* model,
     d(new secret_t(model, row_filter, column_filter))
 {
   connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(update_data(QModelIndex,QModelIndex)));
+  connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), SLOT(remove_data(QModelIndex,int,int)));
+  connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), SLOT(insert_data(QModelIndex,int,int)));
 
 }
 
@@ -65,6 +67,8 @@ datacube_t::datacube_t(const QAbstractItemModel* model,
     d(new secret_t(model, shared_ptr<abstract_filter_t>(row_filter), shared_ptr<abstract_filter_t>(column_filter)))
 {
   connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(update_data(QModelIndex,QModelIndex)));
+  connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), SLOT(remove_data(QModelIndex,int,int)));
+  connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), SLOT(insert_data(QModelIndex,int,int)));
 }
 
 void datacube_t::set_global_filter(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, int category) {
@@ -79,6 +83,10 @@ void datacube_t::set_global_filter(std::tr1::shared_ptr< qdatacube::abstract_fil
   }
   d->global_filter = filter;
   d->global_filter_category = category;
+}
+
+void datacube_t::set_global_filter(abstract_filter_t* filter, int category) {
+  set_global_filter(std::tr1::shared_ptr<abstract_filter_t>(filter), category);
 }
 
 void datacube_t::reset_global_filter() {
@@ -215,13 +223,34 @@ void qdatacube::datacube_t::update_data(QModelIndex topleft, QModelIndex bottomR
   const int toprow = topleft.row();
   const int buttomrow = bottomRight.row();
   for (int row = toprow; row <= buttomrow; ++row) {
+    const bool filtered_out = ((*d->global_filter)(d->model, row) != d->global_filter_category);
     const bool rowchanged = !d->rows->sibling_indexes(row).contains(row);
     const bool colchanged = !d->rows->sibling_indexes(row).contains(row);
-    if (rowchanged || colchanged) {
+    if (rowchanged || colchanged | filtered_out) {
       remove(row);
-      add(row);
+      if (!filtered_out) {
+        add(row);
+      }
     }
   }
+}
+void qdatacube::datacube_t::insert_data(QModelIndex parent, int start, int end) {
+  Q_ASSERT(!parent.isValid());
+  d->columns->adjust_before_add(end, end-start+1);
+  d->rows->adjust_before_add(end, end-start+1);
+  for (int row = start; row <=end; ++row) {
+    add(row);
+  }
+
+}
+void qdatacube::datacube_t::remove_data(QModelIndex parent, int start, int end) {
+  Q_ASSERT(!parent.isValid());
+  for (int row = end; row>=start; --row) {
+    remove(row);
+    d->columns->adjust_after_remove(row);
+    d->rows->adjust_after_remove(row);
+  }
+
 }
 
 #include "datacube.moc"
