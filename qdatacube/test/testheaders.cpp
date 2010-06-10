@@ -43,8 +43,10 @@ testheaders::testheaders(QObject* parent) : QObject(parent) {
 
   column_filter_t* firstname_filter = new column_filter_t(0);
   column_filter_t* lastname_filter = new column_filter_t(1);
+  column_filter_t* kommune_filter = new column_filter_t(5);
   std::tr1::shared_ptr<abstract_filter_t> sex_filter(new column_filter_t(2));
   datacube_t* datacube = new datacube_t(m_underlying_model, firstname_filter, lastname_filter);
+  datacube->toplevel_row_header().split(kommune_filter);
   datacube->toplevel_row_header().split(sex_filter);
   datacube->toplevel_column_header().split(sex_filter);
   m_model = new datacube_model_t(datacube);
@@ -72,7 +74,7 @@ void testheaders::slot_set_model() {
   m_view->setModel(m_model);
   m_view->resizeColumnsToContents();
   m_view->resizeRowsToContents();
-  QTimer::singleShot(2000, this, SLOT(slot_insert_data()));
+//   QTimer::singleShot(2000, this, SLOT(slot_insert_data()));
 
 }
 

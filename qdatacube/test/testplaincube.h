@@ -10,8 +10,9 @@
 
 #include <QObject>
 #include <QtTest/QtTest>
+#include "danishnamecube.h"
 
-class testplaincube : public QObject {
+class testplaincube : public danishnamecube_t {
   Q_OBJECT
   public:
     testplaincube(QObject* parent = 0);
@@ -37,20 +38,14 @@ class testplaincube : public QObject {
     void test_collapse();
 
     /**
+     * Test headers for 3-deep
+     */
+    void test_deep_header();
+
+    /**
      * Test global filter
      */
     void test_global_filter();
-  private:
-    QAbstractItemModel* m_model;
-    enum columns_t {
-      FIRST_NAME,
-      LAST_NAME,
-      SEX,
-      AGE,
-      WEIGHT,
-      KOMMUNE,
-      N_COLUMNS
-    };
 };
 
 #endif // TESTPLAINCUBE_H

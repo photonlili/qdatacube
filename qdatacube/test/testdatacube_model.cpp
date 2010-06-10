@@ -19,15 +19,8 @@
 QTEST_MAIN(testdatacube_model)
 
 testdatacube_model::testdatacube_model(QObject* parent):
-    QObject(parent),
-    m_model(0L),
-    m_cube(0L),
-    first_name_filter(new column_filter_t(FIRST_NAME)),
-    last_name_filter(new column_filter_t(LAST_NAME)),
-    sex_filter(new column_filter_t(SEX)),
-    age_filter(new column_filter_t(AGE)),
-    weight_filter(new column_filter_t(WEIGHT)),
-    kommune_filter(new column_filter_t(KOMMUNE))
+    danishnamecube_t(parent),
+    m_cube(0L)
 {
   QFile data(DATADIR "/plaincubedata.txt");
   data.open(QIODevice::ReadOnly);
@@ -43,9 +36,9 @@ testdatacube_model::testdatacube_model(QObject* parent):
     }
     model->appendRow(cell_items);
   }
-  m_model = model;
-  qDebug() << "Read " << m_model->rowCount() << " rows";
-  m_cube = new datacube_t(m_model, first_name_filter, last_name_filter, this);
+  m_underlying_model = model;
+  qDebug() << "Read " << m_underlying_model->rowCount() << " rows";
+  m_cube = new datacube_t(m_underlying_model, first_name_filter, last_name_filter, this);
 
 }
 
@@ -62,7 +55,7 @@ void testdatacube_model::testplain() {
   for(int section =0; section< m_cube->rowCount(); ++section) {
     bool keep = false;
     Q_FOREACH(int row, m_cube->toplevel_row_header().all_indexes(section)) {
-      if (m_model->data(m_model->index(row, SEX)).toString() == "female") {
+      if (m_underlying_model->data(m_underlying_model->index(row, SEX)).toString() == "female") {
         keep = true;
         break;
       }
@@ -73,7 +66,7 @@ void testdatacube_model::testplain() {
   for(int section =0; section< m_cube->columnCount(); ++section) {
     bool keep = false;
     Q_FOREACH(int row, m_cube->toplevel_column_header().all_indexes(section)) {
-      if (m_model->data(m_model->index(row, SEX)).toString() == "female") {
+      if (m_underlying_model->data(m_underlying_model->index(row, SEX)).toString() == "female") {
         keep = true;
         break;
       }
@@ -104,7 +97,7 @@ void testdatacube_model::testplain() {
 
   // Ok, replace filter to get only those with lastname "Jensen"
   clear_rowcol_changed();
-  int jensen_cat = last_name_filter->categories(m_model).indexOf("Jensen");
+  int jensen_cat = last_name_filter->categories(m_underlying_model).indexOf("Jensen");
   QVERIFY(jensen_cat>=0);
   qDebug() << "============= REPLACE WITH JENSEN ===============";
   m->datacube()->set_global_filter(last_name_filter, jensen_cat);

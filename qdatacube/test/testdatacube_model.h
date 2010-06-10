@@ -12,6 +12,7 @@
 #include <tr1/memory>
 #include "abstract_filter.h"
 #include <QAbstractItemModel>
+#include "danishnamecube.h"
 
 class QStandardItemModel;
 namespace qdatacube {
@@ -22,7 +23,7 @@ using namespace qdatacube;
 
 class QAbstractItemModel;
 
-class testdatacube_model : public QObject {
+class testdatacube_model : public danishnamecube_t {
   Q_OBJECT
   public:
     testdatacube_model(QObject* parent = 0);
@@ -39,14 +40,7 @@ class testdatacube_model : public QObject {
     void testplain();
     void testdatachange();
   private:
-    QStandardItemModel* m_model;
     datacube_t* m_cube;
-    std::tr1::shared_ptr<abstract_filter_t> first_name_filter;
-    std::tr1::shared_ptr<abstract_filter_t> last_name_filter;
-    std::tr1::shared_ptr<abstract_filter_t> sex_filter;
-    std::tr1::shared_ptr<abstract_filter_t> age_filter;
-    std::tr1::shared_ptr<abstract_filter_t> weight_filter;
-    std::tr1::shared_ptr<abstract_filter_t> kommune_filter;
     void clear_rowcol_changed();
     void connect_rowcol_changed(QAbstractItemModel* model);
     QList<int> m_rows_removed;
