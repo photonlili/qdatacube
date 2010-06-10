@@ -208,42 +208,13 @@ void datacube_header_t::reset() {
       }
 
     }
-  } else {
-    return;
-  }
-  // Set minimum sizes for headers
-  QHeaderView* lastheader = d->headers.last();
-  Q_ASSERT(lastheader);
-  for (int section=0; section < lastheader->count(); ++section) {
-    setMinimumSectionSize(std::max(lastheader->minimumSectionSize(),20));
-  }
-  foreach (QHeaderView* header, d->headers) {
-    if (header != lastheader) {
-      for (int i=0; i<header->count(); ++i) {
-        int span = header->model()->headerData(i, orientation, Qt::UserRole+1).toInt();
-        int minsize = qMax(qMax(span*lastheader->minimumSectionSize(), header->minimumSectionSize()),30);
-        int key = d->headers.indexOf(header);
-        header->setMinimumSectionSize(minsize);
-        d->headers.value(key)->setMinimumSectionSize(minsize);
-
-      }
+    d->lock = true;
+    for (int i=0; i<count();++i) {
+      d->headers.last()->resizeSection(i,sectionSize(i));
     }
-  }
-  d->lock = true;
-  for (int i=0; i<count();++i) {
-    d->headers.last()->resizeSection(i,sectionSize(i));
-    lastheader->resizeSection(i, sectionSize(i));
-    d->headers.last()->showSection(i);
-  }
 
-  updateSizes();
-  d->lock = false;
-  d->layout->update();
-  if(size().width() ==0){
-    resize(20,size().height());
-  }
-  if(size().height() == 0){
-    resize(size().width(),40);
+    updateSizes();
+    d->lock = false;
   }
   QHeaderView::reset();
 
