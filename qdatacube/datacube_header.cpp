@@ -135,7 +135,6 @@ void datacube_header_t::updateSizes() {
         d->headers[index]->resizeSection(j,size);
       }
     }
-    ++index;
   }
 
 }
