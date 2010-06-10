@@ -59,4 +59,8 @@ column_filter_t::~column_filter_t() {
 
 }
 
+int column_filter_t::section() const {
+  return d->section;
+}
+
 }

@@ -11,7 +11,7 @@ FIND_PACKAGE(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 include(${QT_USE_FILE})
 
 SET(QDATACUBE_SO_VERSION 0)
-SET(QDATACUBE_VERSION "0.3")
+SET(QDATACUBE_VERSION "0.4")
 
 IF(NOT WIN32)
   SET(CMAKE_CXX_FLAGS "-fvisibility=hidden -fdiagnostics-show-option -ggdb3 -Wall -Werror=switch -Wno-strict-overflow -Werror=return-type -Wno-trigraphs -Wno-deprecated -Wclobbered -Wempty-body -Wignored-qualifiers -Wmissing-field-initializers -Wsign-compare -Wtype-limits -Werror=init-self -Wunused-parameter --include QDebug" CACHE STRING "Compile flags for c++" FORCE)
