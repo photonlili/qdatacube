@@ -12,7 +12,7 @@ TARGET_LINK_LIBRARIES(modeltest qdatacube ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRAR
 ADD_EXECUTABLE(testdatacube_model danishnamecube.cpp testdatacube_model)
 TARGET_LINK_LIBRARIES(testdatacube_model qdatacube ${QT_QTTEST_LIBRARY} ${QT_QTGUI_LIBRARY})
 
-ADD_EXECUTABLE(testheaders testheaders.cpp)
+ADD_EXECUTABLE(testheaders testheaders.cpp danishnamecube.cpp )
 TARGET_LINK_LIBRARIES(testheaders qdatacube ${QT_QTTEST_LIBRARY} )
 
 ADD_TEST(testplaincube testplaincube)

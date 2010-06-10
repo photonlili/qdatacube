@@ -20,44 +20,51 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QTimer>
+#include <QPushButton>
+#include <QScrollArea>
 
 using namespace qdatacube;
 
-testheaders::testheaders(QObject* parent) : QObject(parent) {
-  QFile data(DATADIR "/plaincubedata.txt");
-  data.open(QIODevice::ReadOnly);
-  QStandardItemModel* model = new QStandardItemModel(0, N_COLUMNS, this);
-  while (!data.atEnd()) {
-    QString line = QString::fromLocal8Bit(data.readLine());
-    QStringList columns = line.split(' ');
-    Q_ASSERT(columns.size() == N_COLUMNS);
-    QList<QStandardItem*> cell_items;
-    Q_FOREACH(QString cell, columns) {
-      cell.remove("\n");
-      cell_items << new QStandardItem(cell);
-    }
-    model->appendRow(cell_items);
-  }
-  m_underlying_model = model;
-  qDebug() << "Read " << m_underlying_model->rowCount() << " rows";
+testheaders::testheaders(QObject* parent) : danishnamecube_t(parent) {
+  load_model_data("plaincubedata.txt");
 
-  column_filter_t* firstname_filter = new column_filter_t(0);
-  column_filter_t* lastname_filter = new column_filter_t(1);
-  column_filter_t* kommune_filter = new column_filter_t(5);
-  std::tr1::shared_ptr<abstract_filter_t> sex_filter(new column_filter_t(2));
-  datacube_t* datacube = new datacube_t(m_underlying_model, firstname_filter, lastname_filter);
+  datacube_t* datacube = new datacube_t(m_underlying_model, first_name_filter, last_name_filter);
   datacube->toplevel_row_header().split(kommune_filter);
   datacube->toplevel_row_header().split(sex_filter);
   datacube->toplevel_column_header().split(sex_filter);
   m_model = new datacube_model_t(datacube);
 
 }
+void testheaders::add_global_filter_bottoms(std::tr1::shared_ptr< abstract_filter_t > filter, QLayout* layout) {
+  QWidget* top = new QWidget(layout->widget());
+  layout->addWidget(top);
+  QBoxLayout* lay = new QVBoxLayout(top);
+  int categoryno = 0;
+  Q_FOREACH(QString cat, filter->categories(m_underlying_model)) {
+    QPushButton* button = new QPushButton(cat, top);
+    column_filter_t* cf = static_cast<column_filter_t*>(filter.get());
+    button->setProperty("section", cf->section());
+    button->setProperty("categoryno", categoryno++);
+    lay->addWidget(button);
+    connect(button, SIGNAL(clicked(bool)), SLOT(slot_global_filter_button_pressed()));
+  }
+  lay->addStretch();
+
+}
+
+void testheaders::slot_global_filter_button_pressed() {
+  QObject* s = sender();
+  if (s->property("clear").toBool()) {
+    m_model->datacube()->reset_global_filter();
+  } else {
+    int section = s->property("section").toInt();
+    int categoryno = s->property("categoryno").toInt();
+    m_model->datacube()->set_global_filter(new column_filter_t(section), categoryno);
+  }
+}
 
 void testheaders::createtableview() {
   QMainWindow* top = new QMainWindow();
-//   top->setCentralWidget(new QLabel("Central", top));
-/*  QDockWidget* dock = new QDockWidget("dock");
-  top->addDockWidget(Qt::LeftDockWidgetArea,dock);*/
   QWidget* mw = new QWidget();
   top->setCentralWidget(mw);
   new QVBoxLayout(mw);
@@ -68,7 +75,22 @@ void testheaders::createtableview() {
   top->resize(1600, 1000);
   top->show();
   QTimer::singleShot(500, this, SLOT(slot_set_model()));
- }
+  QDockWidget* global_filters = new QDockWidget("Global filters", top);
+  top->addDockWidget(Qt::LeftDockWidgetArea,global_filters);
+  QWidget* gfcw = new QScrollArea(global_filters);
+  global_filters->setWidget(gfcw);
+  QBoxLayout* gfml = new QHBoxLayout(gfcw);
+  QPushButton*  clear_button = new QPushButton("clear", gfcw);
+  clear_button->setProperty("clear", true);
+  connect(clear_button, SIGNAL(clicked(bool)), SLOT(slot_global_filter_button_pressed()));
+  gfml->addWidget(clear_button);
+  add_global_filter_bottoms(first_name_filter, gfml);
+  add_global_filter_bottoms(last_name_filter, gfml);
+  add_global_filter_bottoms(sex_filter, gfml);
+  add_global_filter_bottoms(age_filter, gfml);
+  add_global_filter_bottoms(weight_filter, gfml);
+  add_global_filter_bottoms(kommune_filter, gfml);
+}
 
 void testheaders::slot_set_model() {
   m_view->setModel(m_model);
