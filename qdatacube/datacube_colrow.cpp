@@ -30,11 +30,9 @@ class datacube_colrow_t::secret_t {
     void sort_to_buckets(const QList<int>& list);
 
     /**
-     * Split the childindex *including* the empty ones
-     * @param index
-     * @param filter an abstract filter direviate, wrapped in a shared_ptr for convenience.
+     * Clear buckets recursively
      */
-    void split_including_empty(int index, std::tr1::shared_ptr<abstract_filter_t> filter);
+    void recursive_clear_buckets();
 
     /**
      * @returns Span of current to depth
@@ -56,7 +54,22 @@ class datacube_colrow_t::secret_t {
      * span of current to maxdepth
      */
     int fanthom_span(int maxdepth) const;
+
+    /**
+     * Create a deep copy of child with active elements
+     */
+    datacube_colrow_t* deep_copy(QList<int> active);
 };
+
+datacube_colrow_t* datacube_colrow_t::secret_t::deep_copy(QList< int > active) {
+  datacube_colrow_t* rv = new datacube_colrow_t(model, filter, active);
+  for (int bucketno=0; bucketno<children.size(); ++bucketno) {
+    if (datacube_colrow_t* child = children[bucketno]) {
+      rv->d->children[bucketno] = child->d->deep_copy(buckets[bucketno]);
+    }
+  }
+  return rv;
+}
 
 datacube_colrow_t::secret_t::secret_t(const QAbstractItemModel* model,
                                       std::tr1::shared_ptr< abstract_filter_t > filter) :
@@ -79,6 +92,13 @@ datacube_colrow_t* datacube_colrow_t::secret_t::child(int section) const {
   }
   return 0L;
 
+}
+
+void datacube_colrow_t::secret_t::recursive_clear_buckets() {
+  for (int bucketno=0; bucketno<buckets.size(); ++bucketno) {
+    children[bucketno]->d->recursive_clear_buckets();
+    buckets[bucketno].clear();
+  }
 }
 
 datacube_colrow_t::datacube_colrow_t( const QAbstractItemModel* model, std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, const QList< int >& active
@@ -286,12 +306,18 @@ int datacube_colrow_t::secret_t::index_for_section(int section) const {
 
 void datacube_colrow_t::split(int section, std::tr1::shared_ptr< abstract_filter_t > filter) {
   int index = d->index_for_section(section);
-  d->split_including_empty(index, filter);
+  split_including_empty(index, section, filter);
 }
 
 void datacube_colrow_t::split(std::tr1::shared_ptr< abstract_filter_t > filter) {
+  int section = 0;
   for (int i=0; i<d->children.size(); ++i) {
-    d->split_including_empty(i, filter);
+    split_including_empty(i, section, filter);
+    if (datacube_colrow_t* child =  d->children[i]) {
+      section += child->size();
+    } else if (!d->buckets[i].empty())  {
+      ++section;
+    }
   }
 }
 
@@ -299,17 +325,39 @@ void datacube_colrow_t::split(abstract_filter_t* filter) {
   split(shared_ptr<abstract_filter_t>(filter));
 }
 
-void datacube_colrow_t::secret_t::split_including_empty(int index, std::tr1::shared_ptr< abstract_filter_t > filter) {
-  datacube_colrow_t* newchild = new datacube_colrow_t(model, filter, buckets[index]);
-  if (datacube_colrow_t* oldchild = children[index]) {
+void datacube_colrow_t::split_including_empty(int bucketno, int section, std::tr1::shared_ptr< abstract_filter_t > filter) {
+  datacube_colrow_t* newchild = new datacube_colrow_t(d->model, filter, d->buckets[bucketno]);
+  int removecount = 0;
+  datacube_colrow_t* oldchild = d->children[bucketno];
+  if (oldchild) {
     for(int i=0; i<newchild->d->children.size(); ++i) {
       datacube_colrow_t*& grandchild = newchild->d->children[i];
       Q_ASSERT(grandchild == 0);
-      grandchild = new datacube_colrow_t(model, oldchild->d->filter, newchild->d->buckets[i]);
+      grandchild = oldchild->d->deep_copy(newchild->d->buckets[i]);
     }
-    delete oldchild;
+    removecount = oldchild->size();
+  } else {
+    removecount = (d->buckets[bucketno].empty())?0:1;
   }
-  children[index] = newchild;
+  const int insertcount = newchild->size();
+  const int count = insertcount-removecount;
+  if (count<0) {
+    emit sections_about_to_be_removed(section, -count);
+  }
+  if (count>0) {
+    emit sections_about_to_be_inserted(section, count);
+  }
+  delete oldchild;
+  d->children[bucketno] = newchild;
+  if (count<0) {
+    emit sections_removed(section, -count);
+  }
+  if (count>0) {
+    emit sections_inserted(section, count);
+  }
+  if (removecount>0 && insertcount>0) {
+    emit sections_changed(section, std::min(removecount, insertcount));
+  }
 
 }
 

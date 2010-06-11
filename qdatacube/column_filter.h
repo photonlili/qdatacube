@@ -22,7 +22,7 @@ class QDATACUBE_EXPORT column_filter_t : public abstract_filter_t {
     ~column_filter_t();
     virtual const QList< QString >& categories(const QAbstractItemModel* model) const;
     virtual int operator()(const QAbstractItemModel* model, int row) const;
-
+    virtual QString name(const QAbstractItemModel* model) const;
     /**
      * Return section
      */

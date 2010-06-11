@@ -22,6 +22,7 @@
 #include <QTimer>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QMenu>
 
 using namespace qdatacube;
 
@@ -29,12 +30,19 @@ testheaders::testheaders(QObject* parent) : danishnamecube_t(parent) {
   load_model_data("plaincubedata.txt");
 
   datacube_t* datacube = new datacube_t(m_underlying_model, first_name_filter, last_name_filter);
-  datacube->toplevel_row_header().split(kommune_filter);
-  datacube->toplevel_row_header().split(sex_filter);
-  datacube->toplevel_column_header().split(sex_filter);
   m_model = new datacube_model_t(datacube);
+  m_used_filter_actions << create_filter_action(first_name_filter) << create_filter_action(last_name_filter);
+  m_unused_filter_actions << create_filter_action(sex_filter) << create_filter_action(age_filter) << create_filter_action(weight_filter) << create_filter_action(kommune_filter);
 
 }
+
+QAction* testheaders::create_filter_action(std::tr1::shared_ptr< abstract_filter_t > filter)
+{
+  QAction* rv = new QAction(filter->name(m_underlying_model), this);
+  rv->setData(QVariant::fromValue(static_cast<void*>(filter.get())));
+  return rv;
+}
+
 void testheaders::add_global_filter_bottoms(std::tr1::shared_ptr< abstract_filter_t > filter, QLayout* layout) {
   QWidget* top = new QWidget(layout->widget());
   layout->addWidget(top);
@@ -70,8 +78,12 @@ void testheaders::createtableview() {
   new QVBoxLayout(mw);
   m_view = new QTableView;
   mw->layout()->addWidget(m_view);
-  m_view->setHorizontalHeader(new datacube_header_t(Qt::Horizontal, m_view));
-  m_view->setVerticalHeader(new datacube_header_t(Qt::Vertical, m_view));
+  datacube_header_t* horizontal_header = new datacube_header_t(Qt::Horizontal, m_view);
+  datacube_header_t* vertical_header = new datacube_header_t(Qt::Vertical, m_view);
+  m_view->setHorizontalHeader(horizontal_header);
+  m_view->setVerticalHeader(vertical_header);
+  connect(horizontal_header, SIGNAL(sub_header_context_menu(QPoint,int,int)), SLOT(slot_horizontal_context_menu(QPoint,int,int)));
+  connect(vertical_header, SIGNAL(sub_header_context_menu(QPoint,int,int)), SLOT(slot_vertical_context_menu(QPoint,int,int)));
   top->resize(1600, 1000);
   top->show();
   QTimer::singleShot(500, this, SLOT(slot_set_model()));
@@ -110,7 +122,7 @@ void testheaders::slot_set_data() {
   if (nameno == names.size()) {
     nameno = 0;
   }
-  QTimer::singleShot(2000, this, SLOT(slot_set_data()));
+  QTimer::singleShot(20, this, SLOT(slot_set_data()));
 
 
 }
@@ -171,4 +183,53 @@ int main(int argc, char* argv[]) {
   app.exec();
 }
 
+void testheaders::slot_horizontal_context_menu(const QPoint& /*pos*/, int headerno, int category) {
+  QAction* action = QMenu::exec(m_unused_filter_actions, QCursor::pos());
+  if (action) {
+    abstract_filter_t* raw_pointer = static_cast<abstract_filter_t*>(action->data().value<void*>());
+    std::tr1::shared_ptr<abstract_filter_t> filter;
+    if (first_name_filter.get() == raw_pointer) {
+      filter = first_name_filter;
+    } else if (last_name_filter.get() == raw_pointer) {
+      filter = last_name_filter;
+    } else if (sex_filter.get() == raw_pointer) {
+      filter = sex_filter;
+    } else if (age_filter.get() == raw_pointer) {
+      filter = age_filter;
+    } else if (weight_filter.get() == raw_pointer) {
+      filter = weight_filter;
+    } else if (kommune_filter.get() == raw_pointer) {
+      filter = kommune_filter;
+    }
+    m_model->datacube()->toplevel_column_header().split(filter);
+    m_unused_filter_actions.removeAll(action);
+    m_used_filter_actions << action;
+  }
+
+}
+
+void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno, int category) {
+  QAction* action = QMenu::exec(m_unused_filter_actions, QCursor::pos());
+  if (action) {
+    abstract_filter_t* raw_pointer = static_cast<abstract_filter_t*>(action->data().value<void*>());
+    std::tr1::shared_ptr<abstract_filter_t> filter;
+    if (first_name_filter.get() == raw_pointer) {
+      filter = first_name_filter;
+    } else if (last_name_filter.get() == raw_pointer) {
+      filter = last_name_filter;
+    } else if (sex_filter.get() == raw_pointer) {
+      filter = sex_filter;
+    } else if (age_filter.get() == raw_pointer) {
+      filter = age_filter;
+    } else if (weight_filter.get() == raw_pointer) {
+      filter = weight_filter;
+    } else if (kommune_filter.get() == raw_pointer) {
+      filter = kommune_filter;
+    }
+    m_model->datacube()->toplevel_row_header().split(filter);
+    m_unused_filter_actions.removeAll(action);
+    m_used_filter_actions << action;
+  }
+
+}
 #include "testheaders.moc"

@@ -37,14 +37,14 @@ class QDATACUBE_EXPORT datacube_model_t : public QAbstractTableModel {
     datacube_t* datacube() const;
 
   private Q_SLOTS:
-    void slot_datacube_about_to_remove_column(int);
-    void slot_datacube_about_to_remove_row(int);
-    void slot_datacube_removed_column(int);
-    void slot_datacube_removed_row(int);
-    void slot_datacube_about_to_add_column(int);
-    void slot_datacube_about_to_add_row(int);
-    void slot_datacube_added_column(int);
-    void slot_datacube_added_row(int);
+    void slot_datacube_about_to_remove_columns(int,int);
+    void slot_datacube_about_to_remove_rows(int,int);
+    void slot_datacube_removed_columns(int,int);
+    void slot_datacube_removed_rows(int,int);
+    void slot_datacube_about_to_add_columns(int,int);
+    void slot_datacube_about_to_add_rows(int,int);
+    void slot_datacube_added_columns(int,int);
+    void slot_datacube_added_rows(int,int);
     void slot_data_changed(int,int);
   private:
     class secret_t;

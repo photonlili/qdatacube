@@ -163,7 +163,20 @@ class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
      * @param amoutn the number of indexes that will be inserted.
      */
     void adjust_before_add(int cutoff, int amount);
+  Q_SIGNALS:
+    // These signals are emitted after calling split and friends
+    void sections_about_to_be_removed(int section, int count);
+    void sections_about_to_be_inserted(int section, int count);
+    void sections_removed(int section, int count);
+    void sections_inserted(int section, int count);
+    void sections_changed(int section, int count);
   private:
+    /**
+     * Split the childindex *including* the empty ones
+     * @param index
+     * @param filter an abstract filter direviate, wrapped in a shared_ptr for convenience.
+     */
+    void split_including_empty(int bucketno, int section, std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter);
     class secret_t;
     QScopedPointer<secret_t> d;
 

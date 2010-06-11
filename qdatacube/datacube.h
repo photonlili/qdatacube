@@ -116,44 +116,51 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
 
   signals:
     /**
-     * A row is about to be removed
+     * rows are about to be removed
      */
-    void row_about_to_be_removed(int index);
+    void rows_about_to_be_removed(int index, int count);
 
     /**
-     * A row is about to be removed
+     * columns are about to be removed
      */
-    void column_about_to_be_removed(int);
+    void columns_about_to_be_removed(int index, int count);
 
     /**
-     * A row has been removed
+     * rows have been removed
      */
-    void row_removed(int);
+    void rows_removed(int index, int count);
 
     /**
-     * A column has been removed
+     * columns have been removed
      */
-    void column_removed(int);
+    void columns_removed(int index, int count);
 
     /**
-     * A row is about to be removed
+     * rows are about to be removed
      */
-    void row_about_to_be_added(int index);
+    void rows_about_to_be_added(int index, int count);
 
     /**
-     * A row is about to be added
+     * columns are about to be added
      */
-    void column_about_to_be_added(int);
+    void columns_about_to_be_added(int index, int count);
 
     /**
-     * A row has been added
+     * rows have been added
      */
-    void row_added(int);
+    void rows_added(int index, int count);
 
     /**
-     * A column has been added
+     * columns have been added
      */
-    void column_added(int);
+    void columns_added(int index, int count);
+
+    /**
+     * header data has changed
+     * data_changed will still be emitted
+     */
+    void headers_changed(Qt::Orientation, int first, int last);
+
 
     /**
      * The value in cell has changed
@@ -164,6 +171,8 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void update_data(QModelIndex topleft, QModelIndex bottomRight);
     void remove_data(QModelIndex parent, int start, int end);
     void insert_data(QModelIndex parent, int start, int end);
+    void slot_columns_changed(int column, int count);
+    void slot_rows_changed(int row, int count);
 
   private:
     void remove(int index);

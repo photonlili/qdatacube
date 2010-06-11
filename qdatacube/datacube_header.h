@@ -33,12 +33,16 @@ class QDATACUBE_EXPORT datacube_header_t : public QHeaderView {
     virtual int sizeHintForColumn(int column) const;
     virtual int sizeHintForRow(int row) const;
 
-  public slots:
+  Q_SIGNALS:
+    void sub_header_context_menu(const QPoint& pos, int headerno, int category);
+  public Q_SLOTS:
     void setAllOffset(int value);
     void updateSizes();
     void setSectionSize(int section, int oldsize, int size);
     void slotSectionResized(int section, int oldsize, int size);
     virtual void reset();
+  private Q_SLOTS:
+    void slot_context_menu_requested(const QPoint& pos);
 
   private:
     class secret_t;

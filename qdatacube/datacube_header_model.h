@@ -37,7 +37,7 @@ class datacube_header_model_t : public QAbstractItemModel {
     }
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
   private Q_SLOTS:
-    void reset_headers(const QModelIndex&, int start,int end);
+    void reset_headers();
   private:
     class secret_t;
     QScopedPointer<secret_t> d;

@@ -57,6 +57,9 @@ void danishnamecube_t::load_model_data(QString filename) {
     }
     m_underlying_model->appendRow(cell_items);
   }
+  QStringList labels;
+  labels << "firstname" << "lastname" << "sex" << "age" << "weight" << "kommune";
+  m_underlying_model->setHorizontalHeaderLabels(labels);
   qDebug() << "Read " << m_underlying_model->rowCount() << " rows";
 
 }

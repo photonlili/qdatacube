@@ -56,6 +56,16 @@ datacube_t::datacube_t(const QAbstractItemModel* model,
   connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(update_data(QModelIndex,QModelIndex)));
   connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), SLOT(remove_data(QModelIndex,int,int)));
   connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), SLOT(insert_data(QModelIndex,int,int)));
+  connect(&toplevel_column_header(), SIGNAL(sections_about_to_be_inserted(int,int)), SIGNAL(columns_about_to_be_added(int,int)));
+  connect(&toplevel_column_header(), SIGNAL(sections_about_to_be_removed(int,int)), SIGNAL(columns_about_to_be_removed(int,int)));
+  connect(&toplevel_column_header(), SIGNAL(sections_inserted(int,int)), SIGNAL(columns_added(int,int)));
+  connect(&toplevel_column_header(), SIGNAL(sections_removed(int,int)), SIGNAL(columns_removed(int,int)));
+  connect(&toplevel_column_header(), SIGNAL(sections_changed(int,int)), SLOT(slot_columns_changed(int,int)));
+  connect(&toplevel_row_header(), SIGNAL(sections_about_to_be_inserted(int,int)), SIGNAL(rows_about_to_be_added(int,int)));
+  connect(&toplevel_row_header(), SIGNAL(sections_about_to_be_removed(int,int)), SIGNAL(rows_about_to_be_removed(int,int)));
+  connect(&toplevel_row_header(), SIGNAL(sections_inserted(int,int)), SIGNAL(rows_added(int,int)));
+  connect(&toplevel_row_header(), SIGNAL(sections_removed(int,int)), SIGNAL(rows_removed(int,int)));
+  connect(&toplevel_row_header(), SIGNAL(sections_changed(int,int)), SLOT(slot_rows_changed(int,int)));
 
 }
 
@@ -160,19 +170,19 @@ void datacube_t::add(int index) {
   int column_to_add = -1;
   if(d->rows->sibling_indexes(index).isEmpty()) {
     row_to_add = row_section;
-    emit row_about_to_be_added(row_section);
+    emit rows_about_to_be_added(row_section,1);
   }
   if(d->columns->sibling_indexes(index).isEmpty()) {
     column_to_add = column_section;
-    emit column_about_to_be_added(column_section);
+    emit columns_about_to_be_added(column_section,1);
   }
   d->columns->add(index);
   d->rows->add(index);
   if(column_to_add>=0) {
-    emit column_added(column_to_add);
+    emit columns_added(column_to_add,1);
   }
   if(row_to_add>=0) {
-    emit row_added(row_to_add);
+    emit rows_added(row_to_add,1);
   }
   if(row_to_add==-1 && column_to_add==-1) {
     emit data_changed(row_section,column_section);
@@ -191,19 +201,19 @@ void datacube_t::remove(int index) {
   int column_to_remove = -1;
   if(d->rows->indexes(row_section).size()==1) {
     row_to_remove = row_section;
-    emit row_about_to_be_removed(row_section);
+    emit rows_about_to_be_removed(row_section,1);
   }
   if(d->columns->indexes(column_section).size()==1) {
     column_to_remove = column_section;
-    emit column_about_to_be_removed(column_section);
+    emit columns_about_to_be_removed(column_section,1);
   }
   d->columns->remove(index);
   d->rows->remove(index);
   if(column_to_remove>=0) {
-    emit column_removed(column_to_remove);
+    emit columns_removed(column_to_remove,1);
   }
   if(row_to_remove>=0) {
-    emit row_removed(row_to_remove);
+    emit rows_removed(row_to_remove,1);
   }
   if(row_to_remove==-1 && column_to_remove==-1) {
     emit data_changed(row_section,column_section);
@@ -251,6 +261,26 @@ void qdatacube::datacube_t::remove_data(QModelIndex parent, int start, int end) 
     d->rows->adjust_after_remove(row);
   }
 
+}
+
+void qdatacube::datacube_t::slot_columns_changed(int column, int count) {
+  for (int col = column; col<=column+count;++col) {
+    const int rowcount = rowCount();
+    for (int row = 0; row < rowcount; ++row) {
+      emit data_changed(row,col);
+    }
+  }
+  emit headers_changed(Qt::Horizontal, column, column+count-1);
+}
+
+void qdatacube::datacube_t::slot_rows_changed(int row, int count) {
+  for (int r = row; r<=row+count;++r) {
+    const int columncount = columnCount();
+    for (int column = 0; column < columncount; ++column) {
+      emit data_changed(r,column);
+    }
+  }
+  emit headers_changed(Qt::Vertical, row, row+count-1);
 }
 
 #include "datacube.moc"

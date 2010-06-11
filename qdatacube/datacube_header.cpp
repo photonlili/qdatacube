@@ -200,6 +200,8 @@ void datacube_header_t::reset() {
       QHeaderView* headerview = new internal_header_view_t(orientation, this);
       d->layout->addWidget(headerview);
       connect(headerview, SIGNAL(sectionResized(int,int,int)), SLOT(setSectionSize(int,int,int)));
+      connect(headerview, SIGNAL(customContextMenuRequested(QPoint)), SLOT(slot_context_menu_requested(QPoint)));
+      headerview->setContextMenuPolicy(Qt::CustomContextMenu);
       d->headers << headerview;
       if (datacube_model) {
         datacube_header_model_t* rhm = new datacube_header_model_t(datacube_model, orientation, i);
@@ -231,5 +233,19 @@ int datacube_header_t::sizeHintForColumn(int ) const {
 int datacube_header_t::sizeHintForRow(int ) const {
   return -1; // Perhaps TODO, but this avoid unforunate recursion
 }
+
+void datacube_header_t::slot_context_menu_requested(const QPoint& senderpos) {
+  int headerno = d->headers.indexOf(static_cast<QHeaderView*>(sender()));
+  Q_ASSERT(headerno!=-1);
+  if (headerno==-1) {
+    return;
+  }
+  int category = d->headers.at(headerno)->logicalIndexAt(senderpos);
+  QPoint pos = d->headers.at(headerno)->mapToParent(senderpos);
+  Q_ASSERT(category>=0);
+  emit sub_header_context_menu(pos, headerno, category);
+}
+
+
 }
 #include "datacube_header.moc"

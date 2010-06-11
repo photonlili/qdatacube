@@ -63,4 +63,10 @@ int column_filter_t::section() const {
   return d->section;
 }
 
+QString column_filter_t::name(const QAbstractItemModel* model) const
+{
+  return model->headerData(d->section, Qt::Horizontal).toString();
+}
+
+
 }

@@ -155,7 +155,9 @@ void testplaincube::test_deep_header() {
   datacube_t datacube(m_underlying_model, sex_filter, last_name_filter);
   datacube.toplevel_column_header().split(kommune_filter);
   datacube.toplevel_column_header().split(sex_filter);
-  QCOMPARE(datacube.headerCount(Qt::Horizontal),3);
+  datacube.toplevel_column_header().split(age_filter);
+  datacube.toplevel_column_header().split(weight_filter);
+  QCOMPARE(datacube.headerCount(Qt::Horizontal),5);
   for (int headerno = 0; headerno < datacube.headerCount(Qt::Horizontal); ++headerno) {
     int total = 0;
     typedef QPair<QString,int> header_pair_t;

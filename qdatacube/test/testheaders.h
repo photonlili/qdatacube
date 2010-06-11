@@ -11,6 +11,8 @@
 #include <QObject>
 #include "danishnamecube.h"
 
+class QAction;
+class QPoint;
 class QLayout;
 class QStandardItemModel;
 class QTableView;
@@ -31,10 +33,17 @@ class testheaders : public danishnamecube_t {
     void slot_insert_data();
     void slot_remove_data();
     void slot_global_filter_button_pressed();
+
+    void slot_horizontal_context_menu(const QPoint& pos, int headerno, int category);
+    void slot_vertical_context_menu(const QPoint& pos, int headerno, int category);
   private:
     qdatacube::datacube_model_t* m_model;
     QTableView* m_view;
     void add_global_filter_bottoms(std::tr1::shared_ptr<qdatacube::abstract_filter_t> filter, QLayout* layout);
+    QAction* create_filter_action(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter);
+    QList<QAction*> m_used_filter_actions;
+    QList<QAction*> m_unused_filter_actions;
+
 };
 
 
