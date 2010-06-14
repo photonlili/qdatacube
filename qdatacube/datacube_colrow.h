@@ -118,7 +118,7 @@ class datacube_colrow_t : public QObject {
     int section_for_index(int index) const;
 
     /**
-     * @returns the section this container resides in. Recurses all the way to the bottom. Note that if index is not
+     * @returns the section this underlying index resides in. Recurses all the way to the bottom. Note that if index is not
      * currently in the datacube (due to a filter), -1 is returned.
      */
     int section_for_index_internal(int index);
@@ -190,6 +190,22 @@ class datacube_colrow_t : public QObject {
      * Create a deep copy with rows
      */
     datacube_colrow_t* deep_copy(QList< int > rows);
+
+    /**
+     * @return filter
+     */
+    std::tr1::shared_ptr<abstract_filter_t> filter() const;
+
+    /**
+     * @return all filters that apply to section, recursively
+     */
+    QList<std::tr1::shared_ptr<abstract_filter_t> > filters_for_section(int section) const;
+
+    /**
+     * Return the bucketno the section belongs in. (Note that several sections might belong in the same bucketno)
+     */
+    int section_for_bucketno(int bucketno);
+
 
   private:
     class secret_t;

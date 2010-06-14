@@ -40,7 +40,6 @@ void testplaincube::test_basics() {
 void testplaincube::test_split() {
   datacube_t datacube(m_underlying_model, last_name_filter, kommune_filter);
   datacube.split(Qt::Horizontal, 1, sex_filter);
-  printdatacube(&datacube);
   QCOMPARE(datacube.headerCount(Qt::Horizontal), 2);
   QCOMPARE(datacube.headerCount(Qt::Vertical), 1);
   typedef QPair<QString, int> header_pair_t;
@@ -71,7 +70,84 @@ void testplaincube::test_split() {
   int odensecat = kommune_filter->categories(m_underlying_model).indexOf("Odense");
   int col = malecat+sex_filter->categories(m_underlying_model).size()*odensecat;
   QCOMPARE(datacube.cellCount(pedersencat, col), 2);
+
 }
+
+void testplaincube::test_collapse1() {
+  datacube_t datacube(m_underlying_model, last_name_filter, kommune_filter);
+  datacube.split(Qt::Horizontal, 1, sex_filter);
+  datacube.collapse(Qt::Horizontal,0);
+  QCOMPARE(datacube.headerCount(Qt::Horizontal),1);
+  QCOMPARE(datacube.headerCount(Qt::Vertical),1);
+  int total = 0;
+  QList<QPair<QString,int> > col_headers = datacube.headers(Qt::Horizontal, 0);
+  QList<QPair<QString,int> > row_headers = datacube.headers(Qt::Vertical, 0);
+  for (int row = 0; row < datacube.rowCount(); ++row) {
+    for (int column = 0; column < datacube.columnCount(); ++column) {
+      Q_FOREACH(int cell, datacube.cellrows(row, column)) {
+        ++total;
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, SEX)).toString(), col_headers.at(column).first);
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, LAST_NAME)).toString(), row_headers.at(row).first);
+      }
+    }
+  }
+  QCOMPARE(total, 100);
+
+}
+
+void testplaincube::test_collapse2() {
+  datacube_t datacube(m_underlying_model, last_name_filter, kommune_filter);
+  datacube.split(Qt::Horizontal, 1, sex_filter);
+  datacube.collapse(Qt::Horizontal,1);
+  QCOMPARE(datacube.headerCount(Qt::Horizontal),1);
+  QCOMPARE(datacube.headerCount(Qt::Vertical),1);
+  int total = 0;
+  QList<QPair<QString,int> > col_headers = datacube.headers(Qt::Horizontal, 0);
+  QList<QPair<QString,int> > row_headers = datacube.headers(Qt::Vertical, 0);
+  for (int row = 0; row < datacube.rowCount(); ++row) {
+    for (int column = 0; column < datacube.columnCount(); ++column) {
+      Q_FOREACH(int cell, datacube.cellrows(row, column)) {
+        ++total;
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, KOMMUNE)).toString(), col_headers.at(column).first);
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, LAST_NAME)).toString(), row_headers.at(row).first);
+      }
+    }
+  }
+  QCOMPARE(total, 100);
+
+}
+
+void testplaincube::test_collapse3() {
+  datacube_t datacube(m_underlying_model, last_name_filter, kommune_filter);
+  datacube.split(Qt::Horizontal, 1, age_filter);
+  datacube.split(Qt::Horizontal, 2, sex_filter);
+  datacube.collapse(Qt::Horizontal,1);
+  QCOMPARE(datacube.headerCount(Qt::Horizontal),2);
+  QCOMPARE(datacube.headerCount(Qt::Vertical),1);
+  int total = 0;
+  QList<QPair<QString,int> > col_headers = datacube.headers(Qt::Horizontal, 1);
+  QList<QPair<QString,int> > row_headers = datacube.headers(Qt::Vertical, 0);
+  typedef QPair<QString,int> header_pair_t;
+  QStringList col0_headers;
+  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Horizontal,0)) {
+    for (int i=0; i<hp.second; ++i) {
+      col0_headers << hp.first;
+    }
+  }
+  for (int row = 0; row < datacube.rowCount(); ++row) {
+    for (int column = 0; column < datacube.columnCount(); ++column) {
+      Q_FOREACH(int cell, datacube.cellrows(row, column)) {
+        ++total;
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, SEX)).toString(), col_headers.at(column).first);
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, KOMMUNE)).toString(), col0_headers.at(column));
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, LAST_NAME)).toString(), row_headers.at(row).first);
+      }
+    }
+  }
+  QCOMPARE(total, 100);
+
+}
+
 
 void testplaincube::test_columnfilter()
 {
@@ -95,7 +171,7 @@ testplaincube::testplaincube(QObject* parent): danishnamecube_t(parent) {
   load_model_data("plaincubedata.txt");
 }
 
-void testplaincube::test_collapse() {
+void testplaincube::test_autocollapse() {
   datacube_t datacube(m_underlying_model, first_name_filter, last_name_filter);
   datacube.split(Qt::Vertical,1, sex_filter);
   // Splitting first names according to sex should yield no extra rows

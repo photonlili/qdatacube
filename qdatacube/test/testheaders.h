@@ -41,7 +41,9 @@ class testheaders : public danishnamecube_t {
     QTableView* m_view;
     void add_global_filter_bottoms(std::tr1::shared_ptr<qdatacube::abstract_filter_t> filter, QLayout* layout);
     QAction* create_filter_action(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter);
-    QList<QAction*> m_used_filter_actions;
+    QAction* m_collapse_action;
+    QList<QAction*> m_col_used_filter_actions;
+    QList<QAction*> m_row_used_filter_actions;
     QList<QAction*> m_unused_filter_actions;
 
 };

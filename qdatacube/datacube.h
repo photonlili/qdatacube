@@ -114,10 +114,21 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     /**
      * Split header with filter.
      * ownership of filter is filter is claimed and the filter is deleted at some point.
+     * @param headerno split is done before headerno; use headerno=headerCount(orientation) to insert at end
      */
     void split(Qt::Orientation orientation, int headerno, abstract_filter_t* filter);
 
-  signals:
+    /**
+     * Collapse header, removing it from datacube. Requries headerCount(orientation)>=2
+     */
+    void collapse(Qt::Orientation orientation, int headerno);
+
+    /**
+     * Return all filters that applies to section
+     */
+    QList<std::tr1::shared_ptr<abstract_filter_t> > filters_for_section(Qt::Orientation orientation, int section) const;
+
+  Q_SIGNALS:
     /**
      * rows are about to be removed
      */
@@ -180,8 +191,10 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
   private:
     void remove(int index);
     void add(int index);
-    void split_bucket(Qt::Orientation orientation, const int start_section, qdatacube::datacube_colrow_t* parent, int bucketno, std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter);
-    void split_at_depth(Qt::Orientation orientation, const int start_section, qdatacube::datacube_colrow_t* parent, int depth, std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter);
+    void split_bucket(Qt::Orientation orientation, const int start_section, datacube_colrow_t* parent, int bucketno, std::tr1::shared_ptr< abstract_filter_t > filter);
+    void split_at_depth(Qt::Orientation orientation, const int start_section, datacube_colrow_t* parent, int depth, std::tr1::shared_ptr< abstract_filter_t > filter);
+    void collapse_at_depth(Qt::Orientation orientation, const int start_section,  datacube_colrow_t* parent, int depth);
+    void collapse_bucket(Qt::Orientation orientation, const int start_section, datacube_colrow_t* parent, int bucketno);
 
     class secret_t;
     QScopedPointer<secret_t> d;

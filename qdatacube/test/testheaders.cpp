@@ -31,8 +31,11 @@ testheaders::testheaders(QObject* parent) : danishnamecube_t(parent) {
 
   datacube_t* datacube = new datacube_t(m_underlying_model, first_name_filter, last_name_filter);
   m_model = new datacube_model_t(datacube);
-  m_used_filter_actions << create_filter_action(first_name_filter) << create_filter_action(last_name_filter);
+  m_row_used_filter_actions << create_filter_action(first_name_filter);
+  m_col_used_filter_actions << create_filter_action(last_name_filter);
   m_unused_filter_actions << create_filter_action(sex_filter) << create_filter_action(age_filter) << create_filter_action(weight_filter) << create_filter_action(kommune_filter);
+  m_collapse_action = new QAction("Collapse", this);
+  m_unused_filter_actions << m_collapse_action;
 
 }
 
@@ -183,27 +186,33 @@ int main(int argc, char* argv[]) {
   app.exec();
 }
 
-void testheaders::slot_horizontal_context_menu(const QPoint& /*pos*/, int headerno, int category) {
+void testheaders::slot_horizontal_context_menu(const QPoint& /*pos*/, int headerno, int /*category*/) {
   QAction* action = QMenu::exec(m_unused_filter_actions, QCursor::pos());
   if (action) {
-    abstract_filter_t* raw_pointer = static_cast<abstract_filter_t*>(action->data().value<void*>());
-    std::tr1::shared_ptr<abstract_filter_t> filter;
-    if (first_name_filter.get() == raw_pointer) {
-      filter = first_name_filter;
-    } else if (last_name_filter.get() == raw_pointer) {
-      filter = last_name_filter;
-    } else if (sex_filter.get() == raw_pointer) {
-      filter = sex_filter;
-    } else if (age_filter.get() == raw_pointer) {
-      filter = age_filter;
-    } else if (weight_filter.get() == raw_pointer) {
-      filter = weight_filter;
-    } else if (kommune_filter.get() == raw_pointer) {
-      filter = kommune_filter;
+    if (action != m_collapse_action) {
+      abstract_filter_t* raw_pointer = static_cast<abstract_filter_t*>(action->data().value<void*>());
+      std::tr1::shared_ptr<abstract_filter_t> filter;
+      if (first_name_filter.get() == raw_pointer) {
+        filter = first_name_filter;
+      } else if (last_name_filter.get() == raw_pointer) {
+        filter = last_name_filter;
+      } else if (sex_filter.get() == raw_pointer) {
+        filter = sex_filter;
+      } else if (age_filter.get() == raw_pointer) {
+        filter = age_filter;
+      } else if (weight_filter.get() == raw_pointer) {
+        filter = weight_filter;
+      } else if (kommune_filter.get() == raw_pointer) {
+        filter = kommune_filter;
+      }
+      m_model->datacube()->split(Qt::Horizontal, headerno, filter);
+      m_unused_filter_actions.removeAll(action);
+      m_col_used_filter_actions.insert(headerno, action);
+    } else {
+      m_model->datacube()->collapse(Qt::Horizontal, headerno);
+      QAction* filter_acton = m_col_used_filter_actions.takeAt(headerno);
+      m_unused_filter_actions << filter_acton;
     }
-    m_model->datacube()->split(Qt::Horizontal, headerno, filter);
-    m_unused_filter_actions.removeAll(action);
-    m_used_filter_actions << action;
   }
 
 }
@@ -211,24 +220,34 @@ void testheaders::slot_horizontal_context_menu(const QPoint& /*pos*/, int header
 void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno, int /*category*/) {
   QAction* action = QMenu::exec(m_unused_filter_actions, QCursor::pos());
   if (action) {
-    abstract_filter_t* raw_pointer = static_cast<abstract_filter_t*>(action->data().value<void*>());
-    std::tr1::shared_ptr<abstract_filter_t> filter;
-    if (first_name_filter.get() == raw_pointer) {
-      filter = first_name_filter;
-    } else if (last_name_filter.get() == raw_pointer) {
-      filter = last_name_filter;
-    } else if (sex_filter.get() == raw_pointer) {
-      filter = sex_filter;
-    } else if (age_filter.get() == raw_pointer) {
-      filter = age_filter;
-    } else if (weight_filter.get() == raw_pointer) {
-      filter = weight_filter;
-    } else if (kommune_filter.get() == raw_pointer) {
-      filter = kommune_filter;
+    if (action != m_collapse_action) {
+      abstract_filter_t* raw_pointer = static_cast<abstract_filter_t*>(action->data().value<void*>());
+      std::tr1::shared_ptr<abstract_filter_t> filter;
+      if (first_name_filter.get() == raw_pointer) {
+        filter = first_name_filter;
+      } else if (last_name_filter.get() == raw_pointer) {
+        filter = last_name_filter;
+      } else if (sex_filter.get() == raw_pointer) {
+        filter = sex_filter;
+      } else if (age_filter.get() == raw_pointer) {
+        filter = age_filter;
+      } else if (weight_filter.get() == raw_pointer) {
+        filter = weight_filter;
+      } else if (kommune_filter.get() == raw_pointer) {
+        filter = kommune_filter;
+      }
+      if (headerno+1 < m_model->datacube()->headerCount(Qt::Vertical)) {
+        m_row_used_filter_actions << action;
+      } else {
+        m_row_used_filter_actions.insert(headerno+1, action);
+      }
+      m_model->datacube()->split(Qt::Vertical, headerno+1, filter);
+      m_unused_filter_actions.removeAll(action);
+    } else {
+      m_model->datacube()->collapse(Qt::Vertical, headerno);
+      QAction* filter_acton = m_row_used_filter_actions.takeAt(headerno);
+      m_unused_filter_actions << filter_acton;
     }
-    m_model->datacube()->split(Qt::Vertical, headerno+1, filter);
-    m_unused_filter_actions.removeAll(action);
-    m_used_filter_actions << action;
   }
 
 }

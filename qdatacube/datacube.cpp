@@ -91,6 +91,28 @@ void datacube_t::split_at_depth(Qt::Orientation orientation, const int start_sec
 
 }
 
+void datacube_t::collapse_at_depth(Qt::Orientation orientation, const int start_section, datacube_colrow_t* parent, int depth) {
+  int section = start_section;
+  if (depth==0) {
+    for (int bucket_no=0; bucket_no<parent->bucket_count(); ++bucket_no) {
+      collapse_bucket(orientation, section, parent, bucket_no);
+      if (datacube_colrow_t* child =  parent->child_for_bucket(bucket_no)) {
+        section += child->size();
+      } else if (!parent->bucket_empty(bucket_no))  {
+        ++section;
+      }
+    }
+  } else {
+    for (int bucket_no=0; bucket_no<parent->bucket_count(); ++bucket_no) {
+      datacube_colrow_t* child = parent->child_for_bucket(bucket_no);
+      if (child) {
+        collapse_at_depth(orientation, section, child, depth-1);
+        section += child->size();
+      }
+    }
+  }
+}
+
 void datacube_t::split_bucket(Qt::Orientation orientation,  const int start_section, datacube_colrow_t* parent, int bucketno, std::tr1::shared_ptr< abstract_filter_t > filter) {
   QList<int> rows;
   datacube_colrow_t* oldchild = 0L;
@@ -102,6 +124,7 @@ void datacube_t::split_bucket(Qt::Orientation orientation,  const int start_sect
     for (int bucketno = 0, bucketcount = oldchild->bucket_count(); bucketno<bucketcount; ++bucketno) {
       rows << oldchild->bucket_contents(bucketno);
     }
+    qSort(rows);
   }
   datacube_colrow_t* newchild = new datacube_colrow_t(d->model, filter, rows);
   int removecount = 0;
@@ -139,6 +162,82 @@ void datacube_t::split_bucket(Qt::Orientation orientation,  const int start_sect
       d->rows.reset(newchild);
     }
   }
+  if (count<0) {
+    if (orientation == Qt::Horizontal) {
+      emit columns_removed(start_section, -count);
+    } else {
+      emit rows_removed(start_section, -count);
+    }
+  }
+  if (count>0) {
+    if (orientation == Qt::Horizontal) {
+      emit columns_added(start_section, count);
+    } else {
+      emit rows_added(start_section, count);
+    }
+  }
+  if (removecount>0 && insertcount>0) {
+    if (orientation == Qt::Horizontal) {
+      slot_columns_changed(start_section, std::min(removecount, insertcount));
+    } else {
+      slot_rows_changed(start_section, std::min(removecount, insertcount));
+    }
+  }
+
+}
+
+void datacube_t::collapse_bucket(Qt::Orientation orientation, const int start_section, datacube_colrow_t* parent, int bucketno) {
+  QList<int> rows;
+  datacube_colrow_t* oldchild = 0L;
+  if (parent) {
+    rows = parent->bucket_contents(bucketno);
+    oldchild = parent->child_for_bucket(bucketno);
+  } else {
+    oldchild = (orientation==Qt::Horizontal ? d->columns : d->rows).data();
+    for (int bucketno = 0, bucketcount = oldchild->bucket_count(); bucketno<bucketcount; ++bucketno) {
+      rows << oldchild->bucket_contents(bucketno);
+    }
+    qSort(rows);
+  }
+  const int removecount = oldchild->size();
+  datacube_colrow_t* newchild = 0L;
+  for (int cbucketno = 0, cbucketcount = oldchild->bucket_count(); cbucketno<cbucketcount; ++cbucketno) {
+    if (datacube_colrow_t* grandchild = oldchild->child_for_bucket(cbucketno)) {
+      newchild = grandchild->deep_copy(rows);
+      break;
+    }
+  }
+  const int insertcount = newchild ? newchild->size() : (rows.empty()?0:1);
+  const int count = insertcount - removecount;
+
+  // Emit about-to-signals
+  if (count<0) {
+    if (orientation == Qt::Horizontal) {
+      emit columns_about_to_be_removed(start_section, -count);
+    } else {
+      emit rows_about_to_be_removed(start_section, -count);
+    }
+  }
+  if (count>0) {
+    if (orientation == Qt::Horizontal) {
+      emit columns_about_to_be_added(start_section, count);
+    } else {
+      emit rows_about_to_be_added(start_section, count);
+    }
+  }
+
+  //Actually collapse
+  if (parent) {
+    parent->set_child(bucketno, newchild);
+  } else {
+    if (orientation == Qt::Horizontal) {
+      d->columns.reset(newchild);
+    } else {
+      d->rows.reset(newchild);
+    }
+  }
+
+  // Emit done-signals
   if (count<0) {
     if (orientation == Qt::Horizontal) {
       emit columns_removed(start_section, -count);
@@ -393,6 +492,27 @@ void datacube_t::split(Qt::Orientation orientation, int headerno, std::tr1::shar
 
 void datacube_t::split(Qt::Orientation orientation, int headerno, abstract_filter_t* filter) {
   split(orientation, headerno, std::tr1::shared_ptr<abstract_filter_t>(filter));
+}
+
+
+void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
+  if (headerCount(orientation)<2) {
+    return;
+  }
+  if (headerno>0) {
+    datacube_colrow_t* parent = (Qt::Horizontal==orientation ? d->columns : d->rows).data();
+    collapse_at_depth(orientation, 0, parent, headerno-1);
+  } else {
+    collapse_bucket(orientation, 0, 0L, -1);
+  }
+}
+
+QList< std::tr1::shared_ptr< abstract_filter_t > > datacube_t::filters_for_section(Qt::Orientation orientation, int section) const {
+  if (orientation == Qt::Horizontal) {
+    return d->columns->filters_for_section(section);
+  } else {
+    return d->rows->filters_for_section(section);
+  }
 }
 
 

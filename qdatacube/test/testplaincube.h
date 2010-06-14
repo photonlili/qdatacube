@@ -33,9 +33,24 @@ class testplaincube : public danishnamecube_t {
     void test_split();
 
     /**
+     * Test collapsing sections (first of 2 headers)
+     */
+    void test_collapse1();
+
+    /**
+     * Test collapsing sections (last of 2 headers)
+     */
+    void test_collapse2();
+
+    /**
+     * Test collapsing sections (middle of 3 headers)
+     */
+    void test_collapse3();
+
+    /**
      * Test that empty rows are collapsed
      */
-    void test_collapse();
+    void test_autocollapse();
 
     /**
      * Test headers for 3-deep
