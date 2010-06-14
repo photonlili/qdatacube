@@ -36,6 +36,8 @@ class datacube_t::secret_t {
      */
     datacube_colrow_t& toplevel_column_header() ;
 
+    void split_at_depth(int section, datacube_colrow_t* parent, int depth, std::tr1::shared_ptr<abstract_filter_t> filter);
+
 };
 
 datacube_t::secret_t::secret_t(const QAbstractItemModel* model,
@@ -61,6 +63,32 @@ datacube_colrow_t& datacube_t::secret_t::toplevel_row_header() {
 }
 datacube_colrow_t& datacube_t::secret_t::toplevel_column_header() {
   return *columns;
+}
+
+void datacube_t::secret_t::split_at_depth(const int start_section, datacube_colrow_t* parent, int depth, std::tr1::shared_ptr< abstract_filter_t > filter) {
+  int section = start_section;
+  if (depth == 0) {
+    for (int bucket_no=0; bucket_no<parent->bucket_count(); ++bucket_no) {
+      parent->split_including_empty(bucket_no, section, filter);
+      if (datacube_colrow_t* child =  parent->child_for_bucket(bucket_no)) {
+        section += child->size();
+      } else if (!parent->bucket_empty(bucket_no))  {
+        ++section;
+      }
+    }
+  } else {
+    for (int bucket_no=0; bucket_no<parent->bucket_count(); ++bucket_no) {
+      datacube_colrow_t* child = parent->child_for_bucket(bucket_no);
+      if (child) {
+        split_at_depth(section, child, depth-1, filter);
+        section += child->size();
+      } else {
+        Q_ASSERT(false); // Untested.
+        parent->split_including_empty(bucket_no, section, filter);
+      }
+    }
+  }
+
 }
 
 datacube_t::datacube_t(const QAbstractItemModel* model,
@@ -292,11 +320,10 @@ void datacube_t::slot_rows_changed(int row, int count) {
 }
 
 void datacube_t::split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr< abstract_filter_t > filter) {
-  Q_ASSERT(headerno==1); // Nothing else implemented
-  if (orientation == Qt::Horizontal) {
-    d->toplevel_column_header().split(filter);
-  } else {
-    d->toplevel_row_header().split(filter);
+  Q_ASSERT(headerno>=1); // Nothing else implemented
+  datacube_colrow_t* colrow = &(orientation == Qt::Horizontal ? d->toplevel_column_header() : d->toplevel_row_header());
+  if (headerno>=1) {
+    d->split_at_depth(0, colrow, headerno-1, filter);
   }
 }
 

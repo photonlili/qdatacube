@@ -53,15 +53,20 @@ class datacube_colrow_t : public QObject {
     const QAbstractItemModel* model() const ;
 
     /**
-     * @returns the number of headers, excluding the once without any elements,
+     * @returns the number of headers, excluding the ones without any elements,
      * recursively (that is, including subheaders)
      */
     int size() const;
 
     /**
-     * @returns number of section in this header (non-recursively)
+     * @returns number of section in this header (non-recursively), excluding ones without any elements
      */
     int sectionCount() const;
+
+    /**
+     * @return number of buckets in colrow (that woudl include the empty ones, non-recursively)
+     */
+    int bucket_count() const;
 
     /**
      * @returns a list of active headers, that is, those who are not empty. The second
@@ -70,9 +75,14 @@ class datacube_colrow_t : public QObject {
     QList<QPair<QString,int> > active_headers(int depth=0) const;
 
     /**
-     * @returns the nth direct child
+     * @returns the nth direct child or null if there is no such child
      */
     datacube_colrow_t* child(int section) const;
+
+    /**
+     * @return the child of bucket no, or null if there is no such child
+     */
+    datacube_colrow_t* child_for_bucket(int bucketno) const;
 
     /**
      * @returns the section descendant at the depth depth together with the correct section
@@ -86,10 +96,20 @@ class datacube_colrow_t : public QObject {
     int depth() const;
 
     /**
-     * @returns indexes for (sub) bucket
+     * @returns indexes for section
      *  recurses as needed
      */
     QList<int> indexes(int section) const;
+
+    /**
+     * @return contents of bucket (that is, all indexes under this bucket, childs included)
+     */
+    QList<int> bucket_contents(int bucketno) const;
+
+    /**
+     * @return true if bucket is empty
+     */
+    bool bucket_empty(int bucketno) const;
 
     /**
      * @returns the section this container fits in. Recurses all the way to the bottom. Note that if index is not
@@ -127,10 +147,12 @@ class datacube_colrow_t : public QObject {
     void split(int section, std::tr1::shared_ptr<abstract_filter_t> filter);
 
     /**
-     * Split all children according to filter. Note that this includes non-showing children
-     * @param child/section to split
+     * Split the childindex *including* the empty ones
+     * @param index
+     * @param filter an abstract filter direviate, wrapped in a shared_ptr for convenience.
      */
-    void split(std::tr1::shared_ptr<abstract_filter_t> filter);
+    void split_including_empty(int bucketno, int section, std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter);
+
 
     /**
      * remove index set, recursively
@@ -158,6 +180,7 @@ class datacube_colrow_t : public QObject {
      * @param amoutn the number of indexes that will be inserted.
      */
     void adjust_before_add(int cutoff, int amount);
+
   Q_SIGNALS:
     // These signals are emitted after calling split and friends
     void sections_about_to_be_removed(int section, int count);
@@ -166,12 +189,6 @@ class datacube_colrow_t : public QObject {
     void sections_inserted(int section, int count);
     void sections_changed(int section, int count);
   private:
-    /**
-     * Split the childindex *including* the empty ones
-     * @param index
-     * @param filter an abstract filter direviate, wrapped in a shared_ptr for convenience.
-     */
-    void split_including_empty(int bucketno, int section, std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter);
     class secret_t;
     QScopedPointer<secret_t> d;
 

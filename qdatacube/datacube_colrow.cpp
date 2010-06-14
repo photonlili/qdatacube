@@ -221,6 +221,10 @@ int datacube_colrow_t::sectionCount() const {
   return rv;
 }
 
+int datacube_colrow_t::bucket_count() const {
+  return d->buckets.size();
+}
+
 QList< QPair<QString,int> > datacube_colrow_t::active_headers(int depth) const {
   QList<QPair<QString,int> > rv;
   const QList<QString> cat(d->filter->categories(d->model));
@@ -249,6 +253,10 @@ void datacube_colrow_t::secret_t::sort_to_buckets(const QList< int >& list) {
     int bucket = (*filter)(model, index);
     buckets[bucket] << index;
   }
+}
+
+datacube_colrow_t* datacube_colrow_t::child_for_bucket(int bucketno) const {
+  return d->children.at(bucketno);
 }
 
 int datacube_colrow_t::span(int section) const {
@@ -289,6 +297,14 @@ QList< int > datacube_colrow_t::indexes
 
 }
 
+QList< int > datacube_colrow_t::bucket_contents(int bucketno) const {
+  return d->buckets.at(bucketno);
+}
+
+bool datacube_colrow_t::bucket_empty(int bucketno) const {
+  return d->buckets.at(bucketno).empty();
+}
+
 int datacube_colrow_t::secret_t::index_for_section(int section) const {
   // Skip empty buckets
   for (int i=0; i<buckets.size();++i) {
@@ -302,23 +318,6 @@ int datacube_colrow_t::secret_t::index_for_section(int section) const {
   }
   Q_ASSERT(false);
   return -1;
-}
-
-void datacube_colrow_t::split(int section, std::tr1::shared_ptr< abstract_filter_t > filter) {
-  int index = d->index_for_section(section);
-  split_including_empty(index, section, filter);
-}
-
-void datacube_colrow_t::split(std::tr1::shared_ptr< abstract_filter_t > filter) {
-  int section = 0;
-  for (int i=0; i<d->children.size(); ++i) {
-    split_including_empty(i, section, filter);
-    if (datacube_colrow_t* child =  d->children[i]) {
-      section += child->size();
-    } else if (!d->buckets[i].empty())  {
-      ++section;
-    }
-  }
 }
 
 void datacube_colrow_t::split_including_empty(int bucketno, int section, std::tr1::shared_ptr< abstract_filter_t > filter) {

@@ -226,7 +226,7 @@ void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno
     } else if (kommune_filter.get() == raw_pointer) {
       filter = kommune_filter;
     }
-    m_model->datacube()->split(Qt::Vertical, 1, filter);
+    m_model->datacube()->split(Qt::Vertical, headerno+1, filter);
     m_unused_filter_actions.removeAll(action);
     m_used_filter_actions << action;
   }
