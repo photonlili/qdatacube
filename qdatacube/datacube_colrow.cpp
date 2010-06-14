@@ -320,42 +320,6 @@ int datacube_colrow_t::secret_t::index_for_section(int section) const {
   return -1;
 }
 
-void datacube_colrow_t::split_including_empty(int bucketno, int section, std::tr1::shared_ptr< abstract_filter_t > filter) {
-  datacube_colrow_t* newchild = new datacube_colrow_t(d->model, filter, d->buckets[bucketno]);
-  int removecount = 0;
-  datacube_colrow_t* oldchild = d->children[bucketno];
-  if (oldchild) {
-    for(int i=0; i<newchild->d->children.size(); ++i) {
-      datacube_colrow_t*& grandchild = newchild->d->children[i];
-      Q_ASSERT(grandchild == 0);
-      grandchild = oldchild->d->deep_copy(newchild->d->buckets[i]);
-    }
-    removecount = oldchild->size();
-  } else {
-    removecount = (d->buckets[bucketno].empty())?0:1;
-  }
-  const int insertcount = newchild->size();
-  const int count = insertcount-removecount;
-  if (count<0) {
-    emit sections_about_to_be_removed(section, -count);
-  }
-  if (count>0) {
-    emit sections_about_to_be_inserted(section, count);
-  }
-  delete oldchild;
-  d->children[bucketno] = newchild;
-  if (count<0) {
-    emit sections_removed(section, -count);
-  }
-  if (count>0) {
-    emit sections_inserted(section, count);
-  }
-  if (removecount>0 && insertcount>0) {
-    emit sections_changed(section, std::min(removecount, insertcount));
-  }
-
-}
-
 QPair<datacube_colrow_t*,int> datacube_colrow_t::descendant_section(int depth, int section) {
   if (depth == 0) {
     return QPair<datacube_colrow_t*,int>(this,section);
@@ -445,6 +409,16 @@ void qdatacube::datacube_colrow_t::adjust_before_add(int cutoff, int amount) {
     }
   }
 
+}
+
+void qdatacube::datacube_colrow_t::set_child(int bucketno, qdatacube::datacube_colrow_t* child) {
+  datacube_colrow_t*& oldchild = d->children[bucketno];
+  delete oldchild;
+  oldchild = child;
+}
+
+qdatacube::datacube_colrow_t* qdatacube::datacube_colrow_t::deep_copy(QList< int > rows) {
+  return d->deep_copy(rows);
 }
 
 #include "datacube_colrow.moc"

@@ -19,6 +19,9 @@ class QAbstractItemModel;
 
 namespace qdatacube {
 
+class datacube_colrow_t;
+
+
 class abstract_filter_t;
 
 class QDATACUBE_EXPORT datacube_t : public QObject {
@@ -177,6 +180,8 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
   private:
     void remove(int index);
     void add(int index);
+    void split_bucket(Qt::Orientation orientation, const int start_section, qdatacube::datacube_colrow_t* parent, int bucketno, std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter);
+    void split_at_depth(Qt::Orientation orientation, const int start_section, qdatacube::datacube_colrow_t* parent, int depth, std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter);
 
     class secret_t;
     QScopedPointer<secret_t> d;

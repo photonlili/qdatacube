@@ -40,6 +40,7 @@ void testplaincube::test_basics() {
 void testplaincube::test_split() {
   datacube_t datacube(m_underlying_model, last_name_filter, kommune_filter);
   datacube.split(Qt::Horizontal, 1, sex_filter);
+  printdatacube(&datacube);
   QCOMPARE(datacube.headerCount(Qt::Horizontal), 2);
   QCOMPARE(datacube.headerCount(Qt::Vertical), 1);
   typedef QPair<QString, int> header_pair_t;

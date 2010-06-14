@@ -181,13 +181,16 @@ class datacube_colrow_t : public QObject {
      */
     void adjust_before_add(int cutoff, int amount);
 
-  Q_SIGNALS:
-    // These signals are emitted after calling split and friends
-    void sections_about_to_be_removed(int section, int count);
-    void sections_about_to_be_inserted(int section, int count);
-    void sections_removed(int section, int count);
-    void sections_inserted(int section, int count);
-    void sections_changed(int section, int count);
+    /**
+     * Set the child for bucket, deleting the old one.
+     */
+    void set_child(int bucketno, datacube_colrow_t* child);
+
+    /**
+     * Create a deep copy with rows
+     */
+    datacube_colrow_t* deep_copy(QList< int > rows);
+
   private:
     class secret_t;
     QScopedPointer<secret_t> d;

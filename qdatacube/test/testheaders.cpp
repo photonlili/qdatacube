@@ -201,14 +201,14 @@ void testheaders::slot_horizontal_context_menu(const QPoint& /*pos*/, int header
     } else if (kommune_filter.get() == raw_pointer) {
       filter = kommune_filter;
     }
-    m_model->datacube()->split(Qt::Horizontal, 1, filter);
+    m_model->datacube()->split(Qt::Horizontal, headerno, filter);
     m_unused_filter_actions.removeAll(action);
     m_used_filter_actions << action;
   }
 
 }
 
-void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno, int category) {
+void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno, int /*category*/) {
   QAction* action = QMenu::exec(m_unused_filter_actions, QCursor::pos());
   if (action) {
     abstract_filter_t* raw_pointer = static_cast<abstract_filter_t*>(action->data().value<void*>());
