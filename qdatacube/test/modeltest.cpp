@@ -28,8 +28,6 @@
 #include "datacube_model.h"
 #include "column_filter.h"
 #include "datacube.h"
-#include "datacube_colrow.h"
-
 
 using namespace qdatacube;
 
@@ -54,8 +52,8 @@ int main() {
   column_filter_t* lastname_filter = new column_filter_t(1);
   std::tr1::shared_ptr<abstract_filter_t> sex_filter(new column_filter_t(2));
   datacube_t* datacube = new datacube_t(underlyingmodel, firstname_filter, lastname_filter);
-  datacube->toplevel_row_header().split(sex_filter);
-  datacube->toplevel_column_header().split(sex_filter);
+  datacube->split(Qt::Vertical, 1, sex_filter);
+  datacube->split(Qt::Horizontal, 1, sex_filter);
   datacube_model_t* model = new datacube_model_t(datacube);
   ModelTest test(model);
 }

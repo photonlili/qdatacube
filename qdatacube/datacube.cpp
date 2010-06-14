@@ -26,6 +26,16 @@ class datacube_t::secret_t {
     std::tr1::shared_ptr<abstract_filter_t> global_filter;
     int global_filter_category;
 
+    /**
+     * @returns the rows toplevel header
+     */
+    datacube_colrow_t& toplevel_row_header() ;
+
+    /**
+     * @returns the columns
+     */
+    datacube_colrow_t& toplevel_column_header() ;
+
 };
 
 datacube_t::secret_t::secret_t(const QAbstractItemModel* model,
@@ -46,6 +56,13 @@ datacube_t::secret_t::secret_t(const QAbstractItemModel* model,
 
 }
 
+datacube_colrow_t& datacube_t::secret_t::toplevel_row_header() {
+  return *rows;
+}
+datacube_colrow_t& datacube_t::secret_t::toplevel_column_header() {
+  return *columns;
+}
+
 datacube_t::datacube_t(const QAbstractItemModel* model,
                        shared_ptr<abstract_filter_t> row_filter,
                        shared_ptr<abstract_filter_t> column_filter,
@@ -56,16 +73,16 @@ datacube_t::datacube_t(const QAbstractItemModel* model,
   connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(update_data(QModelIndex,QModelIndex)));
   connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), SLOT(remove_data(QModelIndex,int,int)));
   connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), SLOT(insert_data(QModelIndex,int,int)));
-  connect(&toplevel_column_header(), SIGNAL(sections_about_to_be_inserted(int,int)), SIGNAL(columns_about_to_be_added(int,int)));
-  connect(&toplevel_column_header(), SIGNAL(sections_about_to_be_removed(int,int)), SIGNAL(columns_about_to_be_removed(int,int)));
-  connect(&toplevel_column_header(), SIGNAL(sections_inserted(int,int)), SIGNAL(columns_added(int,int)));
-  connect(&toplevel_column_header(), SIGNAL(sections_removed(int,int)), SIGNAL(columns_removed(int,int)));
-  connect(&toplevel_column_header(), SIGNAL(sections_changed(int,int)), SLOT(slot_columns_changed(int,int)));
-  connect(&toplevel_row_header(), SIGNAL(sections_about_to_be_inserted(int,int)), SIGNAL(rows_about_to_be_added(int,int)));
-  connect(&toplevel_row_header(), SIGNAL(sections_about_to_be_removed(int,int)), SIGNAL(rows_about_to_be_removed(int,int)));
-  connect(&toplevel_row_header(), SIGNAL(sections_inserted(int,int)), SIGNAL(rows_added(int,int)));
-  connect(&toplevel_row_header(), SIGNAL(sections_removed(int,int)), SIGNAL(rows_removed(int,int)));
-  connect(&toplevel_row_header(), SIGNAL(sections_changed(int,int)), SLOT(slot_rows_changed(int,int)));
+  connect(&d->toplevel_column_header(), SIGNAL(sections_about_to_be_inserted(int,int)), SIGNAL(columns_about_to_be_added(int,int)));
+  connect(&d->toplevel_column_header(), SIGNAL(sections_about_to_be_removed(int,int)), SIGNAL(columns_about_to_be_removed(int,int)));
+  connect(&d->toplevel_column_header(), SIGNAL(sections_inserted(int,int)), SIGNAL(columns_added(int,int)));
+  connect(&d->toplevel_column_header(), SIGNAL(sections_removed(int,int)), SIGNAL(columns_removed(int,int)));
+  connect(&d->toplevel_column_header(), SIGNAL(sections_changed(int,int)), SLOT(slot_columns_changed(int,int)));
+  connect(&d->toplevel_row_header(), SIGNAL(sections_about_to_be_inserted(int,int)), SIGNAL(rows_about_to_be_added(int,int)));
+  connect(&d->toplevel_row_header(), SIGNAL(sections_about_to_be_removed(int,int)), SIGNAL(rows_about_to_be_removed(int,int)));
+  connect(&d->toplevel_row_header(), SIGNAL(sections_inserted(int,int)), SIGNAL(rows_added(int,int)));
+  connect(&d->toplevel_row_header(), SIGNAL(sections_removed(int,int)), SIGNAL(rows_removed(int,int)));
+  connect(&d->toplevel_row_header(), SIGNAL(sections_changed(int,int)), SLOT(slot_rows_changed(int,int)));
 
 }
 
@@ -220,16 +237,7 @@ void datacube_t::remove(int index) {
   }
 }
 
-datacube_colrow_t& datacube_t::toplevel_row_header() {
-  return *d->rows;
-}
-datacube_colrow_t& datacube_t::toplevel_column_header() {
-  return *d->columns;
-}
-
-}
-
-void qdatacube::datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
+void datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
   const int toprow = topleft.row();
   const int buttomrow = bottomRight.row();
   for (int row = toprow; row <= buttomrow; ++row) {
@@ -244,7 +252,7 @@ void qdatacube::datacube_t::update_data(QModelIndex topleft, QModelIndex bottomR
     }
   }
 }
-void qdatacube::datacube_t::insert_data(QModelIndex parent, int start, int end) {
+void datacube_t::insert_data(QModelIndex parent, int start, int end) {
   Q_ASSERT(!parent.isValid());
   d->columns->adjust_before_add(end, end-start+1);
   d->rows->adjust_before_add(end, end-start+1);
@@ -253,7 +261,7 @@ void qdatacube::datacube_t::insert_data(QModelIndex parent, int start, int end) 
   }
 
 }
-void qdatacube::datacube_t::remove_data(QModelIndex parent, int start, int end) {
+void datacube_t::remove_data(QModelIndex parent, int start, int end) {
   Q_ASSERT(!parent.isValid());
   for (int row = end; row>=start; --row) {
     remove(row);
@@ -263,7 +271,7 @@ void qdatacube::datacube_t::remove_data(QModelIndex parent, int start, int end) 
 
 }
 
-void qdatacube::datacube_t::slot_columns_changed(int column, int count) {
+void datacube_t::slot_columns_changed(int column, int count) {
   for (int col = column; col<=column+count;++col) {
     const int rowcount = rowCount();
     for (int row = 0; row < rowcount; ++row) {
@@ -273,7 +281,7 @@ void qdatacube::datacube_t::slot_columns_changed(int column, int count) {
   emit headers_changed(Qt::Horizontal, column, column+count-1);
 }
 
-void qdatacube::datacube_t::slot_rows_changed(int row, int count) {
+void datacube_t::slot_rows_changed(int row, int count) {
   for (int r = row; r<=row+count;++r) {
     const int columncount = columnCount();
     for (int column = 0; column < columncount; ++column) {
@@ -282,6 +290,23 @@ void qdatacube::datacube_t::slot_rows_changed(int row, int count) {
   }
   emit headers_changed(Qt::Vertical, row, row+count-1);
 }
+
+void datacube_t::split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr< abstract_filter_t > filter) {
+  Q_ASSERT(headerno==1); // Nothing else implemented
+  if (orientation == Qt::Horizontal) {
+    d->toplevel_column_header().split(filter);
+  } else {
+    d->toplevel_row_header().split(filter);
+  }
+}
+
+void datacube_t::split(Qt::Orientation orientation, int headerno, abstract_filter_t* filter) {
+  split(orientation, headerno, std::tr1::shared_ptr<abstract_filter_t>(filter));
+}
+
+
+}
+
 
 #include "datacube.moc"
 

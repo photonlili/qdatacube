@@ -27,7 +27,7 @@ class abstract_filter_t;
  * empty columns/rows. Index should not appear in the public interface. Not to be confused with the indexes
  * which are row indexes in the underlying model.
  */
-class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
+class datacube_colrow_t : public QObject {
   Q_OBJECT
   public:
 
@@ -131,11 +131,6 @@ class QDATACUBE_EXPORT datacube_colrow_t : public QObject {
      * @param child/section to split
      */
     void split(std::tr1::shared_ptr<abstract_filter_t> filter);
-
-    /**
-     * Convience method for split. As above, but claims ownership of filter, which will be deleted at some point
-     */
-    void split(abstract_filter_t* filter);
 
     /**
      * remove index set, recursively

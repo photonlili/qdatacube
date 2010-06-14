@@ -20,7 +20,6 @@ class QAbstractItemModel;
 namespace qdatacube {
 
 class abstract_filter_t;
-class datacube_colrow_t;
 
 class QDATACUBE_EXPORT datacube_t : public QObject {
   Q_OBJECT
@@ -85,16 +84,6 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     QList<int> cellrows(int row, int column) const;
 
     /**
-     * @returns the rows toplevel header
-     */
-    datacube_colrow_t& toplevel_row_header() ;
-
-    /**
-     * @returns the columns
-     */
-    datacube_colrow_t& toplevel_column_header() ;
-
-    /**
      * @return depth (number of headers/filters) for orientation
      */
     int depth(Qt::Orientation orientation);
@@ -113,6 +102,17 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * Remove global filter.
      */
     void reset_global_filter();
+
+    /**
+     * Split header with filter.
+     */
+    void split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr<abstract_filter_t> filter);
+
+    /**
+     * Split header with filter.
+     * ownership of filter is filter is claimed and the filter is deleted at some point.
+     */
+    void split(Qt::Orientation orientation, int headerno, abstract_filter_t* filter);
 
   signals:
     /**

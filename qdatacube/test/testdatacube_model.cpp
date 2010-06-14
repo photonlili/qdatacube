@@ -54,10 +54,12 @@ void testdatacube_model::testplain() {
   QList<bool> rows_to_keep;
   for(int section =0; section< m_cube->rowCount(); ++section) {
     bool keep = false;
-    Q_FOREACH(int row, m_cube->toplevel_row_header().all_indexes(section)) {
-      if (m_underlying_model->data(m_underlying_model->index(row, SEX)).toString() == "female") {
-        keep = true;
-        break;
+    for (int column=0; column<m_cube->columnCount(); ++column) {
+      Q_FOREACH(int row, m_cube->cellrows(section,column)) {
+        if (m_underlying_model->data(m_underlying_model->index(row, SEX)).toString() ==  "female") {
+          keep = true;
+          break;
+        }
       }
     }
     rows_to_keep << keep;
@@ -65,10 +67,12 @@ void testdatacube_model::testplain() {
   QList<bool> columns_to_keep;
   for(int section =0; section< m_cube->columnCount(); ++section) {
     bool keep = false;
-    Q_FOREACH(int row, m_cube->toplevel_column_header().all_indexes(section)) {
-      if (m_underlying_model->data(m_underlying_model->index(row, SEX)).toString() == "female") {
-        keep = true;
-        break;
+    for (int datacube_row = 0; datacube_row < m_cube->rowCount(); ++datacube_row) {
+      Q_FOREACH(int row, m_cube->cellrows(datacube_row, section)) {
+        if (m_underlying_model->data(m_underlying_model->index(row, SEX)).toString() == "female") {
+          keep = true;
+          break;
+        }
       }
     }
     columns_to_keep << keep;

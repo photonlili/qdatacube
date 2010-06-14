@@ -39,7 +39,7 @@ void testplaincube::test_basics() {
 
 void testplaincube::test_split() {
   datacube_t datacube(m_underlying_model, last_name_filter, kommune_filter);
-  datacube.toplevel_column_header().split(sex_filter);
+  datacube.split(Qt::Horizontal, 1, sex_filter);
   QCOMPARE(datacube.headerCount(Qt::Horizontal), 2);
   QCOMPARE(datacube.headerCount(Qt::Vertical), 1);
   typedef QPair<QString, int> header_pair_t;
@@ -96,11 +96,11 @@ testplaincube::testplaincube(QObject* parent): danishnamecube_t(parent) {
 
 void testplaincube::test_collapse() {
   datacube_t datacube(m_underlying_model, first_name_filter, last_name_filter);
-  datacube.toplevel_row_header().split(sex_filter);
+  datacube.split(Qt::Vertical,1, sex_filter);
   // Splitting first names according to sex should yield no extra rows
   QCOMPARE(datacube.rowCount(), first_name_filter->categories(m_underlying_model).size());
   // While splitting last names should. -1 because there are no
-  datacube.toplevel_column_header().split(sex_filter);
+  datacube.split(Qt::Horizontal, 1, sex_filter);
   // -1 since there are no female Thomsen in our set
   QCOMPARE(datacube.columnCount(), last_name_filter->categories(m_underlying_model).size()*sex_filter->categories(m_underlying_model).size() - 1);
 
@@ -153,10 +153,10 @@ void testplaincube::test_global_filter() {
 
 void testplaincube::test_deep_header() {
   datacube_t datacube(m_underlying_model, sex_filter, last_name_filter);
-  datacube.toplevel_column_header().split(kommune_filter);
-  datacube.toplevel_column_header().split(sex_filter);
-  datacube.toplevel_column_header().split(age_filter);
-  datacube.toplevel_column_header().split(weight_filter);
+  datacube.split(Qt::Horizontal, 1, kommune_filter);
+  datacube.split(Qt::Horizontal, 1,sex_filter);
+  datacube.split(Qt::Horizontal, 1,age_filter);
+  datacube.split(Qt::Horizontal, 1,weight_filter);
   QCOMPARE(datacube.headerCount(Qt::Horizontal),5);
   for (int headerno = 0; headerno < datacube.headerCount(Qt::Horizontal); ++headerno) {
     int total = 0;

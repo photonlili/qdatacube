@@ -321,10 +321,6 @@ void datacube_colrow_t::split(std::tr1::shared_ptr< abstract_filter_t > filter) 
   }
 }
 
-void datacube_colrow_t::split(abstract_filter_t* filter) {
-  split(shared_ptr<abstract_filter_t>(filter));
-}
-
 void datacube_colrow_t::split_including_empty(int bucketno, int section, std::tr1::shared_ptr< abstract_filter_t > filter) {
   datacube_colrow_t* newchild = new datacube_colrow_t(d->model, filter, d->buckets[bucketno]);
   int removecount = 0;
