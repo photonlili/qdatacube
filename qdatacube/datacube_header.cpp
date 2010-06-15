@@ -195,8 +195,7 @@ void datacube_header_t::reset() {
   d->headers.clear();
   if (datacube_model_t* datacube_model = qobject_cast<datacube_model_t*>(model())) {
     datacube_t* datacube = datacube_model->datacube();
-    for (int i=0, iend = datacube->depth(orientation); i<iend; ++i) {
-
+    for (int i=0, iend = datacube->header_count(orientation); i<iend; ++i) {
       QHeaderView* headerview = new internal_header_view_t(orientation, this);
       d->layout->addWidget(headerview);
       connect(headerview, SIGNAL(sectionResized(int,int,int)), SLOT(setSectionSize(int,int,int)));

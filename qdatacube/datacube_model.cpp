@@ -26,10 +26,10 @@ datacube_model_t::datacube_model_t(datacube_t* datacube, QObject* parent) :
   connect(d->datacube,SIGNAL(rows_about_to_be_removed(int,int)), SLOT(slot_datacube_about_to_remove_rows(int,int)));
   connect(d->datacube,SIGNAL(columns_removed(int,int)), SLOT(slot_datacube_removed_columns(int,int)));
   connect(d->datacube,SIGNAL(rows_removed(int,int)),SLOT(slot_datacube_removed_rows(int,int)));
-  connect(d->datacube,SIGNAL(columns_about_to_be_added(int,int)), SLOT(slot_datacube_about_to_add_columns(int,int)));
-  connect(d->datacube,SIGNAL(rows_about_to_be_added(int,int)), SLOT(slot_datacube_about_to_add_rows(int,int)));
-  connect(d->datacube,SIGNAL(columns_added(int,int)), SLOT(slot_datacube_added_columns(int,int)));
-  connect(d->datacube,SIGNAL(rows_added(int,int)),SLOT(slot_datacube_added_rows(int,int)));
+  connect(d->datacube,SIGNAL(columns_about_to_be_inserted(int,int)), SLOT(slot_datacube_about_to_add_columns(int,int)));
+  connect(d->datacube,SIGNAL(rows_about_to_be_inserted(int,int)), SLOT(slot_datacube_about_to_add_rows(int,int)));
+  connect(d->datacube,SIGNAL(columns_inserted(int,int)), SLOT(slot_datacube_added_columns(int,int)));
+  connect(d->datacube,SIGNAL(rows_inserted(int,int)),SLOT(slot_datacube_added_rows(int,int)));
   connect(d->datacube,SIGNAL(data_changed(int,int)),SLOT(slot_data_changed(int,int)));
   connect(d->datacube,SIGNAL(headers_changed(Qt::Orientation,int,int)), SIGNAL(headerDataChanged(Qt::Orientation,int,int)));
 }
@@ -40,18 +40,18 @@ datacube_model_t::~datacube_model_t() {
 QVariant datacube_model_t::data(const QModelIndex& index, int role) const {
   if (index.isValid()) {
     if (role == Qt::DisplayRole) {
-      return d->datacube->cellCount(index.row(), index.column());
+      return d->datacube->element_count(index.row(), index.column());
     }
   }
   return QVariant();
 }
 
 int datacube_model_t::columnCount(const QModelIndex& ) const {
-  return d->datacube->columnCount();
+  return d->datacube->column_count();
 }
 
 int datacube_model_t::rowCount(const QModelIndex& ) const {
-  return d->datacube->rowCount();
+  return d->datacube->row_count();
 }
 
 QVariant datacube_model_t::headerData(int section, Qt::Orientation orientation, int role) const {

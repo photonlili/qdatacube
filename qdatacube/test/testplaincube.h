@@ -16,6 +16,7 @@ class testplaincube : public danishnamecube_t {
   Q_OBJECT
   public:
     testplaincube(QObject* parent = 0);
+
   private Q_SLOTS:
     /**
      * Test the column filter

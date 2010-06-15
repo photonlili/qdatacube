@@ -19,7 +19,7 @@ namespace qdatacube {
 class datacube_t;
 
 /**
- * This class is a replacement for the stadn QHeaderView, to be plugged into QTableViews to
+ * This class is a replacement for the standard QHeaderView, to be plugged into QTableViews to
  * show all the headers that a datacube features.
  */
 class QDATACUBE_EXPORT datacube_header_t : public QHeaderView {
@@ -34,6 +34,9 @@ class QDATACUBE_EXPORT datacube_header_t : public QHeaderView {
     virtual int sizeHintForRow(int row) const;
 
   Q_SIGNALS:
+    /**
+     * Emitted when the context menu for a subheader is invoked.
+     */
     void sub_header_context_menu(const QPoint& pos, int headerno, int category);
   public Q_SLOTS:
     void setAllOffset(int value);

@@ -148,9 +148,9 @@ void datacube_t::split_bucket(Qt::Orientation orientation,  const int start_sect
   }
   if (count>0) {
     if (orientation == Qt::Horizontal) {
-      emit columns_about_to_be_added(start_section, count);
+      emit columns_about_to_be_inserted(start_section, count);
     } else {
-      emit rows_about_to_be_added(start_section, count);
+      emit rows_about_to_be_inserted(start_section, count);
     }
   }
   if (parent) {
@@ -171,9 +171,9 @@ void datacube_t::split_bucket(Qt::Orientation orientation,  const int start_sect
   }
   if (count>0) {
     if (orientation == Qt::Horizontal) {
-      emit columns_added(start_section, count);
+      emit columns_inserted(start_section, count);
     } else {
-      emit rows_added(start_section, count);
+      emit rows_inserted(start_section, count);
     }
   }
   if (removecount>0 && insertcount>0) {
@@ -220,9 +220,9 @@ void datacube_t::collapse_bucket(Qt::Orientation orientation, const int start_se
   }
   if (count>0) {
     if (orientation == Qt::Horizontal) {
-      emit columns_about_to_be_added(start_section, count);
+      emit columns_about_to_be_inserted(start_section, count);
     } else {
-      emit rows_about_to_be_added(start_section, count);
+      emit rows_about_to_be_inserted(start_section, count);
     }
   }
 
@@ -247,9 +247,9 @@ void datacube_t::collapse_bucket(Qt::Orientation orientation, const int start_se
   }
   if (count>0) {
     if (orientation == Qt::Horizontal) {
-      emit columns_added(start_section, count);
+      emit columns_inserted(start_section, count);
     } else {
-      emit rows_added(start_section, count);
+      emit rows_inserted(start_section, count);
     }
   }
   if (removecount>0 && insertcount>0) {
@@ -309,23 +309,23 @@ void datacube_t::reset_global_filter() {
   set_global_filter(std::tr1::shared_ptr<abstract_filter_t>(), -1);
 }
 
-int datacube_t::headerCount(Qt::Orientation orientation) const {
+int datacube_t::header_count(Qt::Orientation orientation) const {
   return orientation == Qt::Horizontal ? d->columns->depth() : d->rows->depth();
 }
 
-int datacube_t::cellCount(int row, int column) const {
-  return cellrows(row,column).size();
+int datacube_t::element_count(int row, int column) const {
+  return elements(row,column).size();
 }
 
-int datacube_t::columnCount() const {
+int datacube_t::column_count() const {
   return d->columns->size();
 }
 
-int datacube_t::rowCount() const {
+int datacube_t::row_count() const {
   return d->rows->size();
 }
 
-QList< int > datacube_t::cellrows(int row, int column) const {
+QList< int > datacube_t::elements(int row, int column) const {
   // Return the intersection of the row's and the column's container indexes
   QList<int> rowindex = d->rows->indexes(row);
   QList<int> colindex = d->columns->indexes(column);
@@ -360,10 +360,6 @@ datacube_t::~datacube_t() {
   // Need to declare here so datacube_colrow_t's destructor is visible
 }
 
-int datacube_t::depth(Qt::Orientation orientation) {
-  return orientation == Qt::Horizontal ? d->columns->depth() : d->rows->depth();
-}
-
 void datacube_t::add(int index) {
   int row_section = d->rows->section_for_index(index);
   if (row_section == -1) {
@@ -376,19 +372,19 @@ void datacube_t::add(int index) {
   int column_to_add = -1;
   if(d->rows->sibling_indexes(index).isEmpty()) {
     row_to_add = row_section;
-    emit rows_about_to_be_added(row_section,1);
+    emit rows_about_to_be_inserted(row_section,1);
   }
   if(d->columns->sibling_indexes(index).isEmpty()) {
     column_to_add = column_section;
-    emit columns_about_to_be_added(column_section,1);
+    emit columns_about_to_be_inserted(column_section,1);
   }
   d->columns->add(index);
   d->rows->add(index);
   if(column_to_add>=0) {
-    emit columns_added(column_to_add,1);
+    emit columns_inserted(column_to_add,1);
   }
   if(row_to_add>=0) {
-    emit rows_added(row_to_add,1);
+    emit rows_inserted(row_to_add,1);
   }
   if(row_to_add==-1 && column_to_add==-1) {
     emit data_changed(row_section,column_section);
@@ -462,7 +458,7 @@ void datacube_t::remove_data(QModelIndex parent, int start, int end) {
 
 void datacube_t::slot_columns_changed(int column, int count) {
   for (int col = column; col<=column+count;++col) {
-    const int rowcount = rowCount();
+    const int rowcount = row_count();
     for (int row = 0; row < rowcount; ++row) {
       emit data_changed(row,col);
     }
@@ -472,7 +468,7 @@ void datacube_t::slot_columns_changed(int column, int count) {
 
 void datacube_t::slot_rows_changed(int row, int count) {
   for (int r = row; r<=row+count;++r) {
-    const int columncount = columnCount();
+    const int columncount = column_count();
     for (int column = 0; column < columncount; ++column) {
       emit data_changed(r,column);
     }
@@ -496,7 +492,7 @@ void datacube_t::split(Qt::Orientation orientation, int headerno, abstract_filte
 
 
 void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
-  if (headerCount(orientation)<2) {
+  if (header_count(orientation)<2) {
     return;
   }
   if (headerno>0) {

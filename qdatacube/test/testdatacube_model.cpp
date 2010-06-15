@@ -44,18 +44,18 @@ testdatacube_model::testdatacube_model(QObject* parent):
 
 void testdatacube_model::testplain() {
   datacube_model_t* m = new datacube_model_t(m_cube, this);
-  QCOMPARE(m->rowCount(), m_cube->rowCount());
-  QCOMPARE(m->columnCount(), m_cube->columnCount());
+  QCOMPARE(m->rowCount(), m_cube->row_count());
+  QCOMPARE(m->columnCount(), m_cube->column_count());
   connect_rowcol_changed(m);
   clear_rowcol_changed();
 
   // Record which columns and rows to keep
   typedef QPair<QString, int> header_pair_t;
   QList<bool> rows_to_keep;
-  for(int section =0; section< m_cube->rowCount(); ++section) {
+  for(int section =0; section< m_cube->row_count(); ++section) {
     bool keep = false;
-    for (int column=0; column<m_cube->columnCount(); ++column) {
-      Q_FOREACH(int row, m_cube->cellrows(section,column)) {
+    for (int column=0; column<m_cube->column_count(); ++column) {
+      Q_FOREACH(int row, m_cube->elements(section,column)) {
         if (m_underlying_model->data(m_underlying_model->index(row, SEX)).toString() ==  "female") {
           keep = true;
           break;
@@ -65,10 +65,10 @@ void testdatacube_model::testplain() {
     rows_to_keep << keep;
   }
   QList<bool> columns_to_keep;
-  for(int section =0; section< m_cube->columnCount(); ++section) {
+  for(int section =0; section< m_cube->column_count(); ++section) {
     bool keep = false;
-    for (int datacube_row = 0; datacube_row < m_cube->rowCount(); ++datacube_row) {
-      Q_FOREACH(int row, m_cube->cellrows(datacube_row, section)) {
+    for (int datacube_row = 0; datacube_row < m_cube->row_count(); ++datacube_row) {
+      Q_FOREACH(int row, m_cube->elements(datacube_row, section)) {
         if (m_underlying_model->data(m_underlying_model->index(row, SEX)).toString() == "female") {
           keep = true;
           break;
@@ -121,8 +121,8 @@ void testdatacube_model::testplain() {
 
 void testdatacube_model::testdatachange() {
   datacube_model_t* m = new datacube_model_t(m_cube, this);
-  QCOMPARE(m->rowCount(), m_cube->rowCount());
-  QCOMPARE(m->columnCount(), m_cube->columnCount());
+  QCOMPARE(m->rowCount(), m_cube->row_count());
+  QCOMPARE(m->columnCount(), m_cube->column_count());
   connect_rowcol_changed(m);
   clear_rowcol_changed();
 

@@ -17,22 +17,22 @@ void testplaincube::test_basics() {
   datacube_t datacube(m_underlying_model, first_name_filter, last_name_filter);
   int larsen_cat = last_name_filter->categories(m_underlying_model).indexOf("Larsen");
   int kim_cat = first_name_filter->categories(m_underlying_model).indexOf("Kim");
-  QList<int> rows = datacube.cellrows(kim_cat, larsen_cat);
+  QList<int> rows = datacube.elements(kim_cat, larsen_cat);
   QCOMPARE(rows.size(), 3);
   Q_FOREACH(int row, rows) {
     QCOMPARE(m_underlying_model->data(m_underlying_model->index(row, testplaincube::FIRST_NAME)).toString(), QString::fromLocal8Bit("Kim"));
     QCOMPARE(m_underlying_model->data(m_underlying_model->index(row, testplaincube::LAST_NAME)).toString(), QString::fromLocal8Bit("Larsen"));
   }
   int total = 0;
-  for (int row = 0; row < datacube.rowCount(); ++row) {
-    for (int column = 0; column < datacube.columnCount(); ++column) {
-      total += datacube.cellCount(row, column);
+  for (int row = 0; row < datacube.row_count(); ++row) {
+    for (int column = 0; column < datacube.column_count(); ++column) {
+      total += datacube.element_count(row, column);
     }
   }
   QCOMPARE(total, m_underlying_model->rowCount());
-  QCOMPARE(datacube.headerCount(Qt::Vertical), 1);
+  QCOMPARE(datacube.header_count(Qt::Vertical), 1);
   QCOMPARE(datacube.headers(Qt::Vertical,0).size(), first_name_filter->categories(m_underlying_model).size());
-  QCOMPARE(datacube.headerCount(Qt::Horizontal), 1);
+  QCOMPARE(datacube.header_count(Qt::Horizontal), 1);
   QCOMPARE(datacube.headers(Qt::Horizontal,0).size(), last_name_filter->categories(m_underlying_model).size());
 
 }
@@ -40,8 +40,8 @@ void testplaincube::test_basics() {
 void testplaincube::test_split() {
   datacube_t datacube(m_underlying_model, last_name_filter, kommune_filter);
   datacube.split(Qt::Horizontal, 1, sex_filter);
-  QCOMPARE(datacube.headerCount(Qt::Horizontal), 2);
-  QCOMPARE(datacube.headerCount(Qt::Vertical), 1);
+  QCOMPARE(datacube.header_count(Qt::Horizontal), 2);
+  QCOMPARE(datacube.header_count(Qt::Vertical), 1);
   typedef QPair<QString, int> header_pair_t;
   // Test headers
   int i = 0;
@@ -58,9 +58,9 @@ void testplaincube::test_split() {
 
   //Test sum of data
   int total = 0;
-  for (int row = 0; row < datacube.rowCount(); ++row) {
-    for (int column = 0; column < datacube.columnCount(); ++column) {
-      total += datacube.cellCount(row, column);
+  for (int row = 0; row < datacube.row_count(); ++row) {
+    for (int column = 0; column < datacube.column_count(); ++column) {
+      total += datacube.element_count(row, column);
     }
   }
 
@@ -69,7 +69,7 @@ void testplaincube::test_split() {
   int malecat = sex_filter->categories(m_underlying_model).indexOf("male");
   int odensecat = kommune_filter->categories(m_underlying_model).indexOf("Odense");
   int col = malecat+sex_filter->categories(m_underlying_model).size()*odensecat;
-  QCOMPARE(datacube.cellCount(pedersencat, col), 2);
+  QCOMPARE(datacube.element_count(pedersencat, col), 2);
 
 }
 
@@ -77,14 +77,14 @@ void testplaincube::test_collapse1() {
   datacube_t datacube(m_underlying_model, last_name_filter, kommune_filter);
   datacube.split(Qt::Horizontal, 1, sex_filter);
   datacube.collapse(Qt::Horizontal,0);
-  QCOMPARE(datacube.headerCount(Qt::Horizontal),1);
-  QCOMPARE(datacube.headerCount(Qt::Vertical),1);
+  QCOMPARE(datacube.header_count(Qt::Horizontal),1);
+  QCOMPARE(datacube.header_count(Qt::Vertical),1);
   int total = 0;
   QList<QPair<QString,int> > col_headers = datacube.headers(Qt::Horizontal, 0);
   QList<QPair<QString,int> > row_headers = datacube.headers(Qt::Vertical, 0);
-  for (int row = 0; row < datacube.rowCount(); ++row) {
-    for (int column = 0; column < datacube.columnCount(); ++column) {
-      Q_FOREACH(int cell, datacube.cellrows(row, column)) {
+  for (int row = 0; row < datacube.row_count(); ++row) {
+    for (int column = 0; column < datacube.column_count(); ++column) {
+      Q_FOREACH(int cell, datacube.elements(row, column)) {
         ++total;
         QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, SEX)).toString(), col_headers.at(column).first);
         QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, LAST_NAME)).toString(), row_headers.at(row).first);
@@ -99,14 +99,14 @@ void testplaincube::test_collapse2() {
   datacube_t datacube(m_underlying_model, last_name_filter, kommune_filter);
   datacube.split(Qt::Horizontal, 1, sex_filter);
   datacube.collapse(Qt::Horizontal,1);
-  QCOMPARE(datacube.headerCount(Qt::Horizontal),1);
-  QCOMPARE(datacube.headerCount(Qt::Vertical),1);
+  QCOMPARE(datacube.header_count(Qt::Horizontal),1);
+  QCOMPARE(datacube.header_count(Qt::Vertical),1);
   int total = 0;
   QList<QPair<QString,int> > col_headers = datacube.headers(Qt::Horizontal, 0);
   QList<QPair<QString,int> > row_headers = datacube.headers(Qt::Vertical, 0);
-  for (int row = 0; row < datacube.rowCount(); ++row) {
-    for (int column = 0; column < datacube.columnCount(); ++column) {
-      Q_FOREACH(int cell, datacube.cellrows(row, column)) {
+  for (int row = 0; row < datacube.row_count(); ++row) {
+    for (int column = 0; column < datacube.column_count(); ++column) {
+      Q_FOREACH(int cell, datacube.elements(row, column)) {
         ++total;
         QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, KOMMUNE)).toString(), col_headers.at(column).first);
         QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, LAST_NAME)).toString(), row_headers.at(row).first);
@@ -122,8 +122,8 @@ void testplaincube::test_collapse3() {
   datacube.split(Qt::Horizontal, 1, age_filter);
   datacube.split(Qt::Horizontal, 2, sex_filter);
   datacube.collapse(Qt::Horizontal,1);
-  QCOMPARE(datacube.headerCount(Qt::Horizontal),2);
-  QCOMPARE(datacube.headerCount(Qt::Vertical),1);
+  QCOMPARE(datacube.header_count(Qt::Horizontal),2);
+  QCOMPARE(datacube.header_count(Qt::Vertical),1);
   int total = 0;
   QList<QPair<QString,int> > col_headers = datacube.headers(Qt::Horizontal, 1);
   QList<QPair<QString,int> > row_headers = datacube.headers(Qt::Vertical, 0);
@@ -134,9 +134,9 @@ void testplaincube::test_collapse3() {
       col0_headers << hp.first;
     }
   }
-  for (int row = 0; row < datacube.rowCount(); ++row) {
-    for (int column = 0; column < datacube.columnCount(); ++column) {
-      Q_FOREACH(int cell, datacube.cellrows(row, column)) {
+  for (int row = 0; row < datacube.row_count(); ++row) {
+    for (int column = 0; column < datacube.column_count(); ++column) {
+      Q_FOREACH(int cell, datacube.elements(row, column)) {
         ++total;
         QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, SEX)).toString(), col_headers.at(column).first);
         QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, KOMMUNE)).toString(), col0_headers.at(column));
@@ -175,11 +175,11 @@ void testplaincube::test_autocollapse() {
   datacube_t datacube(m_underlying_model, first_name_filter, last_name_filter);
   datacube.split(Qt::Vertical,1, sex_filter);
   // Splitting first names according to sex should yield no extra rows
-  QCOMPARE(datacube.rowCount(), first_name_filter->categories(m_underlying_model).size());
+  QCOMPARE(datacube.row_count(), first_name_filter->categories(m_underlying_model).size());
   // While splitting last names should. -1 because there are no
   datacube.split(Qt::Horizontal, 1, sex_filter);
   // -1 since there are no female Thomsen in our set
-  QCOMPARE(datacube.columnCount(), last_name_filter->categories(m_underlying_model).size()*sex_filter->categories(m_underlying_model).size() - 1);
+  QCOMPARE(datacube.column_count(), last_name_filter->categories(m_underlying_model).size()*sex_filter->categories(m_underlying_model).size() - 1);
 
 }
 
@@ -190,9 +190,9 @@ void testplaincube::test_global_filter() {
 
   // Set age filter to include 40-years old only (Expect one result, "Einar Madsen"
   datacube.set_global_filter(age_filter, fourty_cat);
-  QCOMPARE(datacube.rowCount(),1);
-  QCOMPARE(datacube.columnCount(),1);
-  QList<int> rows = datacube.cellrows(0,0);
+  QCOMPARE(datacube.row_count(),1);
+  QCOMPARE(datacube.column_count(),1);
+  QList<int> rows = datacube.elements(0,0);
   QCOMPARE(rows.size(), 1);
   int row = rows.front();
   QCOMPARE(m_underlying_model->data(m_underlying_model->index(row, FIRST_NAME)).toString(), QString::fromLocal8Bit("Einar"));
@@ -200,9 +200,9 @@ void testplaincube::test_global_filter() {
   // Set age filter to include 41-years old only (Expect one result, "Rigmor Jensen", weighting 76
   int fourtyone_cat = age_filter->categories(m_underlying_model).indexOf("41");
   datacube.set_global_filter(age_filter, fourtyone_cat);
-  QCOMPARE(datacube.rowCount(),1);
-  QCOMPARE(datacube.columnCount(),1);
-  rows = datacube.cellrows(0,0);
+  QCOMPARE(datacube.row_count(),1);
+  QCOMPARE(datacube.column_count(),1);
+  rows = datacube.elements(0,0);
   QCOMPARE(rows.size(), 1);
   row = rows.front();
   QCOMPARE(m_underlying_model->data(m_underlying_model->index(row, FIRST_NAME)).toString(), QString::fromLocal8Bit("Rigmor"));
@@ -211,15 +211,15 @@ void testplaincube::test_global_filter() {
   // Get all with that weight (besides Rigmor Jensen, this includes Lulu Petersen)
   int seventysix = weight_filter->categories(m_underlying_model).indexOf("76");
   datacube.set_global_filter(weight_filter, seventysix);
-  QCOMPARE(datacube.rowCount(),2);
-  QCOMPARE(datacube.columnCount(),2);
-  rows = datacube.cellrows(1,0);
+  QCOMPARE(datacube.row_count(),2);
+  QCOMPARE(datacube.column_count(),2);
+  rows = datacube.elements(1,0);
   QCOMPARE(rows.size(), 1);
   row = rows.front();
   QCOMPARE(m_underlying_model->data(m_underlying_model->index(row, FIRST_NAME)).toString(), QString::fromLocal8Bit("Rigmor"));
   QCOMPARE(m_underlying_model->data(m_underlying_model->index(row, LAST_NAME)).toString(), QString::fromLocal8Bit("Jensen"));
   QCOMPARE(m_underlying_model->data(m_underlying_model->index(row, WEIGHT)).toString(), QString::fromLocal8Bit("76"));
-  rows = datacube.cellrows(0,1);
+  rows = datacube.elements(0,1);
   QCOMPARE(rows.size(), 1);
   row = rows.front();
   QCOMPARE(m_underlying_model->data(m_underlying_model->index(row, FIRST_NAME)).toString(), QString::fromLocal8Bit("Lulu"));
@@ -234,14 +234,14 @@ void testplaincube::test_deep_header() {
   datacube.split(Qt::Horizontal, 1,sex_filter);
   datacube.split(Qt::Horizontal, 1,age_filter);
   datacube.split(Qt::Horizontal, 1,weight_filter);
-  QCOMPARE(datacube.headerCount(Qt::Horizontal),5);
-  for (int headerno = 0; headerno < datacube.headerCount(Qt::Horizontal); ++headerno) {
+  QCOMPARE(datacube.header_count(Qt::Horizontal),5);
+  for (int headerno = 0; headerno < datacube.header_count(Qt::Horizontal); ++headerno) {
     int total = 0;
     typedef QPair<QString,int> header_pair_t;
     Q_FOREACH(header_pair_t header_pair, datacube.headers(Qt::Horizontal, headerno)) {
       total += header_pair.second;
     }
-    QCOMPARE(total, datacube.columnCount());
+    QCOMPARE(total, datacube.column_count());
   }
 
 }

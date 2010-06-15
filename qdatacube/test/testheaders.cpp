@@ -236,7 +236,7 @@ void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno
       } else if (kommune_filter.get() == raw_pointer) {
         filter = kommune_filter;
       }
-      if (headerno+1 < m_model->datacube()->headerCount(Qt::Vertical)) {
+      if (headerno+1 < m_model->datacube()->header_count(Qt::Vertical)) {
         m_row_used_filter_actions << action;
       } else {
         m_row_used_filter_actions.insert(headerno+1, action);

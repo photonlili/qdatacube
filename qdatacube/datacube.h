@@ -24,25 +24,33 @@ class datacube_colrow_t;
 
 class abstract_filter_t;
 
+/**
+ * row: row in datacube
+ * column: column in datacube
+ * section: row or column in datacube
+ * element: row number in underlying model
+ * bucket(no): "raw" section, that is, including autocollapsed (empty) rows and columns
+ */
 class QDATACUBE_EXPORT datacube_t : public QObject {
   Q_OBJECT
   public:
     /**
      * Construct simple 2-dimensional datacube with the 2 filters
+     * @param underlying_model the model whose rows are the data elements in the datacube
      * @param row_filter initial filter. Ownership is claimed, and filter will be deleted
      * @param column_filter initial filter. Ownership is claimed, and filter will be deleted
-     * @param active limited to these containers
      */
-    datacube_t(const QAbstractItemModel* model,
-            abstract_filter_t* row_filter,
-            abstract_filter_t* column_filter,
-            QObject* parent = 0);
+    datacube_t(const QAbstractItemModel* underlying_model,
+               abstract_filter_t* row_filter,
+               abstract_filter_t* column_filter,
+               QObject* parent = 0);
 
     /**
      * Construct simple 2-dimensional datacube with the 2 filters
+     * Construct simple 2-dimensional datacube with the 2 filters
+     * @param underlying_model the model whose rows are the data elements in the datacube
      * @param row_filter initial filter.
      * @param column_filter initial filter.
-     * @param active limited to these containers
      */
     datacube_t(const QAbstractItemModel* model,
             std::tr1::shared_ptr<abstract_filter_t> row_filter,
@@ -55,49 +63,48 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     ~datacube_t();
 
     /**
-     * Return the number of headers in the given direction
+     * Return the number of headers in the given direction. The sum of the
+     * headers in both directions would give the total dimension of the (hyper)cube.
+     * In other words, this is the number of dimensions projected to the orientation.
      */
-    int headerCount(Qt::Orientation orientation) const;
+    int header_count(Qt::Orientation orientation) const;
 
     /**
-     * Return the number of data rows
+     * Return the number of rows in the cube
      */
-    int rowCount() const;
+    int row_count() const;
 
     /**
-     * Return the number of data columns
+     * Return the number of columns in the cube
      */
-    int columnCount() const;
+    int column_count() const;
 
     /**
-     * @return name of header, number of columns spanned
+     * @return pair of (name of header, number of columns spanned)
      * @param orientation
      * @param index 0 is first header, 1 is next and so on, up until headerCount(orientation)
      */
     QList<QPair<QString,int> > headers(Qt::Orientation orientation, int index) const;
 
     /**
-     * @returns The number of elements for the given row, column
+     * @returns The number of elements for the given row, column.
+     * equivalent to elements(row,column).size()
      */
-    int cellCount(int row, int column) const;
+    int element_count(int row, int column) const;
 
     /**
-     * @returns The actual indices for the given row, column
+     * @returns The elements in the given row, column
      */
-    QList<int> cellrows(int row, int column) const;
+    QList<int> elements(int row, int column) const;
 
     /**
-     * @return depth (number of headers/filters) for orientation
-     */
-    int depth(Qt::Orientation orientation);
-
-    /**
-     * Set global filter. Containers in category are included, the rest is rejected.
+     * Set global filter. Elements in "category" are included, the rest are excluded
      */
     void set_global_filter(std::tr1::shared_ptr<abstract_filter_t> filter, int category);
 
     /**
      * Set global filter. Convenience overload. Filter is claimed by this datacube and will be deleted at some point
+     * equivalent to set_global_filter(std::tr1::shared_ptr<abstract_filter_t*>(filter), category);
      */
     void set_global_filter(abstract_filter_t* filter, int category);
 
@@ -108,23 +115,29 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
 
     /**
      * Split header with filter.
+     * @param orientation split by column or row
+     * @param headerno which header to split. 0 means this is the new topmost split,
+     *                 header_count(orientation) is the bottommost.
+     * @param filter filter to use. Each non-empty category will give a new row or column
      */
     void split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr<abstract_filter_t> filter);
 
     /**
      * Split header with filter.
-     * ownership of filter is filter is claimed and the filter is deleted at some point.
-     * @param headerno split is done before headerno; use headerno=headerCount(orientation) to insert at end
+     * convenience overload, same as split(orientation, headerno, std::tr1::shared_ptr<abstract_filter_t>(filter));
      */
     void split(Qt::Orientation orientation, int headerno, abstract_filter_t* filter);
 
     /**
-     * Collapse header, removing it from datacube. Requries headerCount(orientation)>=2
+     * Collapse header, removing it from datacube. Requries headercount(orientation)>=2
+     * @param orientation collapse row or column
+     * @param headerno which header to remove. Must be less that header_count(orientation)
      */
     void collapse(Qt::Orientation orientation, int headerno);
 
     /**
-     * Return all filters that applies to section
+     * @return all filters that applies to section
+     * Note: untested.
      */
     QList<std::tr1::shared_ptr<abstract_filter_t> > filters_for_section(Qt::Orientation orientation, int section) const;
 
@@ -152,22 +165,22 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     /**
      * rows are about to be removed
      */
-    void rows_about_to_be_added(int index, int count);
+    void rows_about_to_be_inserted(int index, int count);
 
     /**
      * columns are about to be added
      */
-    void columns_about_to_be_added(int index, int count);
+    void columns_about_to_be_inserted(int index, int count);
 
     /**
      * rows have been added
      */
-    void rows_added(int index, int count);
+    void rows_inserted(int index, int count);
 
     /**
      * columns have been added
      */
-    void columns_added(int index, int count);
+    void columns_inserted(int index, int count);
 
     /**
      * header data has changed
