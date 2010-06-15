@@ -9,6 +9,7 @@
 #include <QTextStream>
 #include <QFile>
 #include <QStandardItemModel>
+#include <QDebug>
 
 #include "column_filter.h"
 #include "datacube.h"
