@@ -16,7 +16,7 @@ SET(QDATACUBE_VERSION "0.5")
 IF(NOT WIN32)
   SET(CMAKE_CXX_FLAGS "-fvisibility=hidden -fdiagnostics-show-option -ggdb3 -Wall -Werror=switch -Wno-strict-overflow -Werror=return-type -Wno-trigraphs -Wno-deprecated -Wclobbered -Wempty-body -Wignored-qualifiers -Wmissing-field-initializers -Wsign-compare -Wtype-limits -Werror=init-self -Wunused-parameter --include QDebug" CACHE STRING "Compile flags for c++" FORCE)
 ELSE(NOT WIN32)
-  SET(CMAKE_CXX_FLAGS "-Wno-trigraphs -Wno-deprecated" CACHE STRING "Compile flags for c++" FORCE)
+  SET(CMAKE_CXX_FLAGS "-Wno-trigraphs -Wno-deprecated --include QDebug" CACHE STRING "Compile flags for c++" FORCE)
 ENDIF(NOT WIN32)
 
 SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -Werror=uninitialized -Werror=init-self" CACHE STRING "Flags used by the compiler during Release with Debug Info builds" FORCE)
