@@ -442,7 +442,11 @@ void datacube_t::insert_data(QModelIndex parent, int start, int end) {
   d->columns->adjust_before_add(end, end-start+1);
   d->rows->adjust_before_add(end, end-start+1);
   for (int row = start; row <=end; ++row) {
-    add(row);
+    if((*d->global_filter)(d->model,row)==d->global_filter_category) {
+      add(row);
+    } else {
+      //qDebug() << "ignoring";
+    }
   }
 
 }
