@@ -426,7 +426,7 @@ void datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
   const int toprow = topleft.row();
   const int buttomrow = bottomRight.row();
   for (int row = toprow; row <= buttomrow; ++row) {
-    const bool filtered_out = ((*d->global_filter)(d->model, row) != d->global_filter_category);
+    const bool filtered_out = d->global_filter.get() && ((*d->global_filter)(d->model, row) != d->global_filter_category);
     const bool rowchanged = !d->rows->sibling_indexes(row).contains(row);
     const bool colchanged = !d->rows->sibling_indexes(row).contains(row);
     if (rowchanged || colchanged | filtered_out) {
@@ -442,7 +442,7 @@ void datacube_t::insert_data(QModelIndex parent, int start, int end) {
   d->columns->adjust_before_add(end, end-start+1);
   d->rows->adjust_before_add(end, end-start+1);
   for (int row = start; row <=end; ++row) {
-    if((*d->global_filter)(d->model,row)==d->global_filter_category) {
+    if(!d->global_filter.get() || (*d->global_filter)(d->model,row)==d->global_filter_category) {
       add(row);
     } else {
       //qDebug() << "ignoring";
