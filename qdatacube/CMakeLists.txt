@@ -9,6 +9,9 @@ SET(QDATACUBE_SRC
   datacube_header.cpp
   datacube_header_model.cpp
   datacube_model.cpp
+  datacube_selection_model.cpp
+  datacube_view.cpp
+  datacube_view_item_delegate.cpp
   internal_header_view.cpp
 )
 
