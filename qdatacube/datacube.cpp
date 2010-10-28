@@ -515,6 +515,14 @@ QList< std::tr1::shared_ptr< abstract_filter_t > > datacube_t::filters_for_secti
   }
 }
 
+int datacube_t::section_for_element(int element, Qt::Orientation orientation) const {
+  if (orientation == Qt::Horizontal) {
+    return d->toplevel_column_header().section_for_index(element);
+  } else  {
+    return d->toplevel_row_header().section_for_index(element);
+  }
+}
+
 
 }
 

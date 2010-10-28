@@ -141,6 +141,13 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      */
     QList<std::tr1::shared_ptr<abstract_filter_t> > filters_for_section(Qt::Orientation orientation, int section) const;
 
+    /**
+     * @returns the section for
+     * @param orientation
+     * and
+     * @param element
+     */
+    int section_for_element(int element, Qt::Orientation orientation) const;
   Q_SIGNALS:
     /**
      * rows are about to be removed
