@@ -523,7 +523,14 @@ int datacube_t::section_for_element(int element, Qt::Orientation orientation) co
   }
 }
 
+std::tr1::shared_ptr< abstract_filter_t > datacube_t::global_filter() const {
+  return d->global_filter;
+}
 
+}
+
+const QAbstractItemModel* qdatacube::datacube_t::underlying_model() const {
+  return d->model;
 }
 
 

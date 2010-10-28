@@ -148,6 +148,17 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * @param element
      */
     int section_for_element(int element, Qt::Orientation orientation) const;
+
+    /**
+     * @return pointer to global filter
+     */
+    std::tr1::shared_ptr<abstract_filter_t> global_filter() const;
+
+    /**
+     * @return the underlying model
+     */
+    const QAbstractItemModel* underlying_model() const;
+
   Q_SIGNALS:
     /**
      * rows are about to be removed
