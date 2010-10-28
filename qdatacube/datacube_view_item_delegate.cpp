@@ -31,7 +31,7 @@ void datacube_view_item_delegate_t::paint(QPainter* painter, const QStyleOptionV
     // Partially selected
     QStyleOptionViewItemV4 myoption = option;
     myoption.state |= QStyle::State_Selected;
-    myoption.palette.setColor(QPalette::Highlight, Qt::red);
+    myoption.palette.setColor(QPalette::Highlight, myoption.palette.highlight().color().lighter());
     QStyledItemDelegate::paint(painter, myoption, index);
   } else {
     QStyledItemDelegate::paint(painter, option, index);
