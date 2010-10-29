@@ -32,6 +32,8 @@ SET(CONTAINERS_PUBLIC_HEADERS
   datacube_model.h
   datacube_header.h
   datacube_header_model.h
+  datacube_view.h
+  datacube_selection_model.h
   abstract_filter.h
   qdatacube_export.h
 )
