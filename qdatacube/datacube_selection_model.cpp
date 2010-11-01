@@ -182,8 +182,8 @@ datacube_selection_model_t::datacube_selection_model_t(QAbstractItemModel* model
   }
   connect(model, SIGNAL(rowsAboutToBeInserted(const QModelIndex&, int, int)), SLOT(slot_insert_rows(const QModelIndex&, int, int)));
   connect(model, SIGNAL(columnsAboutToBeInserted(const QModelIndex&, int, int)), SLOT(slot_insert_columns(QModelIndex,int,int)));
-  connect(model, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)), SLOT(slot_remove_rows(const QModelIndex&, int, int)));
-  connect(model, SIGNAL(columnsAboutToBeRemoved(const QModelIndex&, int, int)), SLOT(slot_remove_columns(QModelIndex,int,int)));
+  connect(model, SIGNAL(rowsRemoved(const QModelIndex&, int, int)), SLOT(slot_remove_rows(const QModelIndex&, int, int)));
+  connect(model, SIGNAL(columnsRemoved(const QModelIndex&, int, int)), SLOT(slot_remove_columns(QModelIndex,int,int)));
 }
 
 void datacube_selection_model_t::select_elements(const QList< int >& elements) {
