@@ -276,7 +276,6 @@ void datacube_selection_model_t::slot_insert_columns(const QModelIndex& , int be
 }
 
 void datacube_selection_model_t::slot_remove_columns(const QModelIndex& /*parent*/, int begin, int end) {
-  qDebug() << __func__ << "START" << d->select_count;
   const int n_rows = d->select_size.height();
   for (int col=end; col>=begin; --col) {
     for (int row = n_rows-1; row>=0; --row) {
@@ -285,12 +284,10 @@ void datacube_selection_model_t::slot_remove_columns(const QModelIndex& /*parent
   }
   d->select_size.rwidth() -= (end-begin+1);
   Q_ASSERT(d->select_size.width()*d->select_size.height() == d->select_count.size());
-  qDebug() << __func__ << "END" <<  d->select_count;
 
 }
 
 void datacube_selection_model_t::slot_remove_rows(const QModelIndex& /*parent*/, int begin, int end) {
-  qDebug() << __func__ << "START" << d->select_count;
   const int n_rows = d->select_size.height();
   const int n_columns = d->select_size.width();
   for (int col=n_columns-1; col>=0; --col) {
@@ -299,7 +296,6 @@ void datacube_selection_model_t::slot_remove_rows(const QModelIndex& /*parent*/,
     }
   }
   d->select_size.rheight() -= (end-begin+1);
-  qDebug() << __func__ << "END" <<  d->select_count;
   Q_ASSERT(d->select_size.width()*d->select_size.height() == d->select_count.size());
 
 }
