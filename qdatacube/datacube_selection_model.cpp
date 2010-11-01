@@ -182,6 +182,8 @@ datacube_selection_model_t::datacube_selection_model_t(QAbstractItemModel* model
   }
   connect(model, SIGNAL(rowsAboutToBeInserted(const QModelIndex&, int, int)), SLOT(slot_insert_rows(const QModelIndex&, int, int)));
   connect(model, SIGNAL(columnsAboutToBeInserted(const QModelIndex&, int, int)), SLOT(slot_insert_columns(QModelIndex,int,int)));
+  connect(model, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)), SLOT(slot_remove_rows(const QModelIndex&, int, int)));
+  connect(model, SIGNAL(columnsAboutToBeRemoved(const QModelIndex&, int, int)), SLOT(slot_remove_columns(QModelIndex,int,int)));
 }
 
 void datacube_selection_model_t::select_elements(const QList< int >& elements) {
@@ -272,6 +274,36 @@ void datacube_selection_model_t::slot_insert_columns(const QModelIndex& , int be
   d->select_size.rwidth() += (end-begin+1);
   Q_ASSERT(d->select_size.width()*d->select_size.height() == d->select_count.size());
 }
+
+void datacube_selection_model_t::slot_remove_columns(const QModelIndex& /*parent*/, int begin, int end) {
+  qDebug() << __func__ << "START" << d->select_count;
+  const int n_rows = d->select_size.height();
+  for (int col=end; col>=begin; --col) {
+    for (int row = n_rows-1; row>=0; --row) {
+      d->select_count.removeAt(col*n_rows+row);
+    }
+  }
+  d->select_size.rwidth() -= (end-begin+1);
+  Q_ASSERT(d->select_size.width()*d->select_size.height() == d->select_count.size());
+  qDebug() << __func__ << "END" <<  d->select_count;
+
+}
+
+void datacube_selection_model_t::slot_remove_rows(const QModelIndex& /*parent*/, int begin, int end) {
+  qDebug() << __func__ << "START" << d->select_count;
+  const int n_rows = d->select_size.height();
+  const int n_columns = d->select_size.width();
+  for (int col=n_columns-1; col>=0; --col) {
+    for (int row = end; row>=begin; --row) {
+      d->select_count.removeAt(col*n_rows+row);
+    }
+  }
+  d->select_size.rheight() -= (end-begin+1);
+  qDebug() << __func__ << "END" <<  d->select_count;
+  Q_ASSERT(d->select_size.width()*d->select_size.height() == d->select_count.size());
+
+}
+
 
 bool datacube_selection_model_t::partially_selected(const QModelIndex& index) const {
   const int count = d->select_count.at(index.column()*d->select_size.height()+index.row());

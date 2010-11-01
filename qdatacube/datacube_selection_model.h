@@ -50,6 +50,16 @@ class QDATACUBE_EXPORT datacube_selection_model_t : public QItemSelectionModel {
      * Connect to model to update internal state re partial selections
      */
     void slot_insert_columns(const QModelIndex&, int end, int begin);
+
+    /**
+     * Connect to model to update internal state re partial selections
+     */
+    void slot_remove_rows(const QModelIndex& parent, int begin, int end);
+
+    /**
+     * Connect to model to update internal state re partial selections
+     */
+    void slot_remove_columns(const QModelIndex& parent, int begin, int end);
   Q_SIGNALS:
     void partial_selection_changed(const QItemSelection& selection, const QItemSelection& deselection);
 
