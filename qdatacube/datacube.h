@@ -150,6 +150,12 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     int section_for_element(int element, Qt::Orientation orientation) const;
 
     /**
+     * @return the current section for the element (which might be wrong if you are listening to e.g. rows_about_to_be_removed)
+     * TODO: Find a better name for this.
+     */
+    int section_for_element_internal(int element, Qt::Orientation orientation) const;
+
+    /**
      * @return pointer to global filter
      */
     std::tr1::shared_ptr<abstract_filter_t> global_filter() const;

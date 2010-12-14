@@ -523,6 +523,15 @@ int datacube_t::section_for_element(int element, Qt::Orientation orientation) co
   }
 }
 
+int datacube_t::section_for_element_internal(int element, Qt::Orientation orientation) const {
+  if (orientation == Qt::Horizontal) {
+    return d->toplevel_column_header().section_for_index_internal(element);
+  } else  {
+    return d->toplevel_row_header().section_for_index_internal(element);
+  }
+
+}
+
 std::tr1::shared_ptr< abstract_filter_t > datacube_t::global_filter() const {
   return d->global_filter;
 }

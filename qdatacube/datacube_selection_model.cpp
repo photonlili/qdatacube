@@ -227,8 +227,8 @@ void datacube_selection_model_t::deselect_elements(const QList< int >& elements)
     QItemSelection deselection;
     Q_FOREACH(int element, elements) {
       if (!global_filter.get() || (*global_filter)(underlying_model, element) == 0) {
-        int row = cube->section_for_element(element, Qt::Vertical);
-        int column = cube->section_for_element(element, Qt::Horizontal);
+        int row = cube->section_for_element_internal(element, Qt::Vertical);
+        int column = cube->section_for_element_internal(element, Qt::Horizontal);
         int oldcount = d->select_count[row+column*d->select_size.height()]--;
         if (oldcount == d->datacube->element_count(row,column)) {
           QModelIndex index = model()->index(row,column);
