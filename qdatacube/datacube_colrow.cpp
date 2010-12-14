@@ -105,9 +105,11 @@ datacube_colrow_t::datacube_colrow_t( const QAbstractItemModel* model, std::tr1:
     d(new secret_t(model, std::tr1::shared_ptr<abstract_filter_t>(filter)))
 {
   d->sort_to_buckets(active);
+  Q_ASSERT(!filter->categories(model).isEmpty());
   Q_ASSERT(d->buckets.size() == d->children.size());
+  connect(filter.get(), SIGNAL(category_added(int)), SLOT(filter_catogory_added(int)));
+  connect(filter.get(), SIGNAL(category_removed(int)), SLOT(filter_catogory_removed(int)));
 }
-
 
 int datacube_colrow_t::remove(int index) {
   int section = 0;
@@ -444,6 +446,20 @@ QList< std::tr1::shared_ptr< abstract_filter_t > > datacube_colrow_t::filters_fo
   }
   Q_ASSERT(false);
 }
+
+void datacube_colrow_t::filter_catogory_added(int index) {
+  d->buckets.insert(index, QList<int>());
+  //Copy the old child here, but with no actives
+  datacube_colrow_t* template_child = d->children.at(0);
+  d->children.insert(index, template_child ? template_child->deep_copy(QList<int>()) : 0L);
+}
+
+void datacube_colrow_t::filter_catogory_removed(int index) {
+  Q_ASSERT(d->buckets.at(index).isEmpty());
+  d->buckets.removeAt(index);
+  d->children.removeAt(index);
+}
+
 
 }
 

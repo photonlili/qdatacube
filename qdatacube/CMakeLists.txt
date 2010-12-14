@@ -3,6 +3,7 @@
 #
 
 SET(QDATACUBE_SRC
+  abstract_filter.cpp
   column_filter.cpp
   datacube.cpp
   datacube_colrow.cpp

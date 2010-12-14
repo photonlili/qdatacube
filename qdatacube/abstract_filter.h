@@ -11,6 +11,7 @@
 
 #include "qdatacube_export.h"
 #include <QString>
+#include <QObject>
 
 class QAbstractItemModel;
 
@@ -19,7 +20,8 @@ namespace qdatacube {
 /**
  * container filter for recaps interface
  */
-class QDATACUBE_EXPORT abstract_filter_t {
+class QDATACUBE_EXPORT abstract_filter_t : public QObject {
+  Q_OBJECT
   public:
     /**
      * @param model
@@ -41,7 +43,20 @@ class QDATACUBE_EXPORT abstract_filter_t {
       Q_UNUSED(model);
       return QString::fromLocal8Bit("unnamed");
     }
+  Q_SIGNALS:
+    /**
+     * Implementors must emit this signal when a category has been added
+     * @param index index of removed category
+     */
+    void category_added(int index) const;
+
+    /**
+     * Implementors must emit this signal when a category has been removed
+     * @param index index of new category
+     */
+    void category_removed(int index) const;
 };
 
 }
+
 #endif // QDATACUBE_ABSTRACT_FILTER_H

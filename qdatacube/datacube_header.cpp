@@ -241,7 +241,6 @@ void datacube_header_t::slot_context_menu_requested(const QPoint& senderpos) {
   }
   int category = d->headers.at(headerno)->logicalIndexAt(senderpos);
   QPoint pos = d->headers.at(headerno)->mapToParent(senderpos);
-  Q_ASSERT(category>=0);
   emit sub_header_context_menu(pos, headerno, category);
 }
 

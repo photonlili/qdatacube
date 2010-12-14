@@ -36,6 +36,7 @@ class QDATACUBE_EXPORT datacube_header_t : public QHeaderView {
   Q_SIGNALS:
     /**
      * Emitted when the context menu for a subheader is invoked.
+     * -1 means there is no category (probably none is shown)
      */
     void sub_header_context_menu(const QPoint& pos, int headerno, int category);
   public Q_SLOTS:

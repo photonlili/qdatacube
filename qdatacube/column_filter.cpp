@@ -14,9 +14,11 @@ namespace qdatacube {
 
 class column_filter_t::secret_t {
   public:
-    secret_t(int section) : categories(), section(section) {}
+    secret_t(int section) : categories(), section(section) {
+    }
     QStringList categories;
-    QHash<QString, int> cat_map;
+    typedef QHash<QString, int> cat_map_t;
+    cat_map_t cat_map;
     int section;
 };
 
@@ -34,12 +36,14 @@ const QList< QString >& column_filter_t::categories(const QAbstractItemModel* mo
       QString cat = d->categories.at(i);
       d->cat_map.insert(cat, i);
     }
+    if (d->categories.isEmpty()) {
+      d->categories << model->tr("other"); // Have to have at least one
+    }
   }
   return d->categories;
 }
 
 column_filter_t::column_filter_t(int section): abstract_filter_t(), d(new secret_t(section)) {
-
 }
 
 int column_filter_t::operator()(const QAbstractItemModel* model, int row) const {
@@ -51,7 +55,19 @@ int column_filter_t::operator()(const QAbstractItemModel* model, int row) const 
   }
   QString data = model->data(model->index(row, d->section)).toString();
   int rv = d->cat_map.value(data, -1);
-  Q_ASSERT(rv>=0);
+  if (rv == -1) {
+    QStringList::iterator lb = qLowerBound(d->categories.begin(), d->categories.end(), data);
+    int index = lb - d->categories.begin();
+    for (secret_t::cat_map_t::iterator it = d->cat_map.begin(), iend = d->cat_map.end(); it != iend; ++it) {
+      if (*it>=index) {
+        ++(*it);
+      }
+    }
+    d->categories.insert(lb, data);
+    d->cat_map.insert(data, index);
+    emit category_added(index);
+    rv = index;
+  }
   return rv;
 }
 
@@ -70,3 +86,5 @@ QString column_filter_t::name(const QAbstractItemModel* model) const
 
 
 }
+
+#include "column_filter.moc"

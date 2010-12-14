@@ -67,7 +67,7 @@ void danishnamecube_t::load_model_data(QString filename) {
 
 danishnamecube_t::danishnamecube_t(QObject* parent):
     QObject(parent),
-    m_underlying_model(0L),
+    m_underlying_model(new QStandardItemModel(this)),
     first_name_filter(new column_filter_t(FIRST_NAME)),
     last_name_filter(new column_filter_t(LAST_NAME)),
     sex_filter(new column_filter_t(SEX)),
@@ -75,7 +75,6 @@ danishnamecube_t::danishnamecube_t(QObject* parent):
     weight_filter(new column_filter_t(WEIGHT)),
     kommune_filter(new column_filter_t(KOMMUNE))
 {
-  m_underlying_model = new QStandardItemModel(this);
 }
 
 #include "danishnamecube.moc"

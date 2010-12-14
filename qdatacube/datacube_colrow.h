@@ -147,14 +147,6 @@ class datacube_colrow_t : public QObject {
     void split(int section, std::tr1::shared_ptr<abstract_filter_t> filter);
 
     /**
-     * Split the childindex *including* the empty ones
-     * @param index
-     * @param filter an abstract filter direviate, wrapped in a shared_ptr for convenience.
-     */
-    void split_including_empty(int bucketno, int section, std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter);
-
-
-    /**
      * remove index set, recursively
      * @return section where the index was removed from
      */
@@ -207,6 +199,9 @@ class datacube_colrow_t : public QObject {
     int section_for_bucketno(int bucketno);
 
 
+  private Q_SLOTS:
+    void filter_catogory_added(int index);
+    void filter_catogory_removed(int index);
   private:
     class secret_t;
     QScopedPointer<secret_t> d;
