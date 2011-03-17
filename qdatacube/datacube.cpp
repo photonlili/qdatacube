@@ -25,6 +25,15 @@ class datacube_t::secret_t {
     QScopedPointer<datacube_colrow_t> rows;
     std::tr1::shared_ptr<abstract_filter_t> global_filter;
     int global_filter_category;
+    struct cell_t {
+      cell_t(int row, int col) : row(row), col(col) {}
+      int row;
+      int col;
+      bool operator==(cell_t rhs) const { return row == rhs.row && col == rhs.col; }
+    };
+    friend uint qHash(const cell_t& cell) { return cell.row + 32*cell.col; }
+    QHash<cell_t, int > element_count_cache;
+
 
     /**
      * @returns the rows toplevel header
@@ -114,6 +123,7 @@ void datacube_t::collapse_at_depth(Qt::Orientation orientation, const int start_
 }
 
 void datacube_t::split_bucket(Qt::Orientation orientation,  const int start_section, datacube_colrow_t* parent, int bucketno, std::tr1::shared_ptr< abstract_filter_t > filter) {
+  d->element_count_cache.clear();
   QList<int> rows;
   datacube_colrow_t* oldchild = 0L;
   if (parent) {
@@ -187,6 +197,7 @@ void datacube_t::split_bucket(Qt::Orientation orientation,  const int start_sect
 }
 
 void datacube_t::collapse_bucket(Qt::Orientation orientation, const int start_section, datacube_colrow_t* parent, int bucketno) {
+  d->element_count_cache.clear();
   QList<int> rows;
   datacube_colrow_t* oldchild = 0L;
   if (parent) {
@@ -299,6 +310,7 @@ void datacube_t::set_global_filter(std::tr1::shared_ptr< qdatacube::abstract_fil
   }
   d->global_filter = filter;
   d->global_filter_category = category;
+  d->element_count_cache.clear();
 }
 
 void datacube_t::set_global_filter(abstract_filter_t* filter, int category) {
@@ -314,7 +326,15 @@ int datacube_t::header_count(Qt::Orientation orientation) const {
 }
 
 int datacube_t::element_count(int row, int column) const {
-  return elements(row,column).size();
+  int cached_result = d->element_count_cache.value(secret_t::cell_t(row,column), -1);
+  if (cached_result == -1) {
+    int rv =  elements(row,column).size();
+    d->element_count_cache.insert(secret_t::cell_t(row,column), rv);
+    return rv;
+  } else {
+    return cached_result;
+  }
+
 }
 
 int datacube_t::column_count() const {
@@ -389,6 +409,7 @@ void datacube_t::add(int index) {
   if(row_to_add==-1 && column_to_add==-1) {
     emit data_changed(row_section,column_section);
   }
+  d->element_count_cache.clear();
 }
 
 void datacube_t::remove(int index) {
@@ -420,6 +441,7 @@ void datacube_t::remove(int index) {
   if(row_to_remove==-1 && column_to_remove==-1) {
     emit data_changed(row_section,column_section);
   }
+  d->element_count_cache.clear();
 }
 
 void datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
