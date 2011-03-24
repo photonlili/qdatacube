@@ -136,12 +136,6 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void collapse(Qt::Orientation orientation, int headerno);
 
     /**
-     * @return all filters that applies to section
-     * Note: untested.
-     */
-    QList<std::tr1::shared_ptr<abstract_filter_t> > filters_for_section(Qt::Orientation orientation, int section) const;
-
-    /**
      * @returns the section for
      * @param orientation
      * and
@@ -164,6 +158,11 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * @return the underlying model
      */
     const QAbstractItemModel* underlying_model() const;
+
+    /**
+     * Debug function: Dump internal state
+     */
+    void dump(bool cells, bool rowcounts, bool col_counts) const;
 
   Q_SIGNALS:
     /**
@@ -228,10 +227,8 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
   private:
     void remove(int index);
     void add(int index);
-    void split_bucket(Qt::Orientation orientation, const int start_section, datacube_colrow_t* parent, int bucketno, std::tr1::shared_ptr< abstract_filter_t > filter);
-    void split_at_depth(Qt::Orientation orientation, const int start_section, datacube_colrow_t* parent, int depth, std::tr1::shared_ptr< abstract_filter_t > filter);
-    void collapse_at_depth(Qt::Orientation orientation, const int start_section,  datacube_colrow_t* parent, int depth);
-    void collapse_bucket(Qt::Orientation orientation, const int start_section, datacube_colrow_t* parent, int bucketno);
+    void split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t > filter);
+    void split_column(int headerno, std::tr1::shared_ptr< abstract_filter_t > filter);
 
     class secret_t;
     QScopedPointer<secret_t> d;
