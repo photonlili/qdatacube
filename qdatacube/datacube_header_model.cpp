@@ -40,13 +40,13 @@ datacube_header_model_t::datacube_header_model_t(datacube_model_t* qdatacube_mod
     if(d->orientation == Qt::Horizontal) {
       connect(d->datacube_model,SIGNAL(columnsRemoved(const QModelIndex&,int,int)),SLOT(reset_headers()));
       connect(d->datacube_model,SIGNAL(columnsInserted(const QModelIndex&,int,int)),SLOT(reset_headers()));
-      connect(d->datacube_model, SIGNAL(headerDataChanged(Qt::Orientation,int,int)),SLOT(reset_headers()));
     } else {
       connect(d->datacube_model,SIGNAL(rowsRemoved(const QModelIndex&,int,int)),SLOT(reset_headers()));
       connect(d->datacube_model,SIGNAL(rowsInserted(const QModelIndex&,int,int)),SLOT(reset_headers()));
-      connect(d->datacube_model, SIGNAL(headerDataChanged(Qt::Orientation,int,int)),SLOT(reset_headers()));
     }
   }
+  connect(d->datacube_model, SIGNAL(headerDataChanged(Qt::Orientation,int,int)),SLOT(reset_headers()));
+  connect(d->datacube_model, SIGNAL(modelReset()), SLOT(reset_headers()));
 }
 
 int datacube_header_model_t::columnCount(const QModelIndex& ) const {

@@ -14,7 +14,6 @@
 #include "column_filter.h"
 #include "datacube.h"
 #include <datacube_model.h>
-#include <datacube_colrow.h>
 
 QTEST_MAIN(testdatacube_model)
 

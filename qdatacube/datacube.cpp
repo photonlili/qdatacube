@@ -6,7 +6,6 @@
 */
 
 #include "datacube.h"
-#include "datacube_colrow.h"
 #include "abstract_filter.h"
 
 #include <QVector>
@@ -55,7 +54,8 @@ class datacube_t::secret_t {
 
     };
     std::tr1::shared_ptr<abstract_filter_t> global_filter;
-    QHash<int, cell_t> reverse_index;
+    typedef QHash<int, cell_t> reverse_index_t;
+    reverse_index_t reverse_index;
     int global_filter_category;
 
 
@@ -254,11 +254,11 @@ void datacube_t::add(int index) {
   Q_ASSERT(column_section>=0); // Every container should be in both rows and columns, or neither place.
   int row_to_add = -1;
   int column_to_add = -1;
-  if(d->row_counts[row_section]++>0) {
+  if(d->row_counts[row_section]++ == 0) {
     row_to_add = d->section_to_row(row_section);;
     emit rows_about_to_be_inserted(row_to_add,1);
   }
-  if(d->col_counts[column_section]++>0) {
+  if(d->col_counts[column_section]++ == 0) {
     column_to_add = d->section_to_column(column_section);
     emit columns_about_to_be_inserted(column_to_add,1);
   }
@@ -287,7 +287,7 @@ void datacube_t::remove(int index) {
     row_to_remove = d->section_to_row(cell.row);
     emit rows_about_to_be_removed(row_to_remove,1);
   }
-  if(--d->row_counts[cell.row]==0) {
+  if(--d->col_counts[cell.column]==0) {
     column_to_remove = d->section_to_column(cell.column);
     emit columns_about_to_be_removed(column_to_remove,1);
   }
@@ -363,11 +363,13 @@ void datacube_t::slot_rows_changed(int row, int count) {
 }
 
 void datacube_t::split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr< abstract_filter_t > filter) {
+  emit about_to_be_reset();
   if (orientation == Qt::Vertical) {
     split_row(headerno, filter);
   } else {
     split_column(headerno, filter);
   }
+  emit reset();
 }
 
 void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t > filter)
@@ -387,12 +389,15 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t
   d->row_counts = QVector<unsigned>(old_row_counts.size()*ncats);
   // Sort out elements in new categories. Note that the old d->col_counts are unchanged
   for (int c=0; c<d->col_counts.size(); ++c) {
-    for (int r=0; r<old_row_counts.size(); ++r) {
-      Q_FOREACH(int element, oldcells[source_row_count*c+r]) {
-        const int target_row = r*target_stride + (*filter).operator()(d->model, element) * cat_stride;
-        const int target_index = target_row + c*target_row_count;
-        d->cells[target_index] << element;
-        ++d->row_counts[target_row];
+    for (int major = 0; major<old_row_counts.size()/cat_stride; ++major) {
+      for (int minor = 0; minor<cat_stride; ++minor) {
+        const int r = major*cat_stride + minor;
+        Q_FOREACH(int element, oldcells[source_row_count*c+r]) {
+          const int target_row = major*target_stride + minor + (*filter).operator()(d->model, element) * cat_stride;
+          const int target_index = target_row + c*target_row_count;
+          d->cells[target_index] << element;
+          ++d->row_counts[target_row];
+        }
       }
     }
   }
@@ -414,14 +419,19 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_filte
   int target_stride = cat_stride*ncats;
   QVector<unsigned> old_column_counts = d->col_counts;
   d->col_counts = QVector<unsigned>(old_column_counts.size()*ncats);
+  d->reverse_index = secret_t::reverse_index_t();
   // Sort out elements in new categories. Note that the old d->row_counts are unchanged
-  for (int c=0; c<old_column_counts.size(); ++c) {
-    for (int r=0; r<d->row_counts.size(); ++r) {
-      Q_FOREACH(int element, oldcells[row_count*c+r]) {
-        const int target_column = c*target_stride + (*filter).operator()(d->model, element) * cat_stride;
-        const int target_index = r + target_column*d->row_counts.size();
-        d->cells[target_index] << element;
-        ++d->col_counts[target_column];
+  for (int major = 0; major < old_column_counts.size()/cat_stride; ++major) {
+    for (int minor = 0; minor < cat_stride; ++minor) {
+      const int c = major*cat_stride + minor;
+      for (int r=0; r<d->row_counts.size(); ++r) {
+        Q_FOREACH(int element, oldcells[row_count*c+r]) {
+          const int target_column = major*target_stride + minor + (*filter).operator()(d->model, element) * cat_stride;
+          const int target_index = r + target_column*d->row_counts.size();
+          d->cells[target_index] << element;
+          d->reverse_index.insert(element, secret_t::cell_t(r, target_column));
+          ++d->col_counts[target_column];
+        }
       }
     }
   }
@@ -437,7 +447,44 @@ void datacube_t::split(Qt::Orientation orientation, int headerno, abstract_filte
 
 
 void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
-  Q_ASSERT(false); // TODO
+  emit about_to_be_reset();
+  QVector<QList<int> > oldcells = d->cells;
+  const bool horizontal = (orientation == Qt::Horizontal);
+  secret_t::filters_t& parallel_filters = horizontal ? d->col_filters : d->row_filters;
+  shared_ptr<abstract_filter_t> filter = parallel_filters[headerno];
+  parallel_filters.remove(headerno);
+  const int ncats = filter->categories(d->model).size();
+  const int newsize = oldcells.size() / ncats;
+  d->cells = QVector<QList<int> >(newsize);
+  const int normal_count = horizontal ? d->row_counts.size() : d->col_counts.size();
+  int cat_stride = 1;
+  for (int i=headerno; i<parallel_filters.size(); ++i) {
+    cat_stride *= parallel_filters.at(i)->categories(d->model).size();
+  }
+  const int source_stride = cat_stride * ncats;
+  QVector<unsigned>& new_counts = horizontal ? d->col_counts : d->row_counts;
+  QVector<unsigned> old_counts = new_counts;
+  new_counts = QVector<unsigned>(old_counts.size()/ncats);
+  d->reverse_index = secret_t::reverse_index_t();
+  for (int major=0; major<(new_counts.size()/cat_stride); ++major) {
+    for (int minor=0; minor<cat_stride; ++minor) {
+      const int p = major*cat_stride+minor;
+      unsigned& count = new_counts[p];
+      for (int n=0; n<normal_count; ++n) {
+        QList<int>& cell = horizontal ? d->cell(n, p) : d->cell(p, n);
+        for (int i = 0; i<ncats; ++i) {
+          const int old_parallel_index = major*source_stride+minor+i*cat_stride;
+          QList<int> oldcell = oldcells.at(horizontal ? (old_parallel_index)*normal_count+n : n*old_counts.size()+old_parallel_index);
+          cell.append(oldcell);
+          count += oldcell.size();
+          Q_FOREACH(int element, oldcell) {
+            d->reverse_index.insert(element, horizontal ? secret_t::cell_t(n,p) : secret_t::cell_t(p, n));
+          }
+        }
+      }
+    }
+  }
+  emit reset();
 }
 
 int datacube_t::section_for_element(int element, Qt::Orientation orientation) const {

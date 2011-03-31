@@ -17,6 +17,9 @@ class testplaincube : public danishnamecube_t {
   public:
     testplaincube(QObject* parent = 0);
 
+  private:
+    void dotest_splittwice(Qt::Orientation direction);
+
   private Q_SLOTS:
     /**
      * Test the column filter
@@ -34,6 +37,16 @@ class testplaincube : public danishnamecube_t {
     void test_split();
 
     /**
+    * Test spliiting a cube
+    */
+    void test_split_twice_horizontal();
+
+    /**
+    * Test spliiting a cube
+    */
+    void test_split_twice_vertical();
+
+    /**
      * Test collapsing sections (first of 2 headers)
      */
     void test_collapse1();
@@ -49,6 +62,11 @@ class testplaincube : public danishnamecube_t {
     void test_collapse3();
 
     /**
+     * Test colapsing section, vertically
+     */
+    void test_collapse3_vertical();
+
+    /**
      * Test that empty rows are collapsed
      */
     void test_autocollapse();
@@ -62,6 +80,7 @@ class testplaincube : public danishnamecube_t {
      * Test global filter
      */
     void test_global_filter();
+    void do_testcollapse3(Qt::Orientation orientation);
 };
 
 #endif // TESTPLAINCUBE_H

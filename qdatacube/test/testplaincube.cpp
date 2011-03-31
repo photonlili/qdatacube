@@ -9,7 +9,6 @@
 #include <QStandardItemModel>
 #include "datacube.h"
 #include "column_filter.h"
-#include <datacube_colrow.h>
 
 using namespace qdatacube;
 
@@ -72,6 +71,82 @@ void testplaincube::test_split() {
 
 }
 
+void testplaincube::dotest_splittwice(Qt::Orientation direction)
+{
+  // direction and parallel: direction to test
+  // normal: the other direction
+  std::tr1::shared_ptr<abstract_filter_t> row_filter;
+  std::tr1::shared_ptr<abstract_filter_t> column_filter;
+  Qt::Orientation normal;
+  if (direction == Qt::Horizontal) {
+    column_filter = kommune_filter;
+    row_filter = last_name_filter;
+    normal = Qt::Vertical;
+  } else {
+    row_filter = kommune_filter;
+    column_filter = last_name_filter;
+    normal = Qt::Horizontal;
+  }
+  datacube_t datacube(m_underlying_model, row_filter, column_filter);
+  datacube.split(direction, 1, sex_filter);
+  datacube.split(direction, 1, age_filter);
+  QCOMPARE(datacube.header_count(direction),3);
+  QCOMPARE(datacube.header_count(normal),1);
+  int total = 0;
+  QList<QPair<QString,int> > normal_headers = datacube.headers(normal, 0);
+  QCOMPARE(normal_headers.size(), last_name_filter->categories(m_underlying_model).size());
+  QList<QPair<QString,int> > parallel_headers0 = datacube.headers(direction, 0);
+  const int nkommuner = kommune_filter->categories(m_underlying_model).size();
+  QCOMPARE(parallel_headers0.size(), nkommuner);
+  QList<QPair<QString,int> > parellel_headers1 = datacube.headers(direction, 1);
+  QList<QPair<QString,int> > parellel_headers2 = datacube.headers(direction, 2);
+  typedef QPair<QString,int> header_pair_t;
+  QStringList parallel0_headers;
+  Q_FOREACH(header_pair_t hp, datacube.headers(direction,0)) {
+    for (int i=0; i<hp.second; ++i) {
+      parallel0_headers << hp.first;
+    }
+  }
+  QStringList parellel1_headers;
+  Q_FOREACH(header_pair_t hp, datacube.headers(direction,1)) {
+    for (int i=0; i<hp.second; ++i) {
+      parellel1_headers << hp.first;
+    }
+  }
+  QStringList parellel2_headers;
+  Q_FOREACH(header_pair_t hp, datacube.headers(direction,2)) {
+    for (int i=0; i<hp.second; ++i) {
+      parellel2_headers << hp.first;
+    }
+  }
+  const int parellel_count = (direction == Qt::Horizontal) ? datacube.column_count() : datacube.row_count();
+  const int normal_count = (direction == Qt::Vertical) ? datacube.column_count() : datacube.row_count();
+  QCOMPARE(parellel2_headers.size(),parellel_count);
+  for (int n = 0; n < normal_count; ++n) {
+    for (int p = 0; p < parellel_count; ++p) {
+      QList<int> elements = (direction == Qt::Horizontal) ? datacube.elements(n,p) : datacube.elements(p,n);
+      Q_FOREACH(int cell, elements) {
+        ++total;
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, LAST_NAME)).toString(), normal_headers.at(n).first);
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, KOMMUNE)).toString(), parallel0_headers.at(p));
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, AGE)).toString(), parellel1_headers.at(p));
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, SEX)).toString(), parellel2_headers.at(p));
+      }
+    }
+  }
+  QCOMPARE(total, 100);
+
+}
+
+void testplaincube::test_split_twice_horizontal() {
+  dotest_splittwice(Qt::Horizontal);
+}
+
+void testplaincube::test_split_twice_vertical()
+{
+  dotest_splittwice(Qt::Vertical);
+}
+
 void testplaincube::test_collapse1() {
   datacube_t datacube(m_underlying_model, last_name_filter, kommune_filter);
   datacube.split(Qt::Horizontal, 1, sex_filter);
@@ -117,29 +192,41 @@ void testplaincube::test_collapse2() {
 }
 
 void testplaincube::test_collapse3() {
-  datacube_t datacube(m_underlying_model, last_name_filter, kommune_filter);
-  datacube.split(Qt::Horizontal, 1, age_filter);
-  datacube.split(Qt::Horizontal, 2, sex_filter);
-  datacube.collapse(Qt::Horizontal,1);
-  QCOMPARE(datacube.header_count(Qt::Horizontal),2);
-  QCOMPARE(datacube.header_count(Qt::Vertical),1);
+  do_testcollapse3(Qt::Horizontal);
+}
+
+void testplaincube::test_collapse3_vertical() {
+  do_testcollapse3(Qt::Vertical);
+
+}
+
+void testplaincube::do_testcollapse3(Qt::Orientation orientation) {
+  const bool horizontal = (orientation == Qt::Horizontal);
+  const Qt::Orientation normal = horizontal ? Qt::Vertical : Qt::Horizontal;
+  datacube_t datacube(m_underlying_model, horizontal ? last_name_filter : kommune_filter, horizontal ? kommune_filter: last_name_filter);
+  datacube.split(orientation, 1, age_filter);
+  datacube.split(orientation, 2, sex_filter);
+  datacube.collapse(orientation,1);
+  QCOMPARE(datacube.header_count(orientation),2);
+  QCOMPARE(datacube.header_count(normal),1);
   int total = 0;
-  QList<QPair<QString,int> > col_headers = datacube.headers(Qt::Horizontal, 1);
-  QList<QPair<QString,int> > row_headers = datacube.headers(Qt::Vertical, 0);
+  QList<QPair<QString,int> > parallel_headers = datacube.headers(orientation, 1);
+  QList<QPair<QString,int> > normal_headers = datacube.headers(normal, 0);
   typedef QPair<QString,int> header_pair_t;
-  QStringList col0_headers;
-  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Horizontal,0)) {
+  QStringList parallel_0_headers;
+  Q_FOREACH(header_pair_t hp, datacube.headers(orientation,0)) {
     for (int i=0; i<hp.second; ++i) {
-      col0_headers << hp.first;
+      parallel_0_headers << hp.first;
     }
   }
+  QCOMPARE(datacube.headers(orientation, 0).size(), kommune_filter->categories(m_underlying_model).size());
   for (int row = 0; row < datacube.row_count(); ++row) {
     for (int column = 0; column < datacube.column_count(); ++column) {
       Q_FOREACH(int cell, datacube.elements(row, column)) {
         ++total;
-        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, SEX)).toString(), col_headers.at(column).first);
-        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, KOMMUNE)).toString(), col0_headers.at(column));
-        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, LAST_NAME)).toString(), row_headers.at(row).first);
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, SEX)).toString(), parallel_headers.at(horizontal ? column: row).first);
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, KOMMUNE)).toString(), parallel_0_headers.at(horizontal ? column: row));
+        QCOMPARE(m_underlying_model->data(m_underlying_model->index(cell, LAST_NAME)).toString(), normal_headers.at(horizontal ? row : column).first);
       }
     }
   }

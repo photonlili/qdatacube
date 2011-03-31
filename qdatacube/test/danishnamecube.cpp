@@ -13,7 +13,6 @@
 
 #include "column_filter.h"
 #include "datacube.h"
-#include "datacube_colrow.h"
 
 using namespace qdatacube;
 

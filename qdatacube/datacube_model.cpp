@@ -7,7 +7,6 @@
 
 #include "datacube_model.h"
 #include "datacube.h"
-#include "datacube_colrow.h"
 
 namespace qdatacube {
 
@@ -31,6 +30,8 @@ datacube_model_t::datacube_model_t(datacube_t* datacube, QObject* parent) :
   connect(d->datacube,SIGNAL(columns_inserted(int,int)), SLOT(slot_datacube_added_columns(int,int)));
   connect(d->datacube,SIGNAL(rows_inserted(int,int)),SLOT(slot_datacube_added_rows(int,int)));
   connect(d->datacube,SIGNAL(data_changed(int,int)),SLOT(slot_data_changed(int,int)));
+  connect(d->datacube,SIGNAL(about_to_be_reset()), SIGNAL(modelAboutToBeReset()));
+  connect(d->datacube,SIGNAL(reset()), SIGNAL(modelReset()));
   connect(d->datacube,SIGNAL(headers_changed(Qt::Orientation,int,int)), SIGNAL(headerDataChanged(Qt::Orientation,int,int)));
 }
 

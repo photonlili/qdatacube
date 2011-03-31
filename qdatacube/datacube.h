@@ -211,11 +211,20 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      */
     void headers_changed(Qt::Orientation, int first, int last);
 
-
     /**
      * The value in cell has changed
      */
     void data_changed(int row,int column);
+
+    /**
+     * Datacube is about to be completely changed. All cell and headers can change
+     */
+    void about_to_be_reset();
+
+    /**
+     * Datacube has completely changed. All cell and headers can change
+     */
+    void reset();
 
   private Q_SLOTS:
     void update_data(QModelIndex topleft, QModelIndex bottomRight);

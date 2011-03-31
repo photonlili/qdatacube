@@ -6,7 +6,6 @@ SET(QDATACUBE_SRC
   abstract_filter.cpp
   column_filter.cpp
   datacube.cpp
-  datacube_colrow.cpp
   datacube_header.cpp
   datacube_header_model.cpp
   datacube_model.cpp
@@ -29,7 +28,6 @@ set_target_properties(qdatacube PROPERTIES VERSION "${QDATACUBE_SO_VERSION}.0.0"
 SET(CONTAINERS_PUBLIC_HEADERS
   column_filter.h
   datacube.h
-  datacube_colrow.h
   datacube_model.h
   datacube_header.h
   datacube_header_model.h
