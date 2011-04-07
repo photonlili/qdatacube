@@ -164,6 +164,11 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      */
     void dump(bool cells, bool rowcounts, bool col_counts) const;
 
+    /**
+     * Run some internal checks. Useful for debugging
+     */
+    void check();
+
   Q_SIGNALS:
     /**
      * rows are about to be removed

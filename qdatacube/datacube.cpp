@@ -5,6 +5,9 @@
 
 */
 
+// Enable this to get a lot of consistency checks
+// #define ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS 1
+
 #include "datacube.h"
 #include "abstract_filter.h"
 
@@ -154,6 +157,9 @@ datacube_t::datacube_t(const QAbstractItemModel* model,
   for (int element = 0, nelements = model->rowCount(); element < nelements; ++element) {
     add(element);
   }
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
 
 }
 
@@ -167,9 +173,15 @@ datacube_t::datacube_t(const QAbstractItemModel* model,
   connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(update_data(QModelIndex,QModelIndex)));
   connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), SLOT(remove_data(QModelIndex,int,int)));
   connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), SLOT(insert_data(QModelIndex,int,int)));
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
 }
 
 void datacube_t::set_global_filter(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, int category) {
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
   for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
     const bool was_included = d->global_filter.get() ? (*d->global_filter)(d->model, row) == d->global_filter_category : true;
     const bool to_be_included = filter.get() ? (*filter)(d->model, row) == category : true;
@@ -181,6 +193,43 @@ void datacube_t::set_global_filter(std::tr1::shared_ptr< qdatacube::abstract_fil
   }
   d->global_filter = filter;
   d->global_filter_category = category;
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
+}
+
+void datacube_t::check() {
+  if (d->row_counts.size() * d->col_counts.size() != d->cells.size()) {
+    qDebug() << row_count() << "*" << column_count() <<  "!=" << d->cells.size();
+    Q_ASSERT(row_count() * column_count() == d->cells.size());
+  }
+  int total_count = 0;
+  const int nelements = d->model->rowCount();
+  for (int i=0; i<nelements;  ++i) {
+    if (!d->global_filter.get() || (*d->global_filter)(d->model, i) == d->global_filter_category) {
+      ++total_count;
+    }
+  }
+  QVector<unsigned> check_row_counts(d->row_counts.size());
+  int count = 0;
+  for (int c=0; c<d->col_counts.size(); ++c) {
+    unsigned col_count = 0;
+    for (int r=0; r<d->row_counts.size(); ++r) {
+      const int nelements = d->cell(r,c).size();
+      check_row_counts[r] += nelements;
+      col_count += nelements;
+    }
+    if (col_count != d->col_counts[c]) {
+      qDebug() << col_count << "!=" << d->col_counts[c];
+      Q_ASSERT(col_count == d->col_counts[c]);
+    }
+    count += col_count;
+  }
+  Q_ASSERT(count == total_count);
+  for (int i=0; i<d->row_counts.size(); ++i) {
+    Q_ASSERT(check_row_counts[i] == d->row_counts[i]);
+  }
+
 }
 
 void datacube_t::set_global_filter(abstract_filter_t* filter, int category) {
@@ -291,7 +340,9 @@ void datacube_t::remove(int index) {
     column_to_remove = d->section_to_column(cell.column);
     emit columns_about_to_be_removed(column_to_remove,1);
   }
-  d->cell(cell.row, cell.column).removeOne(index);
+  const bool check = d->cell(cell.row, cell.column).removeOne(index);
+  Q_UNUSED(check)
+  Q_ASSERT(check);
   d->reverse_index.remove(index);
   if(column_to_remove>=0) {
     emit columns_removed(column_to_remove,1);
@@ -321,6 +372,9 @@ void datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
       }
     }
   }
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
 }
 
 void datacube_t::insert_data(QModelIndex parent, int start, int end) {
@@ -328,13 +382,18 @@ void datacube_t::insert_data(QModelIndex parent, int start, int end) {
   for (int row = start; row <=end; ++row) {
     if(!d->global_filter.get() || (*d->global_filter)(d->model,row)==d->global_filter_category) {
       add(row);
-    } else {
-      //qDebug() << "ignoring";
     }
   }
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
 
 }
+
 void datacube_t::remove_data(QModelIndex parent, int start, int end) {
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
   Q_ASSERT(!parent.isValid());
   for (int row = end; row>=start; --row) {
     remove(row);
@@ -374,6 +433,10 @@ void datacube_t::split(Qt::Orientation orientation, int headerno, std::tr1::shar
 
 void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t > filter)
 {
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
+  emit about_to_be_reset();
   QVector<QList<int> > oldcells = d->cells;
   const int ncats = filter->categories(d->model).size();
   const int newsize = oldcells.size() * ncats;
@@ -403,10 +466,17 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t
   }
   // TODO: Emit a reset somehow. The entire table as been changed, after all.
   d->row_filters.insert(headerno, filter);
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
 
 }
 
 void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_filter_t > filter) {
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
+  emit about_to_be_reset();
   QVector<QList<int> > oldcells = d->cells;
   const int ncats = filter->categories(d->model).size();
   const int newsize = oldcells.size() * ncats;
@@ -437,6 +507,9 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_filte
   }
   d->col_filters.insert(headerno, filter);
   // TODO: Emit a reset somehow. The entire table as been changed, after all.
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
 
 }
 
@@ -447,6 +520,9 @@ void datacube_t::split(Qt::Orientation orientation, int headerno, abstract_filte
 
 
 void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
   emit about_to_be_reset();
   QVector<QList<int> > oldcells = d->cells;
   const bool horizontal = (orientation == Qt::Horizontal);
@@ -485,6 +561,9 @@ void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
     }
   }
   emit reset();
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
 }
 
 int datacube_t::section_for_element(int element, Qt::Orientation orientation) const {
