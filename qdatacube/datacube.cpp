@@ -76,29 +76,31 @@ int datacube_t::secret_t::compute_section_for_index(Qt::Orientation orientation,
   return rv;
 }
 
-int datacube_t::secret_t::section_for_row(int row) {
+int datacube_t::secret_t::section_for_row(const int row) {
+  int r = row;
   int section=0;
   for (; section<row_counts.size(); ++section) {
     if (row_counts[section]>0) {
-      if (row-- == 0) {
+      if (r-- == 0) {
         return section;
       }
     }
   }
-  Q_ASSERT(false);
+  Q_ASSERT_X(false, "QDatacube", QString("Row %1 too big for qdatacube with %2 rows").arg(row).arg(row_counts.size() - std::count(row_counts.begin(), row_counts.end(), 0u)).toLocal8Bit().data());
   return -1;
 }
 
-int datacube_t::secret_t::section_for_column(int column) {
+int datacube_t::secret_t::section_for_column(const int column) {
   int section=0;
+  int c = column;
   for (; section<col_counts.size(); ++section) {
     if (col_counts[section]>0) {
-      if (column-- == 0) {
+      if (c-- == 0) {
         return section;
       }
     }
   }
-  Q_ASSERT(false);
+  Q_ASSERT_X(false, "qdatacube", QString("Column %1 too big for qdatacube with %2 columns").arg(column).arg(col_counts.size() - std::count(col_counts.begin(), col_counts.end(), 0u)).toLocal8Bit().data());
   return -1;
 }
 
