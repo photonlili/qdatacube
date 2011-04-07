@@ -452,6 +452,7 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t
   int target_stride = cat_stride*ncats;
   QVector<unsigned> old_row_counts = d->row_counts;
   d->row_counts = QVector<unsigned>(old_row_counts.size()*ncats);
+  d->reverse_index = secret_t::reverse_index_t();
   // Sort out elements in new categories. Note that the old d->col_counts are unchanged
   for (int c=0; c<d->col_counts.size(); ++c) {
     for (int major = 0; major<old_row_counts.size()/cat_stride; ++major) {
@@ -462,12 +463,13 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t
           const int target_index = target_row + c*target_row_count;
           d->cells[target_index] << element;
           ++d->row_counts[target_row];
+          d->reverse_index.insert(element, secret_t::cell_t(target_row, c));
         }
       }
     }
   }
-  // TODO: Emit a reset somehow. The entire table as been changed, after all.
   d->row_filters.insert(headerno, filter);
+  emit reset();
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
@@ -508,7 +510,7 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_filte
     }
   }
   d->col_filters.insert(headerno, filter);
-  // TODO: Emit a reset somehow. The entire table as been changed, after all.
+  emit reset();
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
@@ -569,14 +571,15 @@ void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
 }
 
 int datacube_t::section_for_element(int element, Qt::Orientation orientation) const {
-  return d->compute_section_for_index(orientation, element);
+  const int section = d->compute_section_for_index(orientation, element);
+  return orientation == Qt::Horizontal ? d->section_to_column(section) : d->section_to_row(section);
 }
 
 int datacube_t::section_for_element_internal(int element, Qt::Orientation orientation) const {
   if (orientation == Qt::Horizontal) {
-    return d->reverse_index.value(element).column;
+    return d->section_to_column(d->reverse_index.value(element).column);
   } else  {
-    return d->reverse_index.value(element).row;
+    return d->section_to_row(d->reverse_index.value(element).row);
   }
 
 }
@@ -612,4 +615,3 @@ void qdatacube::datacube_t::dump(bool cells, bool rowcounts, bool col_counts) co
 }
 
 #include "datacube.moc"
-
