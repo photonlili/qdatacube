@@ -39,6 +39,7 @@ class testdatacube_model : public danishnamecube_t {
   private Q_SLOTS:
     void testplain();
     void testdatachange();
+    void testinsertdata();
   private:
     datacube_t* m_cube;
     void clear_rowcol_changed();

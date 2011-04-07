@@ -331,6 +331,40 @@ void testplaincube::test_deep_header() {
   }
 
 }
+void testplaincube::test_section_for_element_internal()
+{
+  datacube_t datacube(m_underlying_model, last_name_filter, first_name_filter);
+  datacube.split(Qt::Vertical, 0, age_filter);
+  datacube.split(Qt::Horizontal, 0, sex_filter);
+  datacube.split(Qt::Vertical, 1, kommune_filter);
+  datacube.split(Qt::Horizontal, 1, kommune_filter);
+  datacube.collapse(Qt::Vertical, 1);
+  datacube.collapse(Qt::Horizontal, 1);
+  for (int element=0; element<m_underlying_model->rowCount(); ++element) {
+    int row = datacube.section_for_element_internal(element, Qt::Vertical);
+    int column = datacube.section_for_element_internal(element, Qt::Horizontal);
+    QVERIFY(datacube.elements(row, column).contains(element));
+    QCOMPARE(datacube.section_for_element(element, Qt::Vertical), row);
+    QCOMPARE(datacube.section_for_element(element, Qt::Horizontal), column);
+  }
+}
+
+void testplaincube::test_reverse_index()
+{
+  datacube_t datacube(m_underlying_model, last_name_filter, first_name_filter);
+  datacube.split(Qt::Vertical, 0, age_filter);
+  datacube.split(Qt::Horizontal, 0, sex_filter);
+  datacube.split(Qt::Vertical, 1, kommune_filter);
+  datacube.split(Qt::Horizontal, 1, kommune_filter);
+  datacube.collapse(Qt::Vertical, 1);
+  datacube.collapse(Qt::Horizontal, 1);
+  for (int element=0; element<m_underlying_model->rowCount(); ++element) {
+    int row = datacube.section_for_element(element, Qt::Vertical);
+    int column = datacube.section_for_element(element, Qt::Horizontal);
+    QVERIFY(datacube.elements(row, column).contains(element));
+  }
+
+}
 
 QTEST_MAIN(testplaincube)
 

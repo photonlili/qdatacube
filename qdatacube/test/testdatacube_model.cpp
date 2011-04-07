@@ -127,6 +127,75 @@ void testdatacube_model::testdatachange() {
 
 }
 
+void testdatacube_model::testinsertdata() {
+  datacube_model_t* m = new datacube_model_t(m_cube, this);
+  int row = 0;
+  typedef QPair<QString,int> header_t;
+  Q_FOREACH(header_t header, m->datacube()->headers(Qt::Vertical, 0)) {
+    Q_ASSERT(header.second == 1);
+    if (header.first != "Rigmor") {
+      ++row;
+    } else {
+      break;
+    }
+  }
+  QVERIFY(row < m_cube->row_count());
+  int column = 0;
+  Q_FOREACH(header_t header, m->datacube()->headers(Qt::Horizontal, 0)) {
+    Q_ASSERT(header.second == 1);
+    if (header.first != "Hansen") {
+      ++column;
+    } else {
+      break;
+    }
+  }
+  QVERIFY(column < m_cube->column_count());
+  Q_FOREACH(int element, m_cube->elements(row, column)) {
+    QCOMPARE(QString::fromAscii("Rigmor"), m_underlying_model->data(m_underlying_model->index( element, FIRST_NAME)).toString());
+    QCOMPARE(QString::fromAscii("Hansen"), m_underlying_model->data(m_underlying_model->index(element, LAST_NAME)).toString());
+  }
+  int old_count = m_cube->element_count(row,column);
+  QCOMPARE(m->data(m->index(row,column)).toInt(),old_count);
+
+  // Insert
+  QList<QStandardItem*> cell_items;
+  for (int c = 0; c<m_underlying_model->columnCount(); ++c) {
+    const char* data = "";
+    switch(static_cast<columns_t>(c)) {
+      case FIRST_NAME:
+        data = "Rigmor";
+        break;
+      case LAST_NAME:
+        data = "Hansen";
+        break;
+      case SEX:
+        data = "female";
+        break;
+      case AGE:
+        data = "77";
+        break;
+      case WEIGHT:
+        data = "65";
+        break;
+      case KOMMUNE:
+        data = "Hellerup";
+        break;
+      case N_COLUMNS:
+        Q_ASSERT(false);
+        break;
+    }
+    cell_items << new QStandardItem(QString::fromAscii(data));
+  }
+
+  m_underlying_model->appendRow(cell_items);
+  m->datacube()->check();
+
+  // Verify
+  QCOMPARE(m->data(m->index(row,column)).toInt(),old_count+1);
+  QVERIFY(m_cube->elements(row,column).contains(m_underlying_model->rowCount()-1));
+
+}
+
 void testdatacube_model::connect_rowcol_changed(QAbstractItemModel* m) {
   connect(m, SIGNAL(columnsAboutToBeRemoved ( const QModelIndex & , int , int )),
           SLOT(columnsAboutToBeRemoved(QModelIndex,int,int)));
@@ -158,24 +227,24 @@ void testdatacube_model::columnsAboutToBeRemoved(const QModelIndex& /*parent*/, 
   for (int i=start; i<=end; ++i) {
     m_columns_removed << i;
   }
-  qDebug() << __func__<< start << end << m_columns_removed;
+//   qDebug() << __func__<< start << end << m_columns_removed;
 }
 
 void testdatacube_model::columnsAboutToBeAdded(const QModelIndex& /*parent*/, int start, int end) {
   for (int i=start; i<=end; ++i) {
     m_columns_added << i;
   }
-  qDebug() << __func__<< start << end << m_columns_added;
+//   qDebug() << __func__<< start << end << m_columns_added;
 }
 void testdatacube_model::columnsAdded(const QModelIndex& /*parent*/, int start, int end) {
-  qDebug() << __func__<< start << end << m_columns_added;
+//   qDebug() << __func__<< start << end << m_columns_added;
   for (int i=start; i<=end; ++i) {
     QCOMPARE(m_columns_added.at(m_columns_added.size()-1-end+i), i);
   }
 
 }
 void testdatacube_model::columnsRemoved(const QModelIndex& /*parent*/, int start, int end) {
-  qDebug() << __func__<< start << end << m_columns_removed;
+//   qDebug() << __func__<< start << end << m_columns_removed;
   for (int i=start; i<=end; ++i) {
     QCOMPARE(m_columns_removed.at(m_columns_removed.size()-1-end+i), i);
   }
@@ -186,24 +255,24 @@ void testdatacube_model::rowsAboutToBeRemoved(const QModelIndex& /*parent*/, int
   for (int i=start; i<=end; ++i) {
     m_rows_removed << i;
   }
-  qDebug() << __func__<< start << end << m_rows_removed;
+//   qDebug() << __func__<< start << end << m_rows_removed;
 }
 
 void testdatacube_model::rowsAboutToBeAdded(const QModelIndex& /*parent*/, int start, int end) {
   for (int i=start; i<=end; ++i) {
     m_rows_added << i;
   }
-  qDebug() << __func__<< start << end << m_rows_added;
+//   qDebug() << __func__<< start << end << m_rows_added;
 }
 void testdatacube_model::rowsAdded(const QModelIndex& /*parent*/, int start, int end) {
-  qDebug() << __func__<< start << end << m_rows_added;
+//   qDebug() << __func__<< start << end << m_rows_added;
   for (int i=start; i<=end; ++i) {
     QCOMPARE(m_rows_added.at(m_rows_added.size()-1-end+i), i);
   }
 
 }
 void testdatacube_model::rowsRemoved(const QModelIndex& /*parent*/, int start, int end) {
-  qDebug() << __func__<< start << end << m_rows_removed;
+//   qDebug() << __func__<< start << end << m_rows_removed;
   for (int i=start; i<=end; ++i) {
     QCOMPARE(m_rows_removed.at(m_rows_removed.size()-1-end+i), i);
   }

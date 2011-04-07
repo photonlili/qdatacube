@@ -80,6 +80,17 @@ class testplaincube : public danishnamecube_t {
      * Test global filter
      */
     void test_global_filter();
+
+    /**
+     * Test reverse index
+     */
+    void test_reverse_index();
+
+    /**
+     * Test section_for_element_internal
+     */
+    void test_section_for_element_internal();
+
     void do_testcollapse3(Qt::Orientation orientation);
 };
 
