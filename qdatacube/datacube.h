@@ -237,15 +237,19 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void insert_data(QModelIndex parent, int start, int end);
     void slot_columns_changed(int column, int count);
     void slot_rows_changed(int row, int count);
+    void slot_filter_category_added(int index);
+    void slot_filter_category_removed(int);
 
   private:
     void remove(int index);
     void add(int index);
     void split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t > filter);
     void split_column(int headerno, std::tr1::shared_ptr< abstract_filter_t > filter);
+    void filter_category_added(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, int headerno, int index, Qt::Orientation orientation);
 
     class secret_t;
     QScopedPointer<secret_t> d;
+
 };
 }
 

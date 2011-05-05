@@ -366,6 +366,134 @@ void testplaincube::test_reverse_index()
 
 }
 
+void testplaincube::test_add_category() {
+  QStandardItemModel* tmp_model = copy_model();
+  datacube_t datacube(tmp_model, last_name_filter, first_name_filter);
+  datacube.split(Qt::Horizontal, 0, sex_filter);
+  datacube.split(Qt::Horizontal, 2, kommune_filter);
+  QList<QStandardItem*> row;
+  for (int c=0; c<tmp_model->columnCount(); ++c) {
+    switch (static_cast<columns_t>(c)) {
+      case FIRST_NAME:
+        row << new QStandardItem("Agnete");
+        break;
+      case LAST_NAME:
+        row << new QStandardItem("Johansen");
+        break;
+      case SEX:
+        row << new QStandardItem("female");
+        break;
+      case AGE:
+        row << new QStandardItem("20");
+        break;
+      case WEIGHT:
+        row << new QStandardItem("80");
+        break;
+      case KOMMUNE:
+        row << new QStandardItem("Hellerup");
+        break;
+      case N_COLUMNS:
+        Q_ASSERT(false);
+    }
+  }
+  tmp_model->appendRow(row);
+  QVERIFY(first_name_filter->categories(tmp_model).contains("Agnete"));
+  QCOMPARE(tmp_model->rowCount(), 101);
+  QStringList column0_headers;
+  typedef QPair<QString, int> header_pair_t;
+  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Horizontal,0)) {
+    for (int i=0; i<hp.second; ++i) {
+      column0_headers << hp.first;
+    }
+  }
+  QStringList column1_headers;
+  typedef QPair<QString, int> header_pair_t;
+  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Horizontal,1)) {
+    for (int i=0; i<hp.second; ++i) {
+      column1_headers << hp.first;
+    }
+  }
+  QStringList column2_headers;
+  typedef QPair<QString, int> header_pair_t;
+  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Horizontal,2)) {
+    QCOMPARE(hp.second, 1);
+    for (int i=0; i<hp.second; ++i) {
+      column2_headers << hp.first;
+    }
+  }
+  int total = 0;
+  for (int r = 0; r < datacube.row_count(); ++r) {
+    for (int c = 0; c < datacube.column_count(); ++c) {
+      QList<int> elements = datacube.elements(r,c);
+      Q_FOREACH(int cell, elements) {
+        ++total;
+        QCOMPARE(tmp_model->data(tmp_model->index(cell, SEX)).toString(), column0_headers.at(c));
+        QCOMPARE(tmp_model->data(tmp_model->index(cell, FIRST_NAME)).toString(), column1_headers.at(c));
+        QCOMPARE(tmp_model->data(tmp_model->index(cell, KOMMUNE)).toString(), column2_headers.at(c));
+      }
+    }
+  }
+  QCOMPARE(total, 101);
+
+
+}
+void testplaincube::test_add_category_simple()
+{
+  QStandardItemModel* tmp_model = copy_model();
+  datacube_t datacube(tmp_model, kommune_filter, sex_filter);
+  QList<QStandardItem*> row;
+  for (int c=0; c<tmp_model->columnCount(); ++c) {
+    switch (static_cast<columns_t>(c)) {
+      case FIRST_NAME:
+        row << new QStandardItem("Andrea");
+        break;
+      case LAST_NAME:
+        row << new QStandardItem("Hansen");
+        break;
+      case SEX:
+        row << new QStandardItem("neither");
+        break;
+      case AGE:
+        row << new QStandardItem("20");
+        break;
+      case WEIGHT:
+        row << new QStandardItem("80");
+        break;
+      case KOMMUNE:
+        row << new QStandardItem("Hellerup");
+        break;
+      case N_COLUMNS:
+        Q_ASSERT(false);
+    }
+  }
+  tmp_model->appendRow(row);
+  QCOMPARE(tmp_model->rowCount(), 101);
+  QStringList column0_headers;
+  typedef QPair<QString, int> header_pair_t;
+  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Horizontal,0)) {
+    for (int i=0; i<hp.second; ++i) {
+      column0_headers << hp.first;
+    }
+  }
+  int total = 0;
+  for (int r = 0; r < datacube.row_count(); ++r) {
+    for (int c = 0; c < datacube.column_count(); ++c) {
+      QList<int> elements = datacube.elements(r,c);
+      Q_FOREACH(int cell, elements) {
+        ++total;
+        QCOMPARE(tmp_model->data(tmp_model->index(cell, SEX)).toString(), column0_headers.at(c));
+      }
+    }
+  }
+  QCOMPARE(total, 101);
+
+}
+
+void testplaincube::test_remove_category()
+{
+
+}
+
 QTEST_MAIN(testplaincube)
 
 #include "testplaincube.moc"

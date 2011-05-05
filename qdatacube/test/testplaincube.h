@@ -87,6 +87,21 @@ class testplaincube : public danishnamecube_t {
     void test_reverse_index();
 
     /**
+    * Test add category to a filter
+    */
+    void test_add_category();
+
+    /**
+    * Test add category to a filter
+    */
+    void test_add_category_simple();
+
+    /**
+    * Test remove category from a filter;
+    */
+    void test_remove_category();
+
+    /**
      * Test section_for_element_internal
      */
     void test_section_for_element_internal();

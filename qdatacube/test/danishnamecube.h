@@ -23,6 +23,10 @@ class danishnamecube_t : public QObject {
     danishnamecube_t(QObject* parent = 0);
     static int printdatacube(const qdatacube::datacube_t* datacube);
     void load_model_data(QString filename);
+    /**
+     * Return a deep copy of the underlying model (to test manipulation functions)
+     */
+    QStandardItemModel* copy_model();
     QStandardItemModel* m_underlying_model;
     std::tr1::shared_ptr<qdatacube::abstract_filter_t> first_name_filter;
     std::tr1::shared_ptr<qdatacube::abstract_filter_t> last_name_filter;

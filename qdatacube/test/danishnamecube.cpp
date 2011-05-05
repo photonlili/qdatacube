@@ -76,4 +76,21 @@ danishnamecube_t::danishnamecube_t(QObject* parent):
 {
 }
 
+QStandardItemModel* danishnamecube_t::copy_model() {
+  QStandardItemModel* rv = new QStandardItemModel(0, N_COLUMNS, m_underlying_model);
+  for (int r=0; r<m_underlying_model->rowCount(); ++r) {
+    QList<QStandardItem*> row;
+    for (int c=0; c<m_underlying_model->columnCount(); ++c) {
+      row << new QStandardItem(m_underlying_model->item(r,c)->text());
+    }
+    rv->appendRow(row);
+  }
+  QStringList header_labels;
+  for (int c=0; c<m_underlying_model->columnCount(); ++c) {
+    header_labels  << m_underlying_model->headerData(c, Qt::Horizontal).toString();
+  }
+  rv->setHorizontalHeaderLabels(header_labels);
+  return rv;
+};
+
 #include "danishnamecube.moc"
