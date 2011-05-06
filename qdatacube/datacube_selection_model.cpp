@@ -198,7 +198,12 @@ void datacube_selection_model_t::select_elements(const QList< int >& elements) {
       if (!global_filter.get() || (*global_filter)(underlying_model, element) == 0) {
         int row = cube->section_for_element(element, Qt::Vertical);
         int column = cube->section_for_element(element, Qt::Horizontal);
-        int newcount = ++d->select_count[row+column*d->select_size.height()];
+        const int count_index = row+column*d->select_size.height();
+        if (count_index>=d->select_count.size()) {
+          qWarning("Element selection out of range: element=%d, row=%d, column=%d", element, row, column);
+          return;
+        }
+        int newcount = ++d->select_count[count_index];
         if (newcount == d->datacube->element_count(row,column)) {
           QModelIndex index = model()->index(row,column);
           d->ignore_selections = true;
