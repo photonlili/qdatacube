@@ -642,7 +642,7 @@ void qdatacube::datacube_t::slot_filter_category_added(int index) {
   }
 }
 
-void qdatacube::datacube_t::slot_filter_category_removed(int index) {
+void qdatacube::datacube_t::slot_filter_category_removed(int /*index*/) {
   Q_ASSERT(false); // TODO
 
 }
