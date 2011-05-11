@@ -22,14 +22,14 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QMenu>
+#include <datacube_view.h>
 
 using namespace qdatacube;
 
 testheaders::testheaders(QObject* parent) : danishnamecube_t(parent) {
   load_model_data("plaincubedata.txt");
 
-  datacube_t* datacube = new datacube_t(m_underlying_model, first_name_filter, last_name_filter);
-  m_model = new datacube_model_t(datacube);
+  m_datacube = new datacube_t(m_underlying_model, first_name_filter, last_name_filter);
   m_row_used_filter_actions << create_filter_action(first_name_filter);
   m_col_used_filter_actions << create_filter_action(last_name_filter);
   m_unused_filter_actions << create_filter_action(sex_filter) << create_filter_action(age_filter) << create_filter_action(weight_filter) << create_filter_action(kommune_filter);
@@ -65,11 +65,11 @@ void testheaders::add_global_filter_bottoms(std::tr1::shared_ptr< abstract_filte
 void testheaders::slot_global_filter_button_pressed() {
   QObject* s = sender();
   if (s->property("clear").toBool()) {
-    m_model->datacube()->reset_global_filter();
+    m_datacube->reset_global_filter();
   } else {
     int section = s->property("section").toInt();
     int categoryno = s->property("categoryno").toInt();
-    m_model->datacube()->set_global_filter(new column_filter_t(section), categoryno);
+    m_datacube->set_global_filter(new column_filter_t(section), categoryno);
   }
 }
 
@@ -78,14 +78,15 @@ void testheaders::createtableview() {
   QWidget* mw = new QWidget();
   top->setCentralWidget(mw);
   new QVBoxLayout(mw);
-  m_view = new QTableView;
+  m_view = new datacube_view_t(top);
+  m_view->set_datacube(m_datacube);
   mw->layout()->addWidget(m_view);
-  datacube_header_t* horizontal_header = new datacube_header_t(Qt::Horizontal, m_view);
-  datacube_header_t* vertical_header = new datacube_header_t(Qt::Vertical, m_view);
-  m_view->setHorizontalHeader(horizontal_header);
-  m_view->setVerticalHeader(vertical_header);
-  connect(horizontal_header, SIGNAL(sub_header_context_menu(QPoint,int,int)), SLOT(slot_horizontal_context_menu(QPoint,int,int)));
-  connect(vertical_header, SIGNAL(sub_header_context_menu(QPoint,int,int)), SLOT(slot_vertical_context_menu(QPoint,int,int)));
+  datacube_header_t* horizontal_header = m_view->horizontalHeader();
+  datacube_header_t* vertical_header = m_view->verticalHeader();;
+  if (horizontal_header && vertical_header) {
+    connect(horizontal_header, SIGNAL(sub_header_context_menu(QPoint,int,int)), SLOT(slot_horizontal_context_menu(QPoint,int,int)));
+    connect(vertical_header, SIGNAL(sub_header_context_menu(QPoint,int,int)), SLOT(slot_vertical_context_menu(QPoint,int,int)));
+  }
   top->resize(1600, 1000);
   top->show();
   QTimer::singleShot(500, this, SLOT(slot_set_model()));
@@ -107,10 +108,7 @@ void testheaders::createtableview() {
 }
 
 void testheaders::slot_set_model() {
-  m_view->setModel(m_model);
-  m_view->resizeColumnsToContents();
-  m_view->resizeRowsToContents();
-//   QTimer::singleShot(2000, this, SLOT(slot_insert_data()));
+  m_view->set_datacube(m_datacube);
 
 }
 
@@ -132,7 +130,7 @@ void testheaders::slot_set_data() {
 void testheaders::slot_set_filter() {
   static int count = 0;
   std::tr1::shared_ptr<abstract_filter_t> filter(new column_filter_t(SEX));
-  m_model->datacube()->set_global_filter(filter, (count++%2));
+  m_datacube->set_global_filter(filter, (count++%2));
   QTimer::singleShot(2000, this, SLOT(slot_set_filter()));
 }
 
@@ -204,11 +202,11 @@ void testheaders::slot_horizontal_context_menu(const QPoint& /*pos*/, int header
       } else if (kommune_filter.get() == raw_pointer) {
         filter = kommune_filter;
       }
-      m_model->datacube()->split(Qt::Horizontal, headerno, filter);
+      m_datacube->split(Qt::Horizontal, headerno, filter);
       m_unused_filter_actions.removeAll(action);
       m_col_used_filter_actions.insert(headerno, action);
     } else {
-      m_model->datacube()->collapse(Qt::Horizontal, headerno);
+      m_datacube->collapse(Qt::Horizontal, headerno);
       QAction* filter_acton = m_col_used_filter_actions.takeAt(headerno);
       m_unused_filter_actions << filter_acton;
     }
@@ -235,15 +233,15 @@ void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno
       } else if (kommune_filter.get() == raw_pointer) {
         filter = kommune_filter;
       }
-      if (headerno+1 < m_model->datacube()->header_count(Qt::Vertical)) {
+      if (headerno+1 < m_datacube->header_count(Qt::Vertical)) {
         m_row_used_filter_actions << action;
       } else {
         m_row_used_filter_actions.insert(headerno+1, action);
       }
-      m_model->datacube()->split(Qt::Vertical, headerno+1, filter);
+      m_datacube->split(Qt::Vertical, headerno+1, filter);
       m_unused_filter_actions.removeAll(action);
     } else {
-      m_model->datacube()->collapse(Qt::Vertical, headerno);
+      m_datacube->collapse(Qt::Vertical, headerno);
       QAction* filter_acton = m_row_used_filter_actions.takeAt(headerno);
       m_unused_filter_actions << filter_acton;
     }

@@ -653,7 +653,6 @@ void qdatacube::datacube_t::filter_category_added(std::tr1::shared_ptr< qdatacub
   // NB! Since more filters might need to be adjusted, the col/row filters catogories() cannot be trusted downwards
   // and in the other direction. operator() cannot be trusted except for filter itself
   const secret_t::filters_t& parallel_filters = orientation == Qt::Horizontal ? d->col_filters : d->row_filters;
-  const secret_t::filters_t& normal_filters = orientation == Qt::Horizontal ? d->row_filters : d->col_filters;
   QVector<unsigned>& new_parallel_counts = orientation == Qt::Horizontal ? d->col_counts : d->row_counts;
   const int normal_count = orientation == Qt::Horizontal ? d->row_counts.size() : d->col_counts.size();
   const QVector<unsigned> old_parallel_counts = new_parallel_counts;

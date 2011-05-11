@@ -8,30 +8,21 @@
 #ifndef DATACUBE_VIEW_H
 #define DATACUBE_VIEW_H
 
-#include <QtGui/QTableView>
+#include <QtGui/QAbstractScrollArea>
 #include "qdatacube_export.h"
-
 
 namespace qdatacube {
 
+class datacube_t;
 class datacube_header_t;
-
-
 class datacube_selection_model_t;
-
-
 class datacube_view_private_t;
 
-class QDATACUBE_EXPORT datacube_view_t : public QTableView {
+class QDATACUBE_EXPORT datacube_view_t : public QAbstractScrollArea  {
   Q_OBJECT
   public:
     datacube_view_t(QWidget* parent = 0);
     virtual ~datacube_view_t();
-
-    /**
-     * set the datacube_selection_model_t
-     */
-    void setSelectionModel(qdatacube::datacube_selection_model_t* selection_model);
 
     /**
      * Non-virtual override
@@ -45,23 +36,15 @@ class QDATACUBE_EXPORT datacube_view_t : public QTableView {
      */
     datacube_header_t* horizontalHeader() const;
 
+    /**
+     * Set the datacube to be view
+     */
+    void set_datacube(datacube_t* datacube);
+  protected:
+    virtual bool viewportEvent(QEvent* event);
   private:
-    /**
-     * @overridden to avoid hiding
-     */
-    virtual void setSelectionModel(QItemSelectionModel* selectionModel);
-
-    /**
-     * Declared private to avoid accident
-     */
-    void setVerticalHeader(datacube_header_t* headerview);
-
-    /**
-     * Declared private to avoid accident
-     */
-    void setHorizontalHeader(datacube_header_t* headerview);
-
-  QSharedDataPointer<datacube_view_private_t> d;
+    void paint_datacube(QPaintEvent* event) const;
+    QSharedDataPointer<datacube_view_private_t> d;
 
 };
 
