@@ -9,7 +9,6 @@
 #include "column_filter.h"
 #include "datacube.h"
 #include "datacube_model.h"
-#include "datacube_header.h"
 #include <QStandardItemModel>
 #include <QFile>
 #include <QTableView>
@@ -81,12 +80,8 @@ void testheaders::createtableview() {
   m_view = new datacube_view_t(top);
   m_view->set_datacube(m_datacube);
   mw->layout()->addWidget(m_view);
-  datacube_header_t* horizontal_header = m_view->horizontalHeader();
-  datacube_header_t* vertical_header = m_view->verticalHeader();;
-  if (horizontal_header && vertical_header) {
-    connect(horizontal_header, SIGNAL(sub_header_context_menu(QPoint,int,int)), SLOT(slot_horizontal_context_menu(QPoint,int,int)));
-    connect(vertical_header, SIGNAL(sub_header_context_menu(QPoint,int,int)), SLOT(slot_vertical_context_menu(QPoint,int,int)));
-  }
+  connect(m_view, SIGNAL(horizontal_header_context_menu(QPoint,int,int)), SLOT(slot_horizontal_context_menu(QPoint,int,int)));
+  connect(m_view, SIGNAL(vertical_header_context_menu(QPoint,int,int)), SLOT(slot_vertical_context_menu(QPoint,int,int)));
   top->resize(1600, 1000);
   top->show();
   QTimer::singleShot(500, this, SLOT(slot_set_model()));
@@ -183,7 +178,8 @@ int main(int argc, char* argv[]) {
   app.exec();
 }
 
-void testheaders::slot_horizontal_context_menu(const QPoint& /*pos*/, int headerno, int /*category*/) {
+void testheaders::slot_horizontal_context_menu(QPoint pos, int headerno, int category) {
+  qDebug() << pos << headerno << category;
   QAction* action = QMenu::exec(m_unused_filter_actions, QCursor::pos());
   if (action) {
     if (action != m_collapse_action) {

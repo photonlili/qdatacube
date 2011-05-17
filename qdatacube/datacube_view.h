@@ -14,7 +14,6 @@
 namespace qdatacube {
 
 class datacube_t;
-class datacube_header_t;
 class datacube_selection_model_t;
 class datacube_view_private_t;
 
@@ -25,23 +24,23 @@ class QDATACUBE_EXPORT datacube_view_t : public QAbstractScrollArea  {
     virtual ~datacube_view_t();
 
     /**
-     * Non-virtual override
-     * @return vertical header
-     */
-    datacube_header_t* verticalHeader() const;
-
-    /**
-     * Non-virtual override
-     * @return horizontal header
-     */
-    datacube_header_t* horizontalHeader() const;
-
-    /**
      * Set the datacube to be view
      */
     void set_datacube(datacube_t* datacube);
+
+    /**
+     * @return current datacube
+     */
+    datacube_t* datacube() const;
+  Q_SIGNALS:
+    void vertical_header_context_menu(QPoint pos,int level,int section);
+    void horizontal_header_context_menu(QPoint pos, int level, int section);
+    void cell_context_menu(QPoint pos, int row, int column);
+  private Q_SLOTS:
+    void relayout();
   protected:
     virtual bool viewportEvent(QEvent* event);
+    virtual void contextMenuEvent(QContextMenuEvent* event);
   private:
     void paint_datacube(QPaintEvent* event) const;
     QSharedDataPointer<datacube_view_private_t> d;
