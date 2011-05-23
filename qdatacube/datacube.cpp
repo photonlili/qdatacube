@@ -15,6 +15,7 @@
 #include <algorithm>
 
 #include <QAbstractItemModel>
+#include "cell.h"
 using std::tr1::shared_ptr;
 
 namespace qdatacube {
@@ -43,19 +44,6 @@ class datacube_t::secret_t {
     QVector<unsigned> row_counts;
     QVector<unsigned> col_counts;
     QVector<QList<int> > cells;
-    struct cell_t {
-      int row;
-      int column;
-      cell_t(int row_section, int column_section) : row(row_section), column(column_section) {}
-      cell_t() : row(-1), column(-1) {}
-      bool operator==(const cell_t& rhs) {
-        return rhs.row == row && rhs.column == column;
-      }
-      bool invalid() const {
-        return row == -1;
-      }
-
-    };
     std::tr1::shared_ptr<abstract_filter_t> global_filter;
     typedef QHash<int, cell_t> reverse_index_t;
     reverse_index_t reverse_index;
@@ -320,7 +308,7 @@ void datacube_t::add(int index) {
     emit columns_about_to_be_inserted(column_to_add,1);
   }
   d->cell(row_section, column_section) << index;
-  d->reverse_index.insert(index, secret_t::cell_t(row_section, column_section));
+  d->reverse_index.insert(index, cell_t(row_section, column_section));
   if(column_to_add>=0) {
     emit columns_inserted(column_to_add,1);
   }
@@ -333,22 +321,22 @@ void datacube_t::add(int index) {
 }
 
 void datacube_t::remove(int index) {
-  secret_t::cell_t cell = d->reverse_index.value(index);
+  cell_t cell = d->reverse_index.value(index);
   if (cell.invalid()) {
     // Our datacube does not cover that container. Just ignore it.
     return;
   }
   int row_to_remove = -1;
   int column_to_remove = -1;
-  if(--d->row_counts[cell.row]==0) {
-    row_to_remove = d->bucket_to_row(cell.row);
+  if(--d->row_counts[cell.row()]==0) {
+    row_to_remove = d->bucket_to_row(cell.row());
     emit rows_about_to_be_removed(row_to_remove,1);
   }
-  if(--d->col_counts[cell.column]==0) {
-    column_to_remove = d->bucket_to_column(cell.column);
+  if(--d->col_counts[cell.column()]==0) {
+    column_to_remove = d->bucket_to_column(cell.column());
     emit columns_about_to_be_removed(column_to_remove,1);
   }
-  const bool check = d->cell(cell.row, cell.column).removeOne(index);
+  const bool check = d->cell(cell.row(), cell.column()).removeOne(index);
   Q_UNUSED(check)
   Q_ASSERT(check);
   d->reverse_index.remove(index);
@@ -359,7 +347,7 @@ void datacube_t::remove(int index) {
     emit rows_removed(row_to_remove,1);
   }
   if(row_to_remove==-1 && column_to_remove==-1) {
-    emit data_changed(d->bucket_to_row(cell.row),d->bucket_to_column(cell.column));
+    emit data_changed(d->bucket_to_row(cell.row()),d->bucket_to_column(cell.column()));
   }
 }
 
@@ -370,9 +358,9 @@ void datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
     const bool filtered_out = d->global_filter.get() && ((*d->global_filter)(d->model, element) != d->global_filter_category);
     int new_row_section = d->compute_section_for_index(Qt::Vertical, element);
     int new_column_section = d->compute_section_for_index(Qt::Horizontal, element);
-    secret_t::cell_t old_cell = d->reverse_index.value(element);
-    const bool rowchanged = old_cell.row != new_row_section;
-    const bool colchanged = old_cell.column != new_column_section;
+    cell_t old_cell = d->reverse_index.value(element);
+    const bool rowchanged = old_cell.row() != new_row_section;
+    const bool colchanged = old_cell.column() != new_column_section;
     if (rowchanged || colchanged | filtered_out) {
       remove(element);
       if (!filtered_out) {
@@ -473,7 +461,7 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t
           const int target_index = target_row + c*target_row_count;
           d->cells[target_index] << element;
           ++d->row_counts[target_row];
-          d->reverse_index.insert(element, secret_t::cell_t(target_row, c));
+          d->reverse_index.insert(element, cell_t(target_row, c));
         }
       }
     }
@@ -513,7 +501,7 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_filte
           const int target_column = major*target_stride + minor + (*filter).operator()(d->model, element) * cat_stride;
           const int target_index = r + target_column*d->row_counts.size();
           d->cells[target_index] << element;
-          d->reverse_index.insert(element, secret_t::cell_t(r, target_column));
+          d->reverse_index.insert(element, cell_t(r, target_column));
           ++d->col_counts[target_column];
         }
       }
@@ -568,7 +556,7 @@ void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
           cell.append(oldcell);
           count += oldcell.size();
           Q_FOREACH(int element, oldcell) {
-            d->reverse_index.insert(element, horizontal ? secret_t::cell_t(n,p) : secret_t::cell_t(p, n));
+            d->reverse_index.insert(element, horizontal ? cell_t(n,p) : cell_t(p, n));
           }
         }
       }
@@ -587,9 +575,9 @@ int datacube_t::section_for_element(int element, Qt::Orientation orientation) co
 
 int datacube_t::section_for_element_internal(int element, Qt::Orientation orientation) const {
   if (orientation == Qt::Horizontal) {
-    return d->bucket_to_column(d->reverse_index.value(element).column);
+    return d->bucket_to_column(d->reverse_index.value(element).column());
   } else  {
-    return d->bucket_to_row(d->reverse_index.value(element).row);
+    return d->bucket_to_row(d->reverse_index.value(element).row());
   }
 
 }

@@ -4,6 +4,7 @@
 
 SET(QDATACUBE_SRC
   abstract_filter.cpp
+  cell.cpp
   column_filter.cpp
   datacube.cpp
   datacube_model.cpp
