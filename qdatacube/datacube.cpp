@@ -32,7 +32,7 @@ class datacube_t::secret_t {
       return compute_section_for_index(Qt::Horizontal, index);
     }
     int compute_section_for_index(Qt::Orientation orientation, int index);
-    QList<int>& cell(int row, int column);
+    QList<int>& cell(int bucket_row, int bucket_column);
     int bucket_to_row(int section);
     int bucket_to_column(int section);
     int bucket_for_row(int row);
@@ -90,8 +90,8 @@ int datacube_t::secret_t::bucket_for_column(int column) {
   return -1;
 }
 
-QList<int>& datacube_t::secret_t::cell(int row, int column) {
-  const int i = row + column*row_counts.size();
+QList<int>& datacube_t::secret_t::cell(int bucket_row, int bucket_column) {
+  const int i = bucket_row + bucket_column*row_counts.size();
   return cells[i];
 
 }

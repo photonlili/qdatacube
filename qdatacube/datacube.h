@@ -136,7 +136,7 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void collapse(Qt::Orientation orientation, int headerno);
 
     /**
-     * @returns the section for
+     * @returns the section (i.e, row for Qt::Vertical and column for Qt::Horizontal) for
      * @param orientation
      * and
      * @param element
