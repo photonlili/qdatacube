@@ -247,6 +247,27 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void split_column(int headerno, std::tr1::shared_ptr< abstract_filter_t > filter);
     void filter_category_added(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, int headerno, int index, Qt::Orientation orientation);
 
+    /**
+     * @returns the number of buckets (i.e. sections including empty sections) in datacube for
+     * @param orientation
+     */
+    int number_of_buckets(Qt::Orientation orientation) const;
+
+    /**
+     * @return element count for bucket row, bucket column
+     */
+    int element_count_for_bucket(int row, int column) const;
+
+    /**
+     * @return the bucket for row
+     */
+    int bucket_for_row(int row) const;
+
+    /**
+    * @return the bucket for column
+    */
+    int bucket_for_column(int column) const;
+
     class secret_t;
     QScopedPointer<secret_t> d;
 

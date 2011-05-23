@@ -672,4 +672,22 @@ void qdatacube::datacube_t::filter_category_added(std::tr1::shared_ptr< qdatacub
   emit reset(); // TODO: It is not impossible to emit the correct row/column changed instead
 }
 
+int qdatacube::datacube_t::bucket_for_column(int column) const
+{
+  return d->bucket_for_column(column);
+}
+
+int qdatacube::datacube_t::bucket_for_row(int row) const {
+  return d->bucket_for_row(row);
+}
+
+int qdatacube::datacube_t::element_count_for_bucket(int row, int column) const {
+  return d->cell(row, column).size();
+
+}
+
+int qdatacube::datacube_t::number_of_buckets(Qt::Orientation orientation) const {
+  return orientation == Qt::Vertical ? d->row_counts.size() : d->col_counts.size();
+}
+
 #include "datacube.moc"
