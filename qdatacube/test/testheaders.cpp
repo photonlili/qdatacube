@@ -114,6 +114,14 @@ void testheaders::createtableview() {
   m_underlying_table_view->setSortingEnabled(true);
   m_view->datacube_selection()->synchronize_with(m_underlying_table_view->selectionModel());
 
+
+  QDockWidget* second_dc = new QDockWidget("Second datacube");
+  top->addDockWidget(Qt::BottomDockWidgetArea, second_dc);
+  datacube_view_t* second_view = new datacube_view_t(second_dc);
+  datacube_t* second_datacube = new datacube_t(m_underlying_model, kommune_filter, age_filter);
+  second_view->set_datacube(second_datacube);
+  second_view->datacube_selection()->synchronize_with(m_underlying_table_view->selectionModel());
+  second_dc->setWidget(second_view);
 }
 
 void testheaders::slot_set_model() {
