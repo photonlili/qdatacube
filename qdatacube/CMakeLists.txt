@@ -8,6 +8,7 @@ SET(QDATACUBE_SRC
   column_filter.cpp
   datacube.cpp
   datacube_model.cpp
+  datacube_selection.cpp
   datacube_selection_model.cpp
   datacube_view.cpp
   datacube_view_item_delegate.cpp

@@ -16,6 +16,7 @@
 
 #include <QAbstractItemModel>
 #include "cell.h"
+#include "datacube_selection.h"
 using std::tr1::shared_ptr;
 
 namespace qdatacube {
@@ -48,6 +49,7 @@ class datacube_t::secret_t {
     typedef QHash<int, cell_t> reverse_index_t;
     reverse_index_t reverse_index;
     int global_filter_category;
+    QList<datacube_selection_t*> selection_models;
 };
 
 int datacube_t::secret_t::compute_section_for_index(Qt::Orientation orientation, int index) {
@@ -290,6 +292,8 @@ datacube_t::~datacube_t() {
 }
 
 void datacube_t::add(int index) {
+
+  // Computer bucket
   int row_section = d->compute_row_section_for_index(index);
   if (row_section == -1) {
     // Our datacube does not cover that container. Just ignore it.
@@ -297,6 +301,8 @@ void datacube_t::add(int index) {
   }
   int column_section = d->compute_column_section_for_index(index);
   Q_ASSERT(column_section>=0); // Every container should be in both rows and columns, or neither place.
+
+  // Check if rows/columns are added, and notify listernes as neccessary
   int row_to_add = -1;
   int column_to_add = -1;
   if(d->row_counts[row_section]++ == 0) {
@@ -307,8 +313,15 @@ void datacube_t::add(int index) {
     column_to_add = d->bucket_to_column(column_section);
     emit columns_about_to_be_inserted(column_to_add,1);
   }
+
+  // Actually add
   d->cell(row_section, column_section) << index;
   d->reverse_index.insert(index, cell_t(row_section, column_section));
+
+  // Notify various listerners
+  Q_FOREACH(datacube_selection_t* selection, d->selection_models) {
+    selection->datacube_adds_element_to_bucket(row_section, column_section, index);
+  }
   if(column_to_add>=0) {
     emit columns_inserted(column_to_add,1);
   }
@@ -325,6 +338,9 @@ void datacube_t::remove(int index) {
   if (cell.invalid()) {
     // Our datacube does not cover that container. Just ignore it.
     return;
+  }
+  Q_FOREACH(datacube_selection_t* selection, d->selection_models) {
+    selection->datacube_removes_element_to_bucket(cell.row(), cell.column(), index);
   }
   int row_to_remove = -1;
   int column_to_remove = -1;
@@ -681,13 +697,17 @@ int qdatacube::datacube_t::bucket_for_row(int row) const {
   return d->bucket_for_row(row);
 }
 
-int qdatacube::datacube_t::element_count_for_bucket(int row, int column) const {
-  return d->cell(row, column).size();
+QList<int> qdatacube::datacube_t::elements_in_bucket(int row, int column) const {
+  return d->cell(row, column);
 
 }
 
 int qdatacube::datacube_t::number_of_buckets(Qt::Orientation orientation) const {
   return orientation == Qt::Vertical ? d->row_counts.size() : d->col_counts.size();
+}
+
+void qdatacube::datacube_t::add_selection_model(qdatacube::datacube_selection_t* selection) {
+  d->selection_models << selection;
 }
 
 #include "datacube.moc"

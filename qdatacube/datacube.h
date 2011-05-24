@@ -19,6 +19,9 @@ class QAbstractItemModel;
 
 namespace qdatacube {
 
+class datacube_selection_t;
+
+
 class datacube_colrow_t;
 
 
@@ -254,9 +257,9 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     int number_of_buckets(Qt::Orientation orientation) const;
 
     /**
-     * @return element count for bucket row, bucket column
+     * @return elements for bucket row, bucket column
      */
-    int element_count_for_bucket(int row, int column) const;
+    QList<int> elements_in_bucket(int row, int column) const;
 
     /**
      * @return the bucket for row
@@ -268,8 +271,15 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     */
     int bucket_for_column(int column) const;
 
+    /**
+     * Add a selection model for bucket change notification
+     */
+    void add_selection_model(datacube_selection_t* selection);
+
     class secret_t;
     QScopedPointer<secret_t> d;
+
+    friend class datacube_selection_t;
 
 };
 }

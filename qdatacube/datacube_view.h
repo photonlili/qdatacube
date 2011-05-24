@@ -32,6 +32,10 @@ class QDATACUBE_EXPORT datacube_view_t : public QAbstractScrollArea  {
      * @return current datacube
      */
     datacube_t* datacube() const;
+  protected:
+    virtual void mousePressEvent(QMouseEvent* event);
+    virtual void mouseReleaseEvent(QMouseEvent* event );
+    virtual void mouseMoveEvent(QMouseEvent* event);
   Q_SIGNALS:
     void vertical_header_context_menu(QPoint pos,int level,int section);
     void horizontal_header_context_menu(QPoint pos, int level, int section);
