@@ -1,6 +1,8 @@
 #ifndef CELL_H
 #define CELL_H
+#include <QDebug>
 
+namespace qdatacube {
 
 /**
  * Represents a cell in the datacube
@@ -30,4 +32,7 @@ class cell_t
     int m_column;
 };
 
+QDebug operator<<(QDebug dbg, const cell_t& cell);
+
+} // end of namespace
 #endif // CELL_H
