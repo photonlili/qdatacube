@@ -13,6 +13,9 @@
 
 namespace qdatacube {
 
+class datacube_selection_t;
+
+
 class datacube_t;
 class datacube_selection_model_t;
 class datacube_view_private_t;
@@ -32,6 +35,11 @@ class QDATACUBE_EXPORT datacube_view_t : public QAbstractScrollArea  {
      * @return current datacube
      */
     datacube_t* datacube() const;
+
+    /**
+     * @return current datacube_selection
+     */
+    datacube_selection_t* datacube_selection() const;
   protected:
     virtual void mousePressEvent(QMouseEvent* event);
     virtual void mouseReleaseEvent(QMouseEvent* event );

@@ -22,10 +22,12 @@
 #include <QScrollArea>
 #include <QMenu>
 #include <datacube_view.h>
+#include <datacube_selection.h>
+#include <qsortfilterproxymodel.h>
 
 using namespace qdatacube;
 
-testheaders::testheaders(QObject* parent) : danishnamecube_t(parent) {
+testheaders::testheaders(QObject* parent) : danishnamecube_t(parent), m_underlying_table_view(0L) {
   load_model_data("plaincubedata.txt");
 
   m_datacube = new datacube_t(m_underlying_model, first_name_filter, last_name_filter);
@@ -100,10 +102,23 @@ void testheaders::createtableview() {
   add_global_filter_bottoms(age_filter, gfml);
   add_global_filter_bottoms(weight_filter, gfml);
   add_global_filter_bottoms(kommune_filter, gfml);
+
+  QDockWidget* underlying_view = new QDockWidget("Underlying model", top);
+  top->addDockWidget(Qt::RightDockWidgetArea, underlying_view);
+  m_underlying_table_view = new QTableView(underlying_view);
+  QSortFilterProxyModel* proxy = new QSortFilterProxyModel(this);
+  proxy->setSourceModel(m_underlying_model);
+  m_underlying_table_view->setModel(proxy);
+  m_underlying_table_view->setSelectionBehavior(QAbstractItemView::SelectRows);
+  underlying_view->setWidget(m_underlying_table_view);
+  m_underlying_table_view->setSortingEnabled(true);
+  m_view->datacube_selection()->synchronize_with(m_underlying_table_view->selectionModel());
+
 }
 
 void testheaders::slot_set_model() {
   m_view->set_datacube(m_datacube);
+  m_view->datacube_selection()->synchronize_with(m_underlying_table_view->selectionModel());
 
 }
 

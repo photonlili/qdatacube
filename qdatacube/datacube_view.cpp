@@ -64,6 +64,7 @@ datacube_view_t::datacube_view_t(QWidget* parent):
 
 void datacube_view_t::set_datacube(datacube_t* datacube) {
   d->datacube = datacube;
+  delete d->selection;
   d->selection = new datacube_selection_t(datacube, this);
   viewport()->update();
   connect(d->selection, SIGNAL(selection_status_changed(int, int)), viewport(), SLOT(update()));
@@ -293,6 +294,11 @@ void datacube_view_t::mouseReleaseEvent(QMouseEvent* event) {
   }
   d->selection_area = QRect();
   d->mouse_press_point = QPoint();
+}
+
+datacube_selection_t* datacube_view_t::datacube_selection() const
+{
+  return d->selection;
 }
 
 } // end of namespace

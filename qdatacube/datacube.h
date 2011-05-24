@@ -272,6 +272,16 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     int bucket_for_column(int column) const;
 
     /**
+     * @return section for bucket row
+     */
+    int section_for_bucket_row(int bucket_row) const;
+
+    /**
+     * @return section for bucket row
+     */
+    int section_for_bucket_column(int bucket_column) const;
+
+    /**
      * Add a selection model for bucket change notification
      */
     void add_selection_model(datacube_selection_t* selection);

@@ -34,8 +34,8 @@ class datacube_t::secret_t {
     }
     int compute_section_for_index(Qt::Orientation orientation, int index);
     QList<int>& cell(int bucket_row, int bucket_column);
-    int bucket_to_row(int section);
-    int bucket_to_column(int section);
+    int bucket_to_row(int bucket_row);
+    int bucket_to_column(int bucket_column);
     int bucket_for_row(int row);
     int bucket_for_column(int column);
     const QAbstractItemModel* model;
@@ -98,9 +98,9 @@ QList<int>& datacube_t::secret_t::cell(int bucket_row, int bucket_column) {
 
 }
 
-int datacube_t::secret_t::bucket_to_column(int section) {
+int datacube_t::secret_t::bucket_to_column(int bucket_column) {
   int rv = 0;
-  for (int i=0; i<section; ++i) {
+  for (int i=0; i<bucket_column; ++i) {
     if (col_counts[i]>0) {
       ++rv;
     }
@@ -109,9 +109,9 @@ int datacube_t::secret_t::bucket_to_column(int section) {
 
 }
 
-int datacube_t::secret_t::bucket_to_row(int section) {
+int datacube_t::secret_t::bucket_to_row(int bucket_row) {
   int rv = 0;
-  for (int i=0; i<section; ++i) {
+  for (int i=0; i<bucket_row; ++i) {
     if (row_counts[i]>0) {
       ++rv;
     }
@@ -708,6 +708,14 @@ int qdatacube::datacube_t::number_of_buckets(Qt::Orientation orientation) const 
 
 void qdatacube::datacube_t::add_selection_model(qdatacube::datacube_selection_t* selection) {
   d->selection_models << selection;
+}
+
+int qdatacube::datacube_t::section_for_bucket_column(int bucket_column) const {
+  return d->bucket_to_column(bucket_column);
+}
+
+int qdatacube::datacube_t::section_for_bucket_row(int bucket_row) const {
+  return d->bucket_to_row(bucket_row);
 }
 
 #include "datacube.moc"

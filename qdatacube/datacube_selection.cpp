@@ -5,21 +5,134 @@
 
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 #include <QSet>
+#include "cell.h"
+#include <QAbstractProxyModel>
 
 namespace qdatacube {
 
 struct datacube_selection_t::secret_t {
+  secret_t();
   datacube_t* datacube;
   QVector<int> cells;
   QSet<int> selected_elements;
+  QItemSelectionModel* synchronized_selection_model;
   int nrows;
   int ncolumns;
 
   int& cell(int row, int column);
 
   void dump();
+
+  void select_on_synchronized(QList<int> elements);
+  void deselect_on_synchronized(QList<int> elements);
+  void clear_synchronized();
+  QItemSelection map_to_synchronized(QList<int> elements);
+  QList<int> elements_from_selection(QItemSelection selection);
 };
+
+QList< int > datacube_selection_t::secret_t::elements_from_selection(QItemSelection selection) {
+  QList<int> rv;
+  if (synchronized_selection_model) {
+    // Create list of rows (that is, indexes of the first column)
+    QList<QModelIndex> indexes;
+    const QAbstractItemModel* model = synchronized_selection_model->model();
+    Q_FOREACH(QItemSelectionRange range, selection) {
+      Q_ASSERT(synchronized_selection_model->model() == range.model());
+      for (int row=range.top(); row<=range.bottom(); ++row) {
+        indexes << model->index(row, 0);
+      }
+    }
+
+    // Map that list all the way back to the source model
+    while(const QAbstractProxyModel* proxy = qobject_cast<const QAbstractProxyModel*>(model)) {
+      QList<QModelIndex> mapped_indexes;
+      Q_FOREACH(const QModelIndex& unmapped_index, indexes) {
+        mapped_indexes << proxy->mapToSource(unmapped_index);
+      }
+      indexes = mapped_indexes;
+      model = proxy->sourceModel();
+    }
+    // Check that we did indeed get back to the underlying model
+    if (model == datacube->underlying_model()) {
+      // Finally, convert to elements = rows in underlying model
+      Q_FOREACH(const QModelIndex& index, indexes) {
+        rv << index.row();
+      }
+    } else {
+      qWarning("Unable to map selection to underlying model");
+    }
+  }
+  return rv;
+
+}
+
+QItemSelection datacube_selection_t::secret_t::map_to_synchronized(QList< int > elements) {
+  QItemSelection selection;
+  if (synchronized_selection_model) {
+    // Get the reversed list of proxies to source model
+    const QAbstractItemModel* model = synchronized_selection_model->model();
+    const QAbstractItemModel* underlying_model = datacube->underlying_model();
+    QList<const QAbstractProxyModel*> proxies;
+    while (model != underlying_model) {
+      if (const QAbstractProxyModel* proxy = qobject_cast<const QAbstractProxyModel*>(model)) {
+        proxies << proxy;
+        model = proxy->sourceModel();
+      } else {
+        qWarning("Unable to select on synchronized model");
+        return QItemSelection();
+      }
+    }
+    std::reverse(proxies.begin(), proxies.end());
+
+    // Create selection on source model
+    Q_FOREACH(int element, elements) {
+      selection << QItemSelectionRange(model->index(element,0),model->index(element,0));
+    }
+
+    // Map from source to whatever proxy model the synchronized model
+    Q_FOREACH(const QAbstractProxyModel* proxy, proxies) {
+      QItemSelection proxyselection;
+      Q_FOREACH(QItemSelectionRange range, selection) {
+        QModelIndex mapped = proxy->mapFromSource(range.topLeft());
+        proxyselection << QItemSelectionRange(mapped, mapped);
+      }
+      selection = proxyselection;
+    }
+  }
+  return selection;
+}
+
+void datacube_selection_t::secret_t::select_on_synchronized(QList<int> elements) {
+  if (synchronized_selection_model) {
+    // Select on sync. model
+    synchronized_selection_model->select(map_to_synchronized(elements), QItemSelectionModel::Select | QItemSelectionModel::Rows);
+  }
+
+}
+
+void datacube_selection_t::secret_t::deselect_on_synchronized(QList< int > elements) {
+  if (synchronized_selection_model) {
+    // Select on sync. model
+    synchronized_selection_model->select(map_to_synchronized(elements), QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
+  }
+
+}
+void datacube_selection_t::secret_t::clear_synchronized() {
+  if (synchronized_selection_model) {
+    synchronized_selection_model->clearSelection();
+  }
+}
+
+datacube_selection_t::secret_t::secret_t() :
+    datacube(0L),
+    synchronized_selection_model(0L),
+    nrows(0),
+    ncolumns(0)
+{
+
+}
 
 void datacube_selection_t::secret_t::dump() {
   for (int r = 0; r < nrows; ++r) {
@@ -36,18 +149,43 @@ int& datacube_selection_t::secret_t::cell(int row, int column) {
 
 }
 
-void datacube_selection_t::add_element(int element) {
-  const int column = d->datacube->section_for_element_internal(element, Qt::Horizontal);
-  const int row = d->datacube->section_for_element_internal(element, Qt::Vertical);
-  ++d->cell(row, column);
-}
-
 void datacube_selection_t::add_elements(QList< int > elements) {
+  QList<int> actually_selected_elements;
   Q_FOREACH(int element, elements) {
     const int column = d->datacube->section_for_element_internal(element, Qt::Horizontal);
     const int row = d->datacube->section_for_element_internal(element, Qt::Vertical);
-    ++d->cell(row, column);
+    if (!d->selected_elements.contains(element)) {
+      d->selected_elements << element;
+      actually_selected_elements << element;
+      int newvalue = ++d->cell(row, column);
+      if (newvalue == 1 || newvalue == d->datacube->elements_in_bucket(row, column).size()) {
+        const int row_section = d->datacube->section_for_bucket_row(row);
+        const int column_section = d->datacube->section_for_bucket_column(column);
+        emit selection_status_changed(row_section,column_section);
+      }
+    }
   }
+  d->select_on_synchronized(actually_selected_elements);
+}
+
+void datacube_selection_t::remove_elements(QList< int > elements) {
+  QList<int> actually_deselected_elements;
+  Q_FOREACH(int element, elements) {
+    const int column = d->datacube->section_for_element_internal(element, Qt::Horizontal);
+    const int row = d->datacube->section_for_element_internal(element, Qt::Vertical);
+    if (d->selected_elements.remove(element)) {
+      actually_deselected_elements << element;
+      int newvalue = --d->cell(row, column);
+      Q_ASSERT(newvalue>=0);
+      if (newvalue == 0 || newvalue == d->datacube->elements_in_bucket(row, column).size()-1) {
+        const int row_section = d->datacube->section_for_bucket_row(row);
+        const int column_section = d->datacube->section_for_bucket_column(column);
+        emit selection_status_changed(row_section,column_section);
+      }
+    }
+  }
+  d->deselect_on_synchronized(actually_deselected_elements);
+
 }
 
 
@@ -72,13 +210,20 @@ void datacube_selection_t::add_cell(int row, int column) {
   int bucket_row = d->datacube->bucket_for_row(row);
   int bucket_column = d->datacube->bucket_for_column(column);
   int& cell = d->cell(bucket_row, bucket_column);
-  QList<int> elements = d->datacube->elements_in_bucket(bucket_row, bucket_column);
-  if (cell != elements.size()) {
-    cell = elements.size();
+  QList<int> raw_elements = d->datacube->elements_in_bucket(bucket_row, bucket_column);
+  QList<int> elements;
+  Q_FOREACH(int raw_element, raw_elements) {
+    if (!d->selected_elements.contains(raw_element)) {
+      elements << raw_element;
+    }
+  }
+  if (!elements.isEmpty()) {
+    cell += elements.size();
     Q_FOREACH(int element, elements) {
       d->selected_elements << element;
     }
     emit selection_status_changed(row, column);
+    d->select_on_synchronized(elements);
   }
 }
 
@@ -118,6 +263,30 @@ datacube_selection_t::selection_status_t datacube_selection_t::selection_status(
 void datacube_selection_t::clear() {
   d->selected_elements.clear();
   std::fill(d->cells.begin(), d->cells.end(), 0);
+  d->clear_synchronized();
+}
+
+void datacube_selection_t::update_selection(QItemSelection select, QItemSelection deselect) {
+  add_elements(d->elements_from_selection(select));
+  remove_elements(d->elements_from_selection(deselect));
+}
+
+datacube_selection_t::~datacube_selection_t() {
+  // declared to have secret_t in scope
+}
+
+void datacube_selection_t::synchronize_with(QItemSelectionModel* synchronized_selection_model) {
+  if (d->synchronized_selection_model) {
+    d->synchronized_selection_model->disconnect(SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(update_selection(QItemSelection,QItemSelection)));
+    d->synchronized_selection_model = 0L;
+  }
+  if (synchronized_selection_model) {
+    d->synchronized_selection_model = synchronized_selection_model;
+    connect(synchronized_selection_model,
+          SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+          SLOT(update_selection(QItemSelection,QItemSelection)));
+  }
+
 }
 
 

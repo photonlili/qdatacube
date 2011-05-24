@@ -46,6 +46,7 @@ class testheaders : public danishnamecube_t {
     QList<QAction*> m_col_used_filter_actions;
     QList<QAction*> m_row_used_filter_actions;
     QList<QAction*> m_unused_filter_actions;
+    QTableView* m_underlying_table_view;
 
 };
 

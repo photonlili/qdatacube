@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include "qdatacube_export.h"
+#include <QItemSelectionModel>
 
 namespace qdatacube {
 
@@ -25,6 +26,7 @@ class QDATACUBE_EXPORT datacube_selection_t : public QObject {
   Q_OBJECT
   public:
     datacube_selection_t(qdatacube::datacube_t* datacube, datacube_view_t* view);
+    virtual ~datacube_selection_t();
 
     enum selection_status_t {
       UNSELECTED = 0,
@@ -43,9 +45,9 @@ class QDATACUBE_EXPORT datacube_selection_t : public QObject {
     void add_elements(QList<int> elements);
 
     /**
-    * Add element to selection
-    */
-    void add_element(int element);
+     * Remove elements from selection
+     **/
+    void remove_elements(QList<int> elements);
 
     /**
      * Add cell to selection
@@ -56,11 +58,25 @@ class QDATACUBE_EXPORT datacube_selection_t : public QObject {
      * Get selection status from (view) cell
      */
     selection_status_t selection_status(int row, int column) const;
+
+    /**
+     * Synchronize with specified model. Any previous sync. is deleted, and
+     * passing null will remove any synchronization
+     **/
+    void synchronize_with(QItemSelectionModel* synchronized_selection_model);
+
   Q_SIGNALS:
     /**
      * Selection status has changed for cell
      **/
     void selection_status_changed(int row, int column);
+
+  public Q_SLOTS:
+    /**
+     * Update the selection by adding the items in select to the selection and removing the items in deselect
+     **/
+    void update_selection(QItemSelection select,QItemSelection deselect);
+
   private Q_SLOTS:
     void reset();
 
