@@ -149,7 +149,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
 
   // Draw cells
   QBrush highlight = palette().highlight();
-  QBrush faded_highlight = highlight.color().lighter();
+  QBrush faded_highlight = highlight.color().lighter(300);
   for (int r = 0, nr = d->datacube->row_count(); r < nr; ++r) {
     options.rect.moveLeft(viewport()->rect().left() + vertical_header_width);
     for (int c = 0, nc = d->datacube->column_count(); c < nc; ++c) {
@@ -181,7 +181,9 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
           }
           break;
       }
-      style()->drawItemText(&painter, options.rect, Qt::AlignCenter, palette(), true, QString::number(d->datacube->element_count(r, c)), highlighted ? QPalette::HighlightedText : QPalette::Text);
+      if (int item_value = d->datacube->element_count(r, c)) {
+        style()->drawItemText(&painter, options.rect, Qt::AlignCenter, palette(), true, QString::number(item_value), highlighted ? QPalette::HighlightedText : QPalette::Text);
+      }
       painter.drawRect(options.rect);
       options.rect.translate(cell_size.width(), 0);
     }
