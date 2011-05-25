@@ -29,6 +29,11 @@ class QDATACUBE_EXPORT column_filter_t : public abstract_filter_t {
      * Return section
      */
     int section() const;
+
+    /**
+     * trim (new) categories from the right to max max_chars characters
+     **/
+    void set_trim_new_categories_from_right(int max_chars);
   private:
     class secret_t;
     QScopedPointer<secret_t> d;

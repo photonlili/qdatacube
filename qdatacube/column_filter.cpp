@@ -14,13 +14,20 @@ namespace qdatacube {
 
 class column_filter_t::secret_t {
   public:
-    secret_t(int section) : categories(), section(section) {
+    secret_t(int section) : categories(), section(section), trim_right(false), max_chars(3) {
     }
     QStringList categories;
     typedef QHash<QString, int> cat_map_t;
     cat_map_t cat_map;
     int section;
+    bool trim_right;
+    int max_chars;
 };
+
+void column_filter_t::set_trim_new_categories_from_right(int max_chars) {
+  d->trim_right = true;
+  d->max_chars = max_chars;
+}
 
 const QList< QString >& column_filter_t::categories(const QAbstractItemModel* model) const {
   Q_ASSERT(model);
@@ -28,7 +35,11 @@ const QList< QString >& column_filter_t::categories(const QAbstractItemModel* mo
   if (d->categories.isEmpty()) {
     QSet<QString> categories;
     for (int i=0, iend = model->rowCount(); i<iend; ++i) {
-      categories << model->data(model->index(i, d->section)).toString();
+      QString cat = model->data(model->index(i, d->section)).toString();
+      if (d->trim_right) {
+        cat = cat.right(d->max_chars);
+      }
+      categories << cat;
     }
     d->categories = categories.toList();
     qSort(d->categories);
@@ -54,6 +65,9 @@ int column_filter_t::operator()(const QAbstractItemModel* model, int row) const 
     categories(model);
   }
   QString data = model->data(model->index(row, d->section)).toString();
+  if (d->trim_right) {
+    data = data.right(d->max_chars);
+  }
   int rv = d->cat_map.value(data, -1);
   if (rv == -1) {
     QStringList::iterator lb = qLowerBound(d->categories.begin(), d->categories.end(), data);
