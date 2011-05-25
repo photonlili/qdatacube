@@ -38,13 +38,19 @@ class datacube_t::secret_t {
     int bucket_to_column(int bucket_column);
     int bucket_for_row(int row);
     int bucket_for_column(int column);
+    /**
+     * Renumber cells from start by adding adjustment
+     */
+    void renumber_cells(int start, int adjustment);
+
     const QAbstractItemModel* model;
     typedef QVector<shared_ptr<abstract_filter_t> >filters_t;
     filters_t row_filters;
     filters_t col_filters;
     QVector<unsigned> row_counts;
     QVector<unsigned> col_counts;
-    QVector<QList<int> > cells;
+    typedef QVector<QList<int> > cells_t;
+    cells_t cells;
     std::tr1::shared_ptr<abstract_filter_t> global_filter;
     typedef QHash<int, cell_t> reverse_index_t;
     reverse_index_t reverse_index;
@@ -391,12 +397,13 @@ void datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
 
 void datacube_t::insert_data(QModelIndex parent, int start, int end) {
   Q_ASSERT(!parent.isValid());
+  d->renumber_cells(start, end-start+1);
   for (int row = start; row <=end; ++row) {
     if(!d->global_filter.get() || (*d->global_filter)(d->model,row)==d->global_filter_category) {
       add(row);
     }
   }
-#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
 
@@ -409,6 +416,21 @@ void datacube_t::remove_data(QModelIndex parent, int start, int end) {
   Q_ASSERT(!parent.isValid());
   for (int row = end; row>=start; --row) {
     remove(row);
+  }
+  // Now, all the remaining elements have to be renumbered
+  d->renumber_cells(end+1, start-end-1);
+
+}
+
+void datacube_t::secret_t::renumber_cells(int start, int adjustment) {
+  for (cells_t::iterator it = cells.begin(), iend = cells.end(); it != iend; ++it) {
+    for (QList<int>::iterator jit = it->begin(), jend = it->end(); jit != jend; ++jit) {
+      if (*jit >= start) {
+        cell_t cell = reverse_index.take(*jit);
+        *jit += adjustment;
+        reverse_index.insert(*jit, cell);
+      }
+    }
   }
 
 }
