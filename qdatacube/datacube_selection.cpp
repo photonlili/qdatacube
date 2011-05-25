@@ -151,17 +151,19 @@ int& datacube_selection_t::secret_t::cell(int row, int column) {
 
 void datacube_selection_t::add_elements(QList< int > elements) {
   QList<int> actually_selected_elements;
+  cell_t cell;
   Q_FOREACH(int element, elements) {
-    const int column = d->datacube->section_for_element_internal(element, Qt::Horizontal);
-    const int row = d->datacube->section_for_element_internal(element, Qt::Vertical);
     if (!d->selected_elements.contains(element)) {
+      d->datacube->bucket_for_element(element, cell);
       d->selected_elements << element;
       actually_selected_elements << element;
-      int newvalue = ++d->cell(row, column);
-      if (newvalue == 1 || newvalue == d->datacube->elements_in_bucket(row, column).size()) {
-        const int row_section = d->datacube->section_for_bucket_row(row);
-        const int column_section = d->datacube->section_for_bucket_column(column);
-        emit selection_status_changed(row_section,column_section);
+      if (!cell.invalid()) {
+        int newvalue = ++d->cell(cell.row(), cell.column());
+        if (newvalue == 1 || newvalue == d->datacube->elements_in_bucket(cell.row(), cell.column()).size()) {
+          const int row_section = d->datacube->section_for_bucket_row(cell.row());
+          const int column_section = d->datacube->section_for_bucket_column(cell.column());
+          emit selection_status_changed(row_section,column_section);
+        }
       }
     }
   }
@@ -170,17 +172,19 @@ void datacube_selection_t::add_elements(QList< int > elements) {
 
 void datacube_selection_t::remove_elements(QList< int > elements) {
   QList<int> actually_deselected_elements;
+  cell_t cell;
   Q_FOREACH(int element, elements) {
-    const int column = d->datacube->section_for_element_internal(element, Qt::Horizontal);
-    const int row = d->datacube->section_for_element_internal(element, Qt::Vertical);
     if (d->selected_elements.remove(element)) {
+      d->datacube->bucket_for_element(element, cell);
       actually_deselected_elements << element;
-      int newvalue = --d->cell(row, column);
-      Q_ASSERT(newvalue>=0);
-      if (newvalue == 0 || newvalue == d->datacube->elements_in_bucket(row, column).size()-1) {
-        const int row_section = d->datacube->section_for_bucket_row(row);
-        const int column_section = d->datacube->section_for_bucket_column(column);
-        emit selection_status_changed(row_section,column_section);
+      if (!cell.invalid()) {
+        int newvalue = --d->cell(cell.row(), cell.column());
+        Q_ASSERT(newvalue>=0);
+        if (newvalue == 0 || newvalue == d->datacube->elements_in_bucket(cell.row(), cell.column()).size()-1) {
+          const int row_section = d->datacube->section_for_bucket_row(cell.row());
+          const int column_section = d->datacube->section_for_bucket_column(cell.column());
+          emit selection_status_changed(row_section,column_section);
+        }
       }
     }
   }

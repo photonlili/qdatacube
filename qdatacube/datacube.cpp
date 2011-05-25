@@ -598,6 +598,10 @@ int datacube_t::section_for_element_internal(int element, Qt::Orientation orient
 
 }
 
+void datacube_t::bucket_for_element(int element, cell_t& result) const {
+  result = d->reverse_index.value(element);
+}
+
 std::tr1::shared_ptr< abstract_filter_t > datacube_t::global_filter() const {
   return d->global_filter;
 }

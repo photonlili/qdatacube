@@ -19,6 +19,9 @@ class QAbstractItemModel;
 
 namespace qdatacube {
 
+class cell_t;
+
+
 class datacube_selection_t;
 
 
@@ -281,6 +284,14 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * @return section for bucket row
      */
     int section_for_bucket_column(int bucket_column) const;
+
+    /**
+     * find cell_t with bucket for element
+     * @param element element to look for
+     * @param result the cell with the element, or an invalid cell
+     * The strange interface is to avoid exporting cell_t
+     */
+    void bucket_for_element(int element, qdatacube::cell_t& result) const;
 
     /**
      * Add a selection model for bucket change notification
