@@ -423,15 +423,17 @@ void datacube_t::remove_data(QModelIndex parent, int start, int end) {
 }
 
 void datacube_t::secret_t::renumber_cells(int start, int adjustment) {
+  reverse_index_t new_index;
   for (cells_t::iterator it = cells.begin(), iend = cells.end(); it != iend; ++it) {
     for (QList<int>::iterator jit = it->begin(), jend = it->end(); jit != jend; ++jit) {
+      cell_t cell = reverse_index.value(*jit);
       if (*jit >= start) {
-        cell_t cell = reverse_index.take(*jit);
         *jit += adjustment;
-        reverse_index.insert(*jit, cell);
       }
+      new_index.insert(*jit, cell);
     }
   }
+  reverse_index = new_index;
 
 }
 
