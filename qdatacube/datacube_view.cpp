@@ -149,7 +149,8 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
 
   // Draw cells
   QBrush highlight = palette().highlight();
-  QBrush faded_highlight = highlight.color().lighter(300);
+  QBrush faded_highlight = highlight;
+  faded_highlight.setStyle(Qt::CrossPattern);
   for (int r = 0, nr = d->datacube->row_count(); r < nr; ++r) {
     options.rect.moveLeft(viewport()->rect().left() + vertical_header_width);
     for (int c = 0, nc = d->datacube->column_count(); c < nc; ++c) {
@@ -177,7 +178,6 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
             highlighted = true;
           } else {
             painter.fillRect(options.rect, faded_highlight);
-            highlighted = true;
           }
           break;
       }
