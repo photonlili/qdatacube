@@ -82,7 +82,7 @@ class QDATACUBE_EXPORT datacube_selection_t : public QObject {
 
   private:
     void datacube_adds_element_to_bucket(int row, int column, int element);
-    void datacube_removes_element_to_bucket(int row, int column, int element);
+    void datacube_removes_element_from_bucket(int row, int column, int element);
     class secret_t;
     friend class datacube_t;
     QScopedPointer<secret_t> d;

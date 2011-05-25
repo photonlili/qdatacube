@@ -203,6 +203,7 @@ void datacube_selection_t::reset() {
   d->ncolumns = d->datacube->number_of_buckets(Qt::Horizontal);
   d->cells.resize(d->ncolumns*d->nrows);
   std::fill(d->cells.begin(), d->cells.end(), 0);
+  d->selected_elements.clear();
 
 }
 
@@ -235,7 +236,7 @@ void datacube_selection_t::datacube_adds_element_to_bucket(int row, int column, 
   }
 }
 
-void datacube_selection_t::datacube_removes_element_to_bucket(int row, int column, int element) {
+void datacube_selection_t::datacube_removes_element_from_bucket(int row, int column, int element) {
   if (d->selected_elements.contains(element)) {
     int& cell = d->cell(row, column);
     --cell;

@@ -242,6 +242,7 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void slot_rows_changed(int row, int count);
     void slot_filter_category_added(int index);
     void slot_filter_category_removed(int);
+    void remove_selection_model(QObject* selection_model);
 
   private:
     void remove(int index);

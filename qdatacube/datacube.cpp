@@ -340,7 +340,7 @@ void datacube_t::remove(int index) {
     return;
   }
   Q_FOREACH(datacube_selection_t* selection, d->selection_models) {
-    selection->datacube_removes_element_to_bucket(cell.row(), cell.column(), index);
+    selection->datacube_removes_element_from_bucket(cell.row(), cell.column(), index);
   }
   int row_to_remove = -1;
   int column_to_remove = -1;
@@ -708,6 +708,7 @@ int qdatacube::datacube_t::number_of_buckets(Qt::Orientation orientation) const 
 
 void qdatacube::datacube_t::add_selection_model(qdatacube::datacube_selection_t* selection) {
   d->selection_models << selection;
+  connect(selection, SIGNAL(destroyed(QObject*)), SLOT(remove_selection_model(QObject*)));
 }
 
 int qdatacube::datacube_t::section_for_bucket_column(int bucket_column) const {
@@ -716,6 +717,10 @@ int qdatacube::datacube_t::section_for_bucket_column(int bucket_column) const {
 
 int qdatacube::datacube_t::section_for_bucket_row(int bucket_row) const {
   return d->bucket_to_row(bucket_row);
+}
+
+void qdatacube::datacube_t::remove_selection_model(QObject* selection_model) {
+  d->selection_models.removeAll(static_cast<datacube_selection_t*>(selection_model));
 }
 
 #include "datacube.moc"
