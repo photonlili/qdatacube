@@ -7,12 +7,8 @@ SET(QDATACUBE_SRC
   cell.cpp
   column_filter.cpp
   datacube.cpp
-  datacube_model.cpp
   datacube_selection.cpp
-  datacube_selection_model.cpp
   datacube_view.cpp
-  datacube_view_item_delegate.cpp
-  internal_header_view.cpp
 )
 
 QT4_AUTOMOC(${QDATACUBE_SRC})

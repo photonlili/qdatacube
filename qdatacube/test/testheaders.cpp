@@ -8,7 +8,6 @@
 #include "testheaders.h"
 #include "column_filter.h"
 #include "datacube.h"
-#include "datacube_model.h"
 #include <QStandardItemModel>
 #include <QFile>
 #include <QTableView>

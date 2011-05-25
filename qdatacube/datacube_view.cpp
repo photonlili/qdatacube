@@ -6,8 +6,6 @@
 */
 
 #include "datacube_view.h"
-#include "datacube_selection_model.h"
-#include "datacube_view_item_delegate.h"
 #include <QtGui/QHeaderView>
 #include <QtGui/QMouseEvent>
 #include <QPainter>
