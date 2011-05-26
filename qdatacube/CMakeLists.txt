@@ -24,6 +24,7 @@ set_target_properties(qdatacube PROPERTIES VERSION "${QDATACUBE_SO_VERSION}.0.0"
 SET(CONTAINERS_PUBLIC_HEADERS
   column_filter.h
   datacube.h
+  datacube_selection.h
   datacube_view.h
   abstract_filter.h
   qdatacube_export.h
