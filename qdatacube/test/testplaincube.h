@@ -99,7 +99,7 @@ class testplaincube : public danishnamecube_t {
     /**
     * Test remove category from a filter;
     */
-    void test_remove_category();
+//    void test_remove_category(); // TODO
 
     /**
      * Test section_for_element_internal
@@ -107,6 +107,16 @@ class testplaincube : public danishnamecube_t {
     void test_section_for_element_internal();
 
     void do_testcollapse3(Qt::Orientation orientation);
+
+    /**
+     * Test delete model rows (in the middle)
+     **/
+    void test_delete_rows();
+
+    /**
+     * Test add model rows (in the middle)
+     **/
+    void test_add_rows();
 };
 
 #endif // TESTPLAINCUBE_H

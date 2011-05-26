@@ -489,10 +489,81 @@ void testplaincube::test_add_category_simple()
 
 }
 
-void testplaincube::test_remove_category()
-{
+
+void testplaincube::test_delete_rows() {
+  QStandardItemModel* tmp_model = copy_model();
+  datacube_t datacube(tmp_model, kommune_filter, sex_filter);
+  tmp_model->removeRows(30, 10);
+  QCOMPARE(m_underlying_model->rowCount()-10, tmp_model->rowCount());
+  int total = 0;
+  QStringList column0_headers;
+  typedef QPair<QString, int> header_pair_t;
+  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Horizontal,0)) {
+    for (int i=0; i<hp.second; ++i) {
+      column0_headers << hp.first;
+    }
+  }
+  QStringList row0_headers;
+  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Vertical,0)) {
+    for (int i=0; i<hp.second; ++i) {
+      row0_headers << hp.first;
+    }
+  }
+  for (int r = 0; r < datacube.row_count(); ++r) {
+    for (int c = 0; c < datacube.column_count(); ++c) {
+      QList<int> elements = datacube.elements(r,c);
+      Q_FOREACH(int cell, elements) {
+        ++total;
+        QCOMPARE(tmp_model->data(tmp_model->index(cell, SEX)).toString(), column0_headers.at(c));
+        QCOMPARE(tmp_model->data(tmp_model->index(cell, KOMMUNE)).toString(), row0_headers.at(r));
+      }
+    }
+  }
+  QCOMPARE(total, tmp_model->rowCount());
 
 }
+
+void testplaincube::test_add_rows() {
+  QStandardItemModel* tmp_model = copy_model();
+  datacube_t datacube(tmp_model, kommune_filter, sex_filter);
+  for (int i=0; i<10; ++i) {
+    int source_row = i*7+2;
+    QList<QStandardItem*> newrow;
+    for (int c=0; c<tmp_model->columnCount(); ++c) {
+      newrow << new QStandardItem(tmp_model->item(source_row, c)->text());
+    }
+    int dest_row = i*6+7;
+    tmp_model->insertRow(dest_row, newrow);
+  }
+  QCOMPARE(m_underlying_model->rowCount()+10, tmp_model->rowCount());
+  int total = 0;
+  QStringList column0_headers;
+  typedef QPair<QString, int> header_pair_t;
+  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Horizontal,0)) {
+    for (int i=0; i<hp.second; ++i) {
+      column0_headers << hp.first;
+    }
+  }
+  QStringList row0_headers;
+  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Vertical,0)) {
+    for (int i=0; i<hp.second; ++i) {
+      row0_headers << hp.first;
+    }
+  }
+  for (int r = 0; r < datacube.row_count(); ++r) {
+    for (int c = 0; c < datacube.column_count(); ++c) {
+      QList<int> elements = datacube.elements(r,c);
+      Q_FOREACH(int cell, elements) {
+        ++total;
+        QCOMPARE(tmp_model->data(tmp_model->index(cell, SEX)).toString(), column0_headers.at(c));
+        QCOMPARE(tmp_model->data(tmp_model->index(cell, KOMMUNE)).toString(), row0_headers.at(r));
+      }
+    }
+  }
+  QCOMPARE(total, tmp_model->rowCount());
+
+}
+
 
 QTEST_MAIN(testplaincube)
 

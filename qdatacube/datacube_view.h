@@ -8,60 +8,54 @@
 #ifndef DATACUBE_VIEW_H
 #define DATACUBE_VIEW_H
 
-#include <QtGui/QTableView>
+#include <QtGui/QAbstractScrollArea>
 #include "qdatacube_export.h"
-
 
 namespace qdatacube {
 
-class datacube_header_t;
+class datacube_selection_t;
 
 
+class datacube_t;
 class datacube_selection_model_t;
-
-
 class datacube_view_private_t;
 
-class QDATACUBE_EXPORT datacube_view_t : public QTableView {
+class QDATACUBE_EXPORT datacube_view_t : public QAbstractScrollArea  {
   Q_OBJECT
   public:
     datacube_view_t(QWidget* parent = 0);
     virtual ~datacube_view_t();
 
     /**
-     * set the datacube_selection_model_t
+     * Set the datacube to be view
      */
-    void setSelectionModel(qdatacube::datacube_selection_model_t* selection_model);
+    void set_datacube(datacube_t* datacube);
 
     /**
-     * Non-virtual override
-     * @return vertical header
+     * @return current datacube
      */
-    datacube_header_t* verticalHeader() const;
+    datacube_t* datacube() const;
 
     /**
-     * Non-virtual override
-     * @return horizontal header
+     * @return current datacube_selection
      */
-    datacube_header_t* horizontalHeader() const;
-
+    datacube_selection_t* datacube_selection() const;
+  protected:
+    virtual void mousePressEvent(QMouseEvent* event);
+    virtual void mouseReleaseEvent(QMouseEvent* event );
+    virtual void mouseMoveEvent(QMouseEvent* event);
+  Q_SIGNALS:
+    void vertical_header_context_menu(QPoint pos,int level,int section);
+    void horizontal_header_context_menu(QPoint pos, int level, int section);
+    void cell_context_menu(QPoint pos, int row, int column);
+  private Q_SLOTS:
+    void relayout();
+  protected:
+    virtual bool viewportEvent(QEvent* event);
+    virtual void contextMenuEvent(QContextMenuEvent* event);
   private:
-    /**
-     * @overridden to avoid hiding
-     */
-    virtual void setSelectionModel(QItemSelectionModel* selectionModel);
-
-    /**
-     * Declared private to avoid accident
-     */
-    void setVerticalHeader(datacube_header_t* headerview);
-
-    /**
-     * Declared private to avoid accident
-     */
-    void setHorizontalHeader(datacube_header_t* headerview);
-
-  QSharedDataPointer<datacube_view_private_t> d;
+    void paint_datacube(QPaintEvent* event) const;
+    QSharedDataPointer<datacube_view_private_t> d;
 
 };
 

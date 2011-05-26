@@ -18,6 +18,7 @@ class QStandardItemModel;
 class QTableView;
 namespace qdatacube {
 class datacube_model_t;
+class datacube_view_t;
 }
 
 class QAbstractItemModel;
@@ -34,17 +35,18 @@ class testheaders : public danishnamecube_t {
     void slot_remove_data();
     void slot_global_filter_button_pressed();
 
-    void slot_horizontal_context_menu(const QPoint& pos, int headerno, int category);
+    void slot_horizontal_context_menu(QPoint pos, int headerno, int category);
     void slot_vertical_context_menu(const QPoint& pos, int headerno, int category);
   private:
-    qdatacube::datacube_model_t* m_model;
-    QTableView* m_view;
+    qdatacube::datacube_t* m_datacube;
+    qdatacube::datacube_view_t* m_view;
     void add_global_filter_bottoms(std::tr1::shared_ptr<qdatacube::abstract_filter_t> filter, QLayout* layout);
     QAction* create_filter_action(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter);
     QAction* m_collapse_action;
     QList<QAction*> m_col_used_filter_actions;
     QList<QAction*> m_row_used_filter_actions;
     QList<QAction*> m_unused_filter_actions;
+    QTableView* m_underlying_table_view;
 
 };
 

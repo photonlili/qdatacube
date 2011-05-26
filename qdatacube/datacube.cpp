@@ -15,6 +15,8 @@
 #include <algorithm>
 
 #include <QAbstractItemModel>
+#include "cell.h"
+#include "datacube_selection.h"
 using std::tr1::shared_ptr;
 
 namespace qdatacube {
@@ -31,35 +33,29 @@ class datacube_t::secret_t {
       return compute_section_for_index(Qt::Horizontal, index);
     }
     int compute_section_for_index(Qt::Orientation orientation, int index);
-    QList<int>& cell(int row, int column);
-    int section_to_row(int section);
-    int section_to_column(int section);
-    int section_for_row(int row);
-    int section_for_column(int column);
+    QList<int>& cell(int bucket_row, int bucket_column);
+    int bucket_to_row(int bucket_row);
+    int bucket_to_column(int bucket_column);
+    int bucket_for_row(int row);
+    int bucket_for_column(int column);
+    /**
+     * Renumber cells from start by adding adjustment
+     */
+    void renumber_cells(int start, int adjustment);
+
     const QAbstractItemModel* model;
     typedef QVector<shared_ptr<abstract_filter_t> >filters_t;
     filters_t row_filters;
     filters_t col_filters;
     QVector<unsigned> row_counts;
     QVector<unsigned> col_counts;
-    QVector<QList<int> > cells;
-    struct cell_t {
-      int row;
-      int column;
-      cell_t(int row_section, int column_section) : row(row_section), column(column_section) {}
-      cell_t() : row(-1), column(-1) {}
-      bool operator==(const cell_t& rhs) {
-        return rhs.row == row && rhs.column == column;
-      }
-      bool invalid() const {
-        return row == -1;
-      }
-
-    };
+    typedef QVector<QList<int> > cells_t;
+    cells_t cells;
     std::tr1::shared_ptr<abstract_filter_t> global_filter;
     typedef QHash<int, cell_t> reverse_index_t;
     reverse_index_t reverse_index;
     int global_filter_category;
+    QList<datacube_selection_t*> selection_models;
 };
 
 int datacube_t::secret_t::compute_section_for_index(Qt::Orientation orientation, int index) {
@@ -74,7 +70,7 @@ int datacube_t::secret_t::compute_section_for_index(Qt::Orientation orientation,
   return rv;
 }
 
-int datacube_t::secret_t::section_for_row(const int row) {
+int datacube_t::secret_t::bucket_for_row(const int row) {
   int r = row;
   int section=0;
   for (; section<row_counts.size(); ++section) {
@@ -88,7 +84,7 @@ int datacube_t::secret_t::section_for_row(const int row) {
   return -1;
 }
 
-int datacube_t::secret_t::section_for_column(const int column) {
+int datacube_t::secret_t::bucket_for_column(int column) {
   int section=0;
   int c = column;
   for (; section<col_counts.size(); ++section) {
@@ -102,15 +98,15 @@ int datacube_t::secret_t::section_for_column(const int column) {
   return -1;
 }
 
-QList<int>& datacube_t::secret_t::cell(int row, int column) {
-  const int i = row + column*row_counts.size();
+QList<int>& datacube_t::secret_t::cell(int bucket_row, int bucket_column) {
+  const int i = bucket_row + bucket_column*row_counts.size();
   return cells[i];
 
 }
 
-int datacube_t::secret_t::section_to_column(int section) {
+int datacube_t::secret_t::bucket_to_column(int bucket_column) {
   int rv = 0;
-  for (int i=0; i<section; ++i) {
+  for (int i=0; i<bucket_column; ++i) {
     if (col_counts[i]>0) {
       ++rv;
     }
@@ -119,9 +115,9 @@ int datacube_t::secret_t::section_to_column(int section) {
 
 }
 
-int datacube_t::secret_t::section_to_row(int section) {
+int datacube_t::secret_t::bucket_to_row(int bucket_row) {
   int rv = 0;
-  for (int i=0; i<section; ++i) {
+  for (int i=0; i<bucket_row; ++i) {
     if (row_counts[i]>0) {
       ++rv;
     }
@@ -266,8 +262,8 @@ int datacube_t::row_count() const {
 
 QList< int > datacube_t::elements(int row, int column) const {
   // Note that this function should be very fast indeed.
-  const int row_section = d->section_for_row(row);
-  const int col_section = d->section_for_column(column);
+  const int row_section = d->bucket_for_row(row);
+  const int col_section = d->bucket_for_column(column);
   return d->cell(row_section, col_section);
 
 }
@@ -302,6 +298,8 @@ datacube_t::~datacube_t() {
 }
 
 void datacube_t::add(int index) {
+
+  // Computer bucket
   int row_section = d->compute_row_section_for_index(index);
   if (row_section == -1) {
     // Our datacube does not cover that container. Just ignore it.
@@ -309,18 +307,27 @@ void datacube_t::add(int index) {
   }
   int column_section = d->compute_column_section_for_index(index);
   Q_ASSERT(column_section>=0); // Every container should be in both rows and columns, or neither place.
+
+  // Check if rows/columns are added, and notify listernes as neccessary
   int row_to_add = -1;
   int column_to_add = -1;
   if(d->row_counts[row_section]++ == 0) {
-    row_to_add = d->section_to_row(row_section);;
+    row_to_add = d->bucket_to_row(row_section);;
     emit rows_about_to_be_inserted(row_to_add,1);
   }
   if(d->col_counts[column_section]++ == 0) {
-    column_to_add = d->section_to_column(column_section);
+    column_to_add = d->bucket_to_column(column_section);
     emit columns_about_to_be_inserted(column_to_add,1);
   }
+
+  // Actually add
   d->cell(row_section, column_section) << index;
-  d->reverse_index.insert(index, secret_t::cell_t(row_section, column_section));
+  d->reverse_index.insert(index, cell_t(row_section, column_section));
+
+  // Notify various listerners
+  Q_FOREACH(datacube_selection_t* selection, d->selection_models) {
+    selection->datacube_adds_element_to_bucket(row_section, column_section, index);
+  }
   if(column_to_add>=0) {
     emit columns_inserted(column_to_add,1);
   }
@@ -328,27 +335,30 @@ void datacube_t::add(int index) {
     emit rows_inserted(row_to_add,1);
   }
   if(row_to_add==-1 && column_to_add==-1) {
-    emit data_changed(d->section_to_row(row_section),d->section_to_column(column_section));
+    emit data_changed(d->bucket_to_row(row_section),d->bucket_to_column(column_section));
   }
 }
 
 void datacube_t::remove(int index) {
-  secret_t::cell_t cell = d->reverse_index.value(index);
+  cell_t cell = d->reverse_index.value(index);
   if (cell.invalid()) {
     // Our datacube does not cover that container. Just ignore it.
     return;
   }
+  Q_FOREACH(datacube_selection_t* selection, d->selection_models) {
+    selection->datacube_removes_element_from_bucket(cell.row(), cell.column(), index);
+  }
   int row_to_remove = -1;
   int column_to_remove = -1;
-  if(--d->row_counts[cell.row]==0) {
-    row_to_remove = d->section_to_row(cell.row);
+  if(--d->row_counts[cell.row()]==0) {
+    row_to_remove = d->bucket_to_row(cell.row());
     emit rows_about_to_be_removed(row_to_remove,1);
   }
-  if(--d->col_counts[cell.column]==0) {
-    column_to_remove = d->section_to_column(cell.column);
+  if(--d->col_counts[cell.column()]==0) {
+    column_to_remove = d->bucket_to_column(cell.column());
     emit columns_about_to_be_removed(column_to_remove,1);
   }
-  const bool check = d->cell(cell.row, cell.column).removeOne(index);
+  const bool check = d->cell(cell.row(), cell.column()).removeOne(index);
   Q_UNUSED(check)
   Q_ASSERT(check);
   d->reverse_index.remove(index);
@@ -359,7 +369,7 @@ void datacube_t::remove(int index) {
     emit rows_removed(row_to_remove,1);
   }
   if(row_to_remove==-1 && column_to_remove==-1) {
-    emit data_changed(d->section_to_row(cell.row),d->section_to_column(cell.column));
+    emit data_changed(d->bucket_to_row(cell.row()),d->bucket_to_column(cell.column()));
   }
 }
 
@@ -370,9 +380,9 @@ void datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
     const bool filtered_out = d->global_filter.get() && ((*d->global_filter)(d->model, element) != d->global_filter_category);
     int new_row_section = d->compute_section_for_index(Qt::Vertical, element);
     int new_column_section = d->compute_section_for_index(Qt::Horizontal, element);
-    secret_t::cell_t old_cell = d->reverse_index.value(element);
-    const bool rowchanged = old_cell.row != new_row_section;
-    const bool colchanged = old_cell.column != new_column_section;
+    cell_t old_cell = d->reverse_index.value(element);
+    const bool rowchanged = old_cell.row() != new_row_section;
+    const bool colchanged = old_cell.column() != new_column_section;
     if (rowchanged || colchanged | filtered_out) {
       remove(element);
       if (!filtered_out) {
@@ -387,12 +397,13 @@ void datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
 
 void datacube_t::insert_data(QModelIndex parent, int start, int end) {
   Q_ASSERT(!parent.isValid());
+  d->renumber_cells(start, end-start+1);
   for (int row = start; row <=end; ++row) {
     if(!d->global_filter.get() || (*d->global_filter)(d->model,row)==d->global_filter_category) {
       add(row);
     }
   }
-#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
 
@@ -406,6 +417,23 @@ void datacube_t::remove_data(QModelIndex parent, int start, int end) {
   for (int row = end; row>=start; --row) {
     remove(row);
   }
+  // Now, all the remaining elements have to be renumbered
+  d->renumber_cells(end+1, start-end-1);
+
+}
+
+void datacube_t::secret_t::renumber_cells(int start, int adjustment) {
+  reverse_index_t new_index;
+  for (cells_t::iterator it = cells.begin(), iend = cells.end(); it != iend; ++it) {
+    for (QList<int>::iterator jit = it->begin(), jend = it->end(); jit != jend; ++jit) {
+      cell_t cell = reverse_index.value(*jit);
+      if (*jit >= start) {
+        *jit += adjustment;
+      }
+      new_index.insert(*jit, cell);
+    }
+  }
+  reverse_index = new_index;
 
 }
 
@@ -473,7 +501,7 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t
           const int target_index = target_row + c*target_row_count;
           d->cells[target_index] << element;
           ++d->row_counts[target_row];
-          d->reverse_index.insert(element, secret_t::cell_t(target_row, c));
+          d->reverse_index.insert(element, cell_t(target_row, c));
         }
       }
     }
@@ -513,7 +541,7 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_filte
           const int target_column = major*target_stride + minor + (*filter).operator()(d->model, element) * cat_stride;
           const int target_index = r + target_column*d->row_counts.size();
           d->cells[target_index] << element;
-          d->reverse_index.insert(element, secret_t::cell_t(r, target_column));
+          d->reverse_index.insert(element, cell_t(r, target_column));
           ++d->col_counts[target_column];
         }
       }
@@ -568,7 +596,7 @@ void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
           cell.append(oldcell);
           count += oldcell.size();
           Q_FOREACH(int element, oldcell) {
-            d->reverse_index.insert(element, horizontal ? secret_t::cell_t(n,p) : secret_t::cell_t(p, n));
+            d->reverse_index.insert(element, horizontal ? cell_t(n,p) : cell_t(p, n));
           }
         }
       }
@@ -582,16 +610,20 @@ void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
 
 int datacube_t::section_for_element(int element, Qt::Orientation orientation) const {
   const int section = d->compute_section_for_index(orientation, element);
-  return orientation == Qt::Horizontal ? d->section_to_column(section) : d->section_to_row(section);
+  return orientation == Qt::Horizontal ? d->bucket_to_column(section) : d->bucket_to_row(section);
 }
 
 int datacube_t::section_for_element_internal(int element, Qt::Orientation orientation) const {
   if (orientation == Qt::Horizontal) {
-    return d->section_to_column(d->reverse_index.value(element).column);
+    return d->bucket_to_column(d->reverse_index.value(element).column());
   } else  {
-    return d->section_to_row(d->reverse_index.value(element).row);
+    return d->bucket_to_row(d->reverse_index.value(element).row());
   }
 
+}
+
+void datacube_t::bucket_for_element(int element, cell_t& result) const {
+  result = d->reverse_index.value(element);
 }
 
 std::tr1::shared_ptr< abstract_filter_t > datacube_t::global_filter() const {
@@ -682,6 +714,41 @@ void qdatacube::datacube_t::filter_category_added(std::tr1::shared_ptr< qdatacub
     }
   }
   emit reset(); // TODO: It is not impossible to emit the correct row/column changed instead
+}
+
+int qdatacube::datacube_t::bucket_for_column(int column) const
+{
+  return d->bucket_for_column(column);
+}
+
+int qdatacube::datacube_t::bucket_for_row(int row) const {
+  return d->bucket_for_row(row);
+}
+
+QList<int> qdatacube::datacube_t::elements_in_bucket(int row, int column) const {
+  return d->cell(row, column);
+
+}
+
+int qdatacube::datacube_t::number_of_buckets(Qt::Orientation orientation) const {
+  return orientation == Qt::Vertical ? d->row_counts.size() : d->col_counts.size();
+}
+
+void qdatacube::datacube_t::add_selection_model(qdatacube::datacube_selection_t* selection) {
+  d->selection_models << selection;
+  connect(selection, SIGNAL(destroyed(QObject*)), SLOT(remove_selection_model(QObject*)));
+}
+
+int qdatacube::datacube_t::section_for_bucket_column(int bucket_column) const {
+  return d->bucket_to_column(bucket_column);
+}
+
+int qdatacube::datacube_t::section_for_bucket_row(int bucket_row) const {
+  return d->bucket_to_row(bucket_row);
+}
+
+void qdatacube::datacube_t::remove_selection_model(QObject* selection_model) {
+  d->selection_models.removeAll(static_cast<datacube_selection_t*>(selection_model));
 }
 
 #include "datacube.moc"

@@ -19,6 +19,12 @@ class QAbstractItemModel;
 
 namespace qdatacube {
 
+class cell_t;
+
+
+class datacube_selection_t;
+
+
 class datacube_colrow_t;
 
 
@@ -136,7 +142,7 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void collapse(Qt::Orientation orientation, int headerno);
 
     /**
-     * @returns the section for
+     * @returns the section (i.e, row for Qt::Vertical and column for Qt::Horizontal) for
      * @param orientation
      * and
      * @param element
@@ -239,6 +245,7 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void slot_rows_changed(int row, int count);
     void slot_filter_category_added(int index);
     void slot_filter_category_removed(int);
+    void remove_selection_model(QObject* selection_model);
 
   private:
     void remove(int index);
@@ -247,8 +254,54 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void split_column(int headerno, std::tr1::shared_ptr< abstract_filter_t > filter);
     void filter_category_added(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, int headerno, int index, Qt::Orientation orientation);
 
+    /**
+     * @returns the number of buckets (i.e. sections including empty sections) in datacube for
+     * @param orientation
+     */
+    int number_of_buckets(Qt::Orientation orientation) const;
+
+    /**
+     * @return elements for bucket row, bucket column
+     */
+    QList<int> elements_in_bucket(int row, int column) const;
+
+    /**
+     * @return the bucket for row
+     */
+    int bucket_for_row(int row) const;
+
+    /**
+    * @return the bucket for column
+    */
+    int bucket_for_column(int column) const;
+
+    /**
+     * @return section for bucket row
+     */
+    int section_for_bucket_row(int bucket_row) const;
+
+    /**
+     * @return section for bucket row
+     */
+    int section_for_bucket_column(int bucket_column) const;
+
+    /**
+     * find cell_t with bucket for element
+     * @param element element to look for
+     * @param result the cell with the element, or an invalid cell
+     * The strange interface is to avoid exporting cell_t
+     */
+    void bucket_for_element(int element, qdatacube::cell_t& result) const;
+
+    /**
+     * Add a selection model for bucket change notification
+     */
+    void add_selection_model(datacube_selection_t* selection);
+
     class secret_t;
     QScopedPointer<secret_t> d;
+
+    friend class datacube_selection_t;
 
 };
 }
