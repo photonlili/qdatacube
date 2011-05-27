@@ -63,6 +63,9 @@ datacube_view_t::datacube_view_t(QWidget* parent):
 }
 
 void datacube_view_t::set_datacube(datacube_t* datacube) {
+  if (d->datacube) {
+    d->datacube->disconnect(this);
+  }
   d->datacube = datacube;
   delete d->selection;
   d->selection = new datacube_selection_t(datacube, this);
