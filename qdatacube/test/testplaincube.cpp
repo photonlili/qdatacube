@@ -12,6 +12,34 @@
 
 using namespace qdatacube;
 
+void testplaincube::test_empty_cube() {
+  datacube_t datacube(m_underlying_model);
+  QCOMPARE(datacube.header_count(Qt::Horizontal),0);
+  QCOMPARE(datacube.header_count(Qt::Vertical),0);
+  QCOMPARE(datacube.row_count(),1);
+  QCOMPARE(datacube.column_count(),1);
+  QCOMPARE(datacube.element_count(0,0), m_underlying_model->rowCount());
+
+  // Split and collapse it in both directions, then both at once
+  datacube.split(Qt::Horizontal, 0, sex_filter);
+  datacube.collapse(Qt::Horizontal,0);
+  datacube.split(Qt::Vertical, 0, sex_filter);
+  datacube.collapse(Qt::Vertical,0);
+  datacube.split(Qt::Horizontal, 0, kommune_filter);
+  datacube.split(Qt::Vertical, 0, sex_filter);
+  datacube.collapse(Qt::Horizontal,0);
+  datacube.collapse(Qt::Vertical,0);
+
+  // Check for survival
+  QCOMPARE(datacube.header_count(Qt::Horizontal),0);
+  QCOMPARE(datacube.header_count(Qt::Vertical),0);
+  QCOMPARE(datacube.row_count(),1);
+  QCOMPARE(datacube.column_count(),1);
+  QCOMPARE(datacube.element_count(0,0), m_underlying_model->rowCount());
+
+
+}
+
 void testplaincube::test_basics() {
   datacube_t datacube(m_underlying_model, first_name_filter, last_name_filter);
   int larsen_cat = last_name_filter->categories(m_underlying_model).indexOf("Larsen");

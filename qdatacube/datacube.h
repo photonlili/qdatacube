@@ -64,6 +64,11 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
             QObject* parent = 0);
 
     /**
+     * Construct datacube with no filters at all.
+     */
+    explicit datacube_t(const QAbstractItemModel* model, QObject* parent = 0);
+
+    /**
      * Destructor
      */
     ~datacube_t();

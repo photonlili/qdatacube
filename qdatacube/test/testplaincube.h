@@ -21,6 +21,9 @@ class testplaincube : public danishnamecube_t {
     void dotest_splittwice(Qt::Orientation direction);
 
   private Q_SLOTS:
+    void test_empty_cube();
+
+
     /**
      * Test the column filter
      */

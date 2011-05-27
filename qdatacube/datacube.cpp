@@ -26,6 +26,7 @@ class datacube_t::secret_t {
     secret_t(const QAbstractItemModel* model,
              shared_ptr<abstract_filter_t> row_filter,
              shared_ptr<abstract_filter_t> column_filter);
+    secret_t(const QAbstractItemModel* model);
     int compute_row_section_for_index(int index) {
       return compute_section_for_index(Qt::Vertical, index);
     }
@@ -125,6 +126,15 @@ int datacube_t::secret_t::bucket_to_row(int bucket_row) {
   return rv;
 
 }
+datacube_t::secret_t::secret_t(const QAbstractItemModel* model) :
+                               model(model),
+                               global_filter(),
+                               global_filter_category(-1)
+{
+  col_counts = QVector<unsigned>(1);
+  row_counts = QVector<unsigned>(1);
+  cells = QVector<QList<int> >(1);
+}
 
 datacube_t::secret_t::secret_t(const QAbstractItemModel* model,
                                shared_ptr<abstract_filter_t> row_filter,
@@ -177,10 +187,29 @@ datacube_t::datacube_t(const QAbstractItemModel* model,
   connect(row_filter, SIGNAL(category_added(int)), SLOT(slot_filter_category_added(int)));
   connect(column_filter, SIGNAL(category_removed(int)), SLOT(slot_filter_category_removed(int)));
   connect(row_filter, SIGNAL(category_removed(int)), SLOT(slot_filter_category_removed(int)));;
-#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  for (int element = 0, nelements = model->rowCount(); element < nelements; ++element) {
+    add(element);
+  }
+  #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
 }
+
+datacube_t::datacube_t(const QAbstractItemModel* model, QObject* parent)
+  : QObject(parent),
+    d(new secret_t(model))
+{
+  connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(update_data(QModelIndex,QModelIndex)));
+  connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), SLOT(remove_data(QModelIndex,int,int)));
+  connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), SLOT(insert_data(QModelIndex,int,int)));
+  for (int element = 0, nelements = model->rowCount(); element < nelements; ++element) {
+    add(element);
+  }
+  #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+  check();
+#endif
+}
+
 
 void datacube_t::set_global_filter(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, int category) {
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
