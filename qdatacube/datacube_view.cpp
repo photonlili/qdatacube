@@ -287,6 +287,8 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
       }
       QPoint header_element_pos = pos - QPoint(d->vertical_header_width + d->cell_size.width() * c, d->cell_size.height() * level);
       emit horizontal_header_context_menu(header_element_pos, level, section);
+    } else {
+      emit corner_context_menu(pos);
     }
   } else {
     if (pos.x() < d->vertical_header_width) {

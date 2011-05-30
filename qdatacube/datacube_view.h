@@ -8,7 +8,7 @@
 #ifndef DATACUBE_VIEW_H
 #define DATACUBE_VIEW_H
 
-#include <QtGui/QAbstractScrollArea>
+#include <QAbstractScrollArea>
 #include "qdatacube_export.h"
 
 namespace qdatacube {
@@ -48,6 +48,7 @@ class QDATACUBE_EXPORT datacube_view_t : public QAbstractScrollArea  {
   Q_SIGNALS:
     void vertical_header_context_menu(QPoint pos,int level,int section);
     void horizontal_header_context_menu(QPoint pos, int level, int section);
+    void corner_context_menu(QPoint pos);
     void cell_context_menu(QPoint pos, int row, int column);
   private Q_SLOTS:
     void relayout();
