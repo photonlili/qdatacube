@@ -198,8 +198,11 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
 
   // Draw cells
   QBrush highlight = palette().highlight();
-  QBrush faded_highlight = highlight;
-  faded_highlight.setStyle(Qt::CrossPattern);
+  QColor highligh_color = palette().highlight().color();
+  QColor background_color = palette().color(QPalette::Background);
+  QBrush faded_highlight = QColor((highligh_color.red() + background_color.red())/2,
+                                   (highligh_color.green() + background_color.green())/2,
+                                   (highligh_color.blue() + background_color.blue())/2);
   for (int r = verticalScrollBar()->value(), nr = d->datacube->row_count(); r < nr; ++r) {
     options.rect.moveLeft(viewport()->rect().left() + vertical_header_width);
     for (int c =horizontalScrollBar()->value(), nc = d->datacube->column_count(); c < nc; ++c) {
