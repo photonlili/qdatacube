@@ -12,6 +12,7 @@
 #include "datacube.h"
 #include "datacube_selection.h"
 #include "cell.h"
+#include <QScrollBar>
 
 namespace qdatacube {
 
@@ -24,6 +25,7 @@ class datacube_view_private_t : public QSharedData {
     int vertical_header_width;
     QSize cell_size;
     QSize datacube_size;
+    QSize visible_cells;
     QPoint mouse_press_point;
     QRect selection_area;
 
@@ -80,9 +82,24 @@ void datacube_view_t::relayout() {
   d->cell_size = QSize(fontMetrics().width("9999"), fontMetrics().lineSpacing());
   d->vertical_header_width = d->datacube->header_count(Qt::Vertical) * d->cell_size.width();
   d->horizontal_header_height = d->datacube->header_count(Qt::Horizontal) * d->cell_size.height();
+  QSize visible_size = viewport()->size();
+  // Calculate the number of rows and columns at least partly visible
+  const int rows_visible = (visible_size.height() - d->horizontal_header_height + 1) / (d->cell_size.height());
+  const int columns_visible = (visible_size.width() - d->vertical_header_width + 1) / (d->cell_size.width());
+  d->visible_cells = QSize(qMin(columns_visible, d->datacube_size.width()), qMin(rows_visible, d->datacube_size.height()));
+  // Set range of scrollbars
+  verticalScrollBar()->setRange(0, qMax(0, d->datacube_size.height() - rows_visible));
+  verticalScrollBar()->setPageStep(rows_visible);
+  horizontalScrollBar()->setRange(0, qMax(0, d->datacube_size.width() - columns_visible));
+  horizontalScrollBar()->setPageStep(columns_visible);
   viewport()->update();
 }
 
+void datacube_view_t::resizeEvent(QResizeEvent* event)
+{
+  QAbstractScrollArea::resizeEvent(event);
+  relayout();
+}
 
 datacube_view_t::~datacube_view_t() {
 
@@ -111,11 +128,26 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   painter.setPen(Qt::white);
 
   // Draw horizontal header
+  const int leftmost_column = horizontalScrollBar()->value();
+  const int rightmost_column = leftmost_column + d->visible_cells.width();
   for (int hh = 0, hh_count = d->datacube->header_count(Qt::Horizontal); hh < hh_count; ++hh) {
     header_options.rect.moveLeft(viewport()->rect().left() + vertical_header_width);
     QList<QPair<QString, int> > headers = d->datacube->headers(Qt::Horizontal, hh);
-    for (int header_index = 0; header_index < headers.size(); ++header_index) {
-      header_options.rect.setSize(QSize(cell_size.width()*headers[header_index].second, cell_size.height()));
+    int current_cell_equivalent = 0;
+    for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= rightmost_column; ++header_index) {
+      int header_span = headers[header_index].second;
+      current_cell_equivalent += header_span;
+      if (current_cell_equivalent < leftmost_column) {
+        continue;
+      }
+      if (current_cell_equivalent > rightmost_column) {
+        header_span -= (current_cell_equivalent - rightmost_column - 1);
+      }
+      if (current_cell_equivalent - header_span < leftmost_column) {
+        // Force header cell to available width, for maximum readability
+        header_span = (current_cell_equivalent - leftmost_column);
+      }
+      header_options.rect.setSize(QSize(cell_size.width()*header_span, cell_size.height()));
       painter.setPen(Qt::black);
       painter.drawRect(header_options.rect);
       painter.setPen(Qt::white);
@@ -128,11 +160,26 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   options.rect.moveTop(header_options.rect.top());
 
   // Draw vertical header
+  const int topmost_column = verticalScrollBar()->value();
+  const int bottommost_column = topmost_column + d->visible_cells.height();
   for (int vh = 0, vh_count = d->datacube->header_count(Qt::Vertical); vh < vh_count; ++vh) {
     header_options.rect.moveTop(options.rect.top());
     QList<QPair<QString, int> > headers = d->datacube->headers(Qt::Vertical, vh);
-    for (int header_index = 0; header_index < headers.size(); ++header_index) {
-      header_options.rect.setSize(QSize(cell_size.width(), cell_size.height()*headers[header_index].second));
+    int current_cell_equivalent = 0;
+    for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= bottommost_column; ++header_index) {
+      int header_span = headers[header_index].second;
+      current_cell_equivalent += header_span;
+      if (current_cell_equivalent < topmost_column) {
+        continue; // Outside viewport
+      }
+      if (current_cell_equivalent - header_span < topmost_column) {
+        // Force header cell to available width, for maximum readability
+        header_span = (current_cell_equivalent - topmost_column);
+      }
+      if (current_cell_equivalent > bottommost_column) {
+        header_span -= (current_cell_equivalent - bottommost_column - 1);
+      }
+      header_options.rect.setSize(QSize(cell_size.width(), cell_size.height()*header_span));
       painter.setPen(Qt::black);
       painter.drawRect(header_options.rect);
       painter.setPen(Qt::white);
@@ -149,9 +196,9 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   QBrush highlight = palette().highlight();
   QBrush faded_highlight = highlight;
   faded_highlight.setStyle(Qt::CrossPattern);
-  for (int r = 0, nr = d->datacube->row_count(); r < nr; ++r) {
+  for (int r = verticalScrollBar()->value(), nr = d->datacube->row_count(); r < nr; ++r) {
     options.rect.moveLeft(viewport()->rect().left() + vertical_header_width);
-    for (int c = 0, nc = d->datacube->column_count(); c < nc; ++c) {
+    for (int c =horizontalScrollBar()->value(), nc = d->datacube->column_count(); c < nc; ++c) {
       datacube_selection_t::selection_status_t selection_status = d->selection->selection_status(r, c);
       bool highlighted = false;
       switch (selection_status) {
