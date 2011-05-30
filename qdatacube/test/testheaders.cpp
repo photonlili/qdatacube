@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
   app.exec();
 }
 
-void testheaders::slot_horizontal_context_menu(QPoint pos, int headerno, int category) {
+void testheaders::slot_horizontal_context_menu(QPoint /*pos*/, int headerno, int /*category*/) {
   QAction* action = QMenu::exec(m_unused_filter_actions, QCursor::pos());
   if (action) {
     if (action != m_collapse_action) {
