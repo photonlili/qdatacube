@@ -659,6 +659,11 @@ std::tr1::shared_ptr< abstract_filter_t > datacube_t::global_filter() const {
   return d->global_filter;
 }
 
+int datacube_t::global_filter_category() const {
+  return d->global_filter_category;
+
+}
+
 }
 
 const QAbstractItemModel* qdatacube::datacube_t::underlying_model() const {

@@ -13,6 +13,7 @@
 #include "datacube_selection.h"
 #include "cell.h"
 #include <QScrollBar>
+#include "abstract_filter.h"
 
 namespace qdatacube {
 
@@ -130,6 +131,17 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   boldfont.setBold(true);
   painter.setFont(boldfont);
   painter.setPen(Qt::white);
+
+  // Draw global filter corner, if applicable
+  QRect cornerRect(options.rect.topLeft(), QSize(d->vertical_header_width,d->horizontal_header_height));
+  painter.setPen(Qt::black);
+  painter.drawRect(cornerRect);
+  painter.setPen(Qt::white);
+  if (std::tr1::shared_ptr<abstract_filter_t> global_filter = datacube()->global_filter()) {
+    QString global_category = global_filter->categories(datacube()->underlying_model()).at(datacube()->global_filter_category());
+    painter.drawText(cornerRect.adjusted(1, 1, -2, -2), Qt::AlignCenter, global_category);
+  }
+
 
   // Draw horizontal header
   const int leftmost_column = horizontalScrollBar()->value();

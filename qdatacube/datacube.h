@@ -166,6 +166,11 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     std::tr1::shared_ptr<abstract_filter_t> global_filter() const;
 
     /**
+     * @return global filter category (only valid if a global filter is active)
+     */
+    int global_filter_category() const;
+
+    /**
      * @return the underlying model
      */
     const QAbstractItemModel* underlying_model() const;
