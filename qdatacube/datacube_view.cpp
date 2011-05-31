@@ -369,6 +369,10 @@ datacube_selection_t* datacube_view_t::datacube_selection() const
   return d->selection;
 }
 
+QRect datacube_view_t::corner() const {
+  return QRect(0,0,d->vertical_header_width, d->horizontal_header_height);
+}
+
 } // end of namespace
 
 #include "datacube_view.moc"

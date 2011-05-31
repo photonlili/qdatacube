@@ -45,6 +45,11 @@ class QDATACUBE_EXPORT datacube_view_t : public QAbstractScrollArea  {
     virtual void mouseReleaseEvent(QMouseEvent* event );
     virtual void mouseMoveEvent(QMouseEvent* event);
     virtual void resizeEvent(QResizeEvent* event);
+
+    /**
+     * @return rectangle describing the corner area
+     */
+    QRect corner() const;
   Q_SIGNALS:
     void vertical_header_context_menu(QPoint pos,int level,int section);
     void horizontal_header_context_menu(QPoint pos, int level, int section);
