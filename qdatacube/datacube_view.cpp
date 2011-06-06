@@ -125,18 +125,13 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   options.rect.setSize(cell_size);
   int vertical_header_width = d->vertical_header_width;
   QStyleOption header_options(options);
-  painter.setBrush(Qt::green);
-  QFont normalfont = painter.font();
-  QFont boldfont = painter.font();
-  boldfont.setBold(true);
-  painter.setFont(boldfont);
-  painter.setPen(Qt::white);
+  painter.setBrush(palette().button());
+  painter.setPen(palette().color(QPalette::WindowText));
 
   // Draw global filter corner, if applicable
   QRect cornerRect(options.rect.topLeft(), QSize(d->vertical_header_width,d->horizontal_header_height));
-  painter.setPen(Qt::black);
   painter.drawRect(cornerRect);
-  painter.setPen(Qt::white);
+  painter.setPen(palette().buttonText().color());
   if (std::tr1::shared_ptr<abstract_filter_t> global_filter = datacube()->global_filter()) {
     QString global_category = global_filter->categories(datacube()->underlying_model()).at(datacube()->global_filter_category());
     painter.drawText(cornerRect.adjusted(1, 1, -2, -2), Qt::AlignCenter, global_category);
@@ -164,9 +159,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
         header_span = (current_cell_equivalent - leftmost_column);
       }
       header_options.rect.setSize(QSize(cell_size.width()*header_span, cell_size.height()));
-      painter.setPen(Qt::black);
       painter.drawRect(header_options.rect);
-      painter.setPen(Qt::white);
       painter.drawText(header_options.rect.adjusted(1, 1, -2, -2), Qt::AlignCenter, headers[header_index].first);
       header_options.rect.translate(header_options.rect.width(), 0);
     }
@@ -196,9 +189,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
         header_span -= (current_cell_equivalent - bottommost_column - 1);
       }
       header_options.rect.setSize(QSize(cell_size.width(), cell_size.height()*header_span));
-      painter.setPen(Qt::black);
       painter.drawRect(header_options.rect);
-      painter.setPen(Qt::white);
       painter.drawText(header_options.rect.adjusted(1, 1, -2, -2), Qt::AlignCenter, headers[header_index].first);
       header_options.rect.translate(0, header_options.rect.height());
     }
@@ -206,12 +197,11 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   }
   painter.setBrush(QBrush());
   painter.setPen(QPen());
-  painter.setFont(normalfont);
 
   // Draw cells
   QBrush highlight = palette().highlight();
-  QColor highligh_color = palette().highlight().color();
-  QColor background_color = palette().color(QPalette::Background);
+  QColor highligh_color = palette().color(QPalette::Highlight);
+  QColor background_color = palette().color(QPalette::Window);
   QBrush faded_highlight = QColor((highligh_color.red() + background_color.red())/2,
                                    (highligh_color.green() + background_color.green())/2,
                                    (highligh_color.blue() + background_color.blue())/2);
