@@ -207,7 +207,9 @@ void datacube_selection_t::reset() {
   d->ncolumns = d->datacube->number_of_buckets(Qt::Horizontal);
   d->cells.resize(d->ncolumns*d->nrows);
   std::fill(d->cells.begin(), d->cells.end(), 0);
+  QList<int> old_selected_elements = d->selected_elements.toList();
   d->selected_elements.clear();
+  add_elements(old_selected_elements);
 
 }
 
@@ -290,6 +292,7 @@ void datacube_selection_t::synchronize_with(QItemSelectionModel* synchronized_se
     connect(synchronized_selection_model,
           SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
           SLOT(update_selection(QItemSelection,QItemSelection)));
+    update_selection(synchronized_selection_model->selection(), QItemSelection());
   }
 
 }
