@@ -22,8 +22,8 @@ class QDATACUBE_EXPORT column_filter_t : public abstract_filter_t {
   public:
     column_filter_t(int section);
     ~column_filter_t();
-    virtual const QList< QString >& categories(const QAbstractItemModel* model) const;
-    virtual int operator()(const QAbstractItemModel* model, int row) const;
+    virtual const QList< QString >& categories(const QAbstractItemModel* model);
+    virtual int operator()(const QAbstractItemModel* model, int row);
     virtual QString name(const QAbstractItemModel* model) const;
     /**
      * Return section

@@ -19,6 +19,8 @@ namespace qdatacube {
 
 /**
  * container filter for recaps interface
+ * Note that these filters are currently designed to be independent of the underlying model
+ * Note that category_removed is unsupported as yet.
  */
 class QDATACUBE_EXPORT abstract_filter_t : public QObject {
   Q_OBJECT
@@ -29,12 +31,12 @@ class QDATACUBE_EXPORT abstract_filter_t : public QObject {
      * @returns the category number for container, 0 <= return value < categories().size()
      *
      */
-    virtual int operator()(const QAbstractItemModel* model, int row) const = 0;
+    virtual int operator()(const QAbstractItemModel* model, int row) = 0;
 
     /**
      * @returns list of categories for this filter
      */
-    virtual const QList<QString>& categories(const QAbstractItemModel* model) const = 0;
+    virtual const QList<QString>& categories(const QAbstractItemModel* model) = 0;
 
     /**
      * @returns an name for this filter. Default implementation returns "unnamed";
@@ -52,6 +54,7 @@ class QDATACUBE_EXPORT abstract_filter_t : public QObject {
 
     /**
      * Implementors must emit this signal when a category has been removed
+     * NOTE: This is unsupported currently.
      * @param index index of new category
      */
     void category_removed(int index) const;

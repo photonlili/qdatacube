@@ -29,7 +29,7 @@ void column_filter_t::set_trim_new_categories_from_right(int max_chars) {
   d->max_chars = max_chars;
 }
 
-const QList< QString >& column_filter_t::categories(const QAbstractItemModel* model) const {
+const QList< QString >& column_filter_t::categories(const QAbstractItemModel* model) {
   Q_ASSERT(model);
   Q_ASSERT(d->section < model->columnCount());
   if (d->categories.isEmpty()) {
@@ -57,7 +57,7 @@ const QList< QString >& column_filter_t::categories(const QAbstractItemModel* mo
 column_filter_t::column_filter_t(int section): abstract_filter_t(), d(new secret_t(section)) {
 }
 
-int column_filter_t::operator()(const QAbstractItemModel* model, int row) const {
+int column_filter_t::operator()(const QAbstractItemModel* model, int row) {
   Q_ASSERT(model);
   Q_ASSERT(model->rowCount() > row);
   if (d->categories.isEmpty()) {
