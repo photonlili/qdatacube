@@ -133,7 +133,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   painter.drawRect(cornerRect);
   painter.setPen(palette().buttonText().color());
   if (std::tr1::shared_ptr<abstract_filter_t> global_filter = datacube()->global_filter()) {
-    QString global_category = global_filter->categories(datacube()->underlying_model()).at(datacube()->global_filter_category());
+    QString global_category = global_filter->categories(datacube()->underlying_model()).value(datacube()->global_filter_category());
     painter.drawText(cornerRect.adjusted(1, 1, -2, -2), Qt::AlignCenter, global_category);
   }
 
