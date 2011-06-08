@@ -85,8 +85,8 @@ void datacube_view_t::set_datacube(datacube_t* datacube) {
 void datacube_view_t::relayout() {
   d->datacube_size = QSize(d->datacube->column_count(), d->datacube->row_count());
   d->cell_size = QSize(fontMetrics().width("9999"), fontMetrics().lineSpacing());
-  d->vertical_header_width = d->datacube->header_count(Qt::Vertical) * d->cell_size.width();
-  d->horizontal_header_height = d->datacube->header_count(Qt::Horizontal) * d->cell_size.height();
+  d->vertical_header_width = qMax(1, d->datacube->header_count(Qt::Vertical)) * d->cell_size.width();
+  d->horizontal_header_height = qMax(1, d->datacube->header_count(Qt::Horizontal)) * d->cell_size.height();
   QSize visible_size = viewport()->size();
   // Calculate the number of rows and columns at least partly visible
   const int rows_visible = (visible_size.height() - d->horizontal_header_height + 1) / (d->cell_size.height());
@@ -124,6 +124,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   QSize cell_size = d->cell_size;
   options.rect.setSize(cell_size);
   int vertical_header_width = d->vertical_header_width;
+  int horizontal_header_height = d->horizontal_header_height;
   QStyleOption header_options(options);
   painter.setBrush(palette().button());
   painter.setPen(palette().color(QPalette::WindowText));
@@ -141,7 +142,8 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   // Draw horizontal header
   const int leftmost_column = horizontalScrollBar()->value();
   const int rightmost_column = leftmost_column + d->visible_cells.width();
-  for (int hh = 0, hh_count = d->datacube->header_count(Qt::Horizontal); hh < hh_count; ++hh) {
+  const int horizontal_header_count = d->datacube->header_count(Qt::Horizontal);
+  for (int hh = 0; hh < horizontal_header_count; ++hh) {
     header_options.rect.moveLeft(viewport()->rect().left() + vertical_header_width);
     QList<QPair<QString, int> > headers = d->datacube->headers(Qt::Horizontal, hh);
     int current_cell_equivalent = 0;
@@ -165,13 +167,19 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
     }
     header_options.rect.translate(0, cell_size.height());
   }
+  if (horizontal_header_count == 0) {
+    header_options.rect.moveLeft(viewport()->rect().left() + vertical_header_width);
+    header_options.rect.setSize(QSize(cell_size.width(), cell_size.height()));
+    painter.drawRect(header_options.rect);
+  }
   header_options.rect.moveLeft(viewport()->rect().left());
-  options.rect.moveTop(header_options.rect.top());
+  options.rect.moveTop(viewport()->rect().top() + horizontal_header_height);
 
   // Draw vertical header
   const int topmost_column = verticalScrollBar()->value();
   const int bottommost_column = topmost_column + d->visible_cells.height();
-  for (int vh = 0, vh_count = d->datacube->header_count(Qt::Vertical); vh < vh_count; ++vh) {
+  const int vertical_header_count = d->datacube->header_count(Qt::Vertical);
+  for (int vh = 0; vh < vertical_header_count; ++vh) {
     header_options.rect.moveTop(options.rect.top());
     QList<QPair<QString, int> > headers = d->datacube->headers(Qt::Vertical, vh);
     int current_cell_equivalent = 0;
@@ -195,6 +203,12 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
     }
     header_options.rect.translate(cell_size.width(), 0);
   }
+  if (vertical_header_count == 0) {
+    header_options.rect.moveTop(viewport()->rect().top() + horizontal_header_height);
+    header_options.rect.setSize(QSize(cell_size.width(), cell_size.height()));
+    painter.drawRect(header_options.rect);
+  }
+
   painter.setBrush(QBrush());
   painter.setPen(QPen());
 
@@ -205,6 +219,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   QBrush faded_highlight = QColor((highligh_color.red() + background_color.red())/2,
                                    (highligh_color.green() + background_color.green())/2,
                                    (highligh_color.blue() + background_color.blue())/2);
+  options.rect.moveTop(viewport()->rect().top() + horizontal_header_height);
   for (int r = verticalScrollBar()->value(), nr = d->datacube->row_count(); r < nr; ++r) {
     options.rect.moveLeft(viewport()->rect().left() + vertical_header_width);
     for (int c =horizontalScrollBar()->value(), nc = d->datacube->column_count(); c < nc; ++c) {
@@ -267,12 +282,14 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
       typedef QPair<QString, int>  headers_t;
       int c = 0;
       int section = 0;
-      Q_FOREACH(headers_t header, d->datacube->headers(Qt::Horizontal, level)) {
-        if (c + header.second <= column) {
-          ++section;
-          c += header.second;
-        } else {
-          break;
+      if (level>=0) {
+        Q_FOREACH(headers_t header, d->datacube->headers(Qt::Horizontal, level)) {
+          if (c + header.second <= column) {
+            ++section;
+            c += header.second;
+          } else {
+            break;
+          }
         }
       }
       c -= d->cell_size.width() + horizontalScrollBar()->value(); // Account for scrolled off headers
@@ -283,16 +300,18 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
     }
   } else {
     if (pos.x() < d->vertical_header_width) {
-      int level = d->datacube->header_count(Qt::Vertical) - (d->vertical_header_width - pos.x()) / d->cell_size.width() - 1;
       typedef QPair<QString, int>  headers_t;
       int r = 0;
       int section = 0;
-      Q_FOREACH(headers_t header, d->datacube->headers(Qt::Vertical, level)) {
-        if (r + header.second <= row) {
-          ++section;
-          r += header.second;
-        } else {
-          break;
+      int level = d->datacube->header_count(Qt::Vertical) - (d->vertical_header_width - pos.x()) / d->cell_size.width() - 1;
+      if (level>=0) {
+        Q_FOREACH(headers_t header, d->datacube->headers(Qt::Vertical, level)) {
+          if (r + header.second <= row) {
+            ++section;
+            r += header.second;
+          } else {
+            break;
+          }
         }
       }
       r -= d->cell_size.width() + verticalScrollBar()->value(); // Account for scrolled off headers

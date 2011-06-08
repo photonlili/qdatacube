@@ -201,7 +201,11 @@ int main(int argc, char* argv[]) {
 }
 
 void testheaders::slot_horizontal_context_menu(QPoint /*pos*/, int headerno, int /*category*/) {
-  QAction* action = QMenu::exec(m_unused_filter_actions, QCursor::pos());
+  QList<QAction*> actions = m_unused_filter_actions;
+  if (headerno<0) {
+    actions.removeAll(m_collapse_action);
+  }
+  QAction* action = QMenu::exec(actions, QCursor::pos());
   if (action) {
     if (action != m_collapse_action) {
       abstract_filter_t* raw_pointer = static_cast<abstract_filter_t*>(action->data().value<void*>());
@@ -219,7 +223,7 @@ void testheaders::slot_horizontal_context_menu(QPoint /*pos*/, int headerno, int
       } else if (kommune_filter.get() == raw_pointer) {
         filter = kommune_filter;
       }
-      m_datacube->split(Qt::Horizontal, headerno, filter);
+      m_datacube->split(Qt::Horizontal, qMax(headerno,0), filter);
       m_unused_filter_actions.removeAll(action);
       m_col_used_filter_actions.insert(headerno, action);
     } else {
@@ -232,7 +236,11 @@ void testheaders::slot_horizontal_context_menu(QPoint /*pos*/, int headerno, int
 }
 
 void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno, int /*category*/) {
-  QAction* action = QMenu::exec(m_unused_filter_actions, QCursor::pos());
+  QList<QAction*> actions = m_unused_filter_actions;
+  if (headerno<0) {
+    actions.removeAll(m_collapse_action);
+  }
+  QAction* action = QMenu::exec(actions, QCursor::pos());
   if (action) {
     if (action != m_collapse_action) {
       abstract_filter_t* raw_pointer = static_cast<abstract_filter_t*>(action->data().value<void*>());

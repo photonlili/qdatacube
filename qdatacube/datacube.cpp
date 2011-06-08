@@ -785,4 +785,15 @@ void qdatacube::datacube_t::remove_selection_model(QObject* selection_model) {
   d->selection_models.removeAll(static_cast<datacube_selection_t*>(selection_model));
 }
 
+int qdatacube::datacube_t::category_index(Qt::Orientation orientation, int header_index, int section) const {
+  const int bucket = (orientation == Qt::Vertical) ? d->bucket_for_row(section) : d->bucket_for_column(section);
+  int sub_header_size = 1;
+  const secret_t::filters_t& filters = (orientation == Qt::Vertical) ? d->row_filters : d->col_filters;
+  for (int i=header_index+1; i<filters.size(); ++i) {
+    sub_header_size *= filters[i]->categories(d->model).size();
+  }
+  const int nfilter_categories = filters[header_index]->categories(d->model).size();
+  return bucket % (nfilter_categories*sub_header_size)/sub_header_size;
+}
+
 #include "datacube.moc"
