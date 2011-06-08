@@ -34,7 +34,7 @@ class datacube_view_private_t : public QSharedData {
      *  Return cell corresponding to position. Note that position is zero-based, and if no cells at position an
      * invalid cell_t is returned (i.e., cell_for_position(outside_pos).invalid() == true );
      **/
-    cell_t cell_for_position(QPoint pos) const;
+    cell_t cell_for_position(QPoint pos, int vertical_scrollbar_value, int horizontal_scrollbar_value) const;
 };
 
 datacube_view_private_t::datacube_view_private_t()
@@ -47,11 +47,11 @@ datacube_view_private_t::datacube_view_private_t()
 
 }
 
-cell_t datacube_view_private_t::cell_for_position(QPoint pos) const {
+cell_t datacube_view_private_t::cell_for_position(QPoint pos, int vertical_scrollbar_value, int horizontal_scrollbar_value) const {
   const int column = (pos.x() - vertical_header_width) / cell_size.width();
   const int row = (pos.y() - horizontal_header_height) / cell_size.height();
   if (0 <= row && 0 <= column && row < datacube_size.height() && column < datacube_size.width()) {
-    return cell_t(row, column);
+    return cell_t(row + vertical_scrollbar_value, column + horizontal_scrollbar_value);
   } else {
     return cell_t();
   }
@@ -258,8 +258,8 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
     return;
   }
   event->accept();
-  int column = (pos.x() - d->vertical_header_width) / d->cell_size.width();
-  int row = (pos.y() - d->horizontal_header_height) / d->cell_size.height();
+  int column = (pos.x() - d->vertical_header_width) / d->cell_size.width() + horizontalScrollBar()->value();
+  int row = (pos.y() - d->horizontal_header_height) / d->cell_size.height() + verticalScrollBar()->value();
   if (pos.y() < d->horizontal_header_height) {
     if (pos.x() >= d->vertical_header_width) {
       // Hit horizontal headers
@@ -275,6 +275,7 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
           break;
         }
       }
+      c -= d->cell_size.width() + horizontalScrollBar()->value(); // Account for scrolled off headers
       QPoint header_element_pos = pos - QPoint(d->vertical_header_width + d->cell_size.width() * c, d->cell_size.height() * level);
       emit horizontal_header_context_menu(header_element_pos, level, section);
     } else {
@@ -294,11 +295,13 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
           break;
         }
       }
+      r -= d->cell_size.width() + verticalScrollBar()->value(); // Account for scrolled off headers
       QPoint header_element_pos = pos - QPoint(d->cell_size.width() * level, d->horizontal_header_height + d->cell_size.height() * r);
       emit vertical_header_context_menu(header_element_pos, level, section);
     } else {
       // cells
-      QPoint cell_pos = pos - QPoint(d->vertical_header_width + column * d->cell_size.width(), d->horizontal_header_height + row * d->cell_size.height());
+      QPoint cell_pos = pos - QPoint(d->vertical_header_width + ( column - horizontalScrollBar()->value() ) * d->cell_size.width(),
+                                     d->horizontal_header_height + ( row - verticalScrollBar()->value() ) * d->cell_size.height());
       cell_context_menu(cell_pos, row, column);
     }
   }
@@ -317,7 +320,7 @@ void datacube_view_t::mousePressEvent(QMouseEvent* event) {
   }
   QPoint pos = event->pos();
   d->mouse_press_point = pos;
-  cell_t press = d->cell_for_position(pos);
+  cell_t press = d->cell_for_position(pos, verticalScrollBar()->value(), horizontalScrollBar()->value());
   if (!(event->modifiers() & Qt::CTRL)) {
     d->selection->clear();
   }
@@ -328,8 +331,8 @@ void datacube_view_t::mousePressEvent(QMouseEvent* event) {
 
 void datacube_view_t::mouseMoveEvent(QMouseEvent* event) {
   QAbstractScrollArea::mouseMoveEvent(event);
-  cell_t press = d->cell_for_position(d->mouse_press_point);
-  cell_t current = d->cell_for_position(event->pos());
+  cell_t press = d->cell_for_position(d->mouse_press_point, verticalScrollBar()->value(), horizontalScrollBar()->value());
+  cell_t current = d->cell_for_position(event->pos(),verticalScrollBar()->value(), horizontalScrollBar()->value());
   QRect new_selection_area;
   if (!press.invalid() && !current.invalid()) {
     new_selection_area = QRect(qMin(press.row(), current.row()), qMin(press.column(), current.column()), qAbs(press.row() - current.row()) + 1, qAbs(press.column() - current.column()) + 1);

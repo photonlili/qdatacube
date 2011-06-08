@@ -109,6 +109,11 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     QList<int> elements(int row, int column) const;
 
     /**
+     * @returns the category index
+     */
+    int category_index(Qt::Orientation orientation, int header_index, int section) const;
+
+    /**
      * Set global filter. Elements in "category" are included, the rest are excluded
      */
     void set_global_filter(std::tr1::shared_ptr<abstract_filter_t> filter, int category);
