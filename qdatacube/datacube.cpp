@@ -215,6 +215,9 @@ void datacube_t::set_global_filter(std::tr1::shared_ptr< qdatacube::abstract_fil
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
+  if (d->global_filter) {
+    d->global_filter->disconnect(this);
+  }
   for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
     const bool was_included = d->global_filter.get() ? (*d->global_filter)(d->model, row) == d->global_filter_category : true;
     const bool to_be_included = filter.get() ? (*filter)(d->model, row) == category : true;
@@ -226,6 +229,10 @@ void datacube_t::set_global_filter(std::tr1::shared_ptr< qdatacube::abstract_fil
   }
   d->global_filter = filter;
   d->global_filter_category = category;
+  if (d->global_filter) {
+    connect(d->global_filter.get(), SIGNAL(category_added(int)), SLOT(slot_filter_category_added(int)));
+    connect(d->global_filter.get(), SIGNAL(category_removed(int)), SLOT(slot_filter_category_removed(int)));
+  }
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
@@ -704,6 +711,11 @@ void qdatacube::datacube_t::slot_filter_category_added(int index) {
         filter_category_added(f, headerno, index, Qt::Horizontal);
       }
       ++headerno;
+    }
+    if (d->global_filter.get() == filter) {
+      if (index <= d->global_filter_category) {
+        d->global_filter_category++;
+      }
     }
   }
 }
