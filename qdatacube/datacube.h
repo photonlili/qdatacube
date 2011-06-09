@@ -114,20 +114,30 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     int category_index(Qt::Orientation orientation, int header_index, int section) const;
 
     /**
-     * Set global filter. Elements in "category" are included, the rest are excluded
+     * Add global filter. Elements in "category" are included, the rest are excluded
      */
-    void set_global_filter(std::tr1::shared_ptr<abstract_filter_t> filter, int category);
+    void add_global_filter(std::tr1::shared_ptr<abstract_filter_t> filter, int category);
 
     /**
-     * Set global filter. Convenience overload. Filter is claimed by this datacube and will be deleted at some point
-     * equivalent to set_global_filter(std::tr1::shared_ptr<abstract_filter_t*>(filter), category);
+     * Add global filter. Convenience overload. Filter is claimed by this datacube and will be deleted at some point
+     * equivalent to add_global_filter(std::tr1::shared_ptr<abstract_filter_t*>(filter), category);
      */
-    void set_global_filter(abstract_filter_t* filter, int category);
+    void add_global_filter(abstract_filter_t* filter, int category);
 
     /**
-     * Remove global filter.
+     * Remove all global filters
      */
     void reset_global_filter();
+
+    /**
+     * Remove global filter from list
+     */
+    void remove_global_filter(std::tr1::shared_ptr<abstract_filter_t> filter);
+
+    /**
+     * Remove global filter from list
+     */
+    bool remove_global_filter(qdatacube::abstract_filter_t* filter);
 
     /**
      * Split header with filter.
@@ -165,15 +175,23 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      */
     int section_for_element_internal(int element, Qt::Orientation orientation) const;
 
-    /**
-     * @return pointer to global filter
-     */
-    std::tr1::shared_ptr<abstract_filter_t> global_filter() const;
+    typedef QList<QPair< std::tr1::shared_ptr<abstract_filter_t>, int > > global_filters_t;
+    typedef QList<std::tr1::shared_ptr<abstract_filter_t> > filters_t;
 
     /**
-     * @return global filter category (only valid if a global filter is active)
+     * @return Return all global filters in effect with their categories
      */
-    int global_filter_category() const;
+    global_filters_t global_filters() const;
+
+    /**
+     * @return list of column filters, in order
+     */
+    filters_t column_filters() const;
+
+    /**
+     * @return list of row filters, in order
+     */
+    filters_t row_filters() const;
 
     /**
      * @return the underlying model
@@ -312,6 +330,11 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * Add a selection model for bucket change notification
      */
     void add_selection_model(datacube_selection_t* selection);
+
+    /**
+     * @returns true if included by the current set of global filters
+     */
+    bool filtered_in(int element) const;
 
     class secret_t;
     QScopedPointer<secret_t> d;

@@ -69,7 +69,7 @@ void testheaders::slot_global_filter_button_pressed() {
   } else {
     int section = s->property("section").toInt();
     int categoryno = s->property("categoryno").toInt();
-    m_datacube->set_global_filter(new column_filter_t(section), categoryno);
+    m_datacube->add_global_filter(new column_filter_t(section), categoryno);
   }
 }
 
@@ -147,7 +147,8 @@ void testheaders::slot_set_data() {
 void testheaders::slot_set_filter() {
   static int count = 0;
   std::tr1::shared_ptr<abstract_filter_t> filter(new column_filter_t(SEX));
-  m_datacube->set_global_filter(filter, (count++%2));
+  m_datacube->reset_global_filter();
+  m_datacube->add_global_filter(filter, (count++%2));
   QTimer::singleShot(2000, this, SLOT(slot_set_filter()));
 }
 

@@ -303,7 +303,7 @@ void testplaincube::test_global_filter() {
   QVERIFY(fourty_cat != -1);
 
   // Set age filter to include 40-years old only (Expect one result, "Einar Madsen"
-  datacube.set_global_filter(age_filter, fourty_cat);
+  datacube.add_global_filter(age_filter, fourty_cat);
   QCOMPARE(datacube.row_count(),1);
   QCOMPARE(datacube.column_count(),1);
   QList<int> rows = datacube.elements(0,0);
@@ -313,7 +313,8 @@ void testplaincube::test_global_filter() {
   QCOMPARE(m_underlying_model->data(m_underlying_model->index(row, LAST_NAME)).toString(), QString::fromLocal8Bit("Madsen"));
   // Set age filter to include 41-years old only (Expect one result, "Rigmor Jensen", weighting 76
   int fourtyone_cat = age_filter->categories(m_underlying_model).indexOf("41");
-  datacube.set_global_filter(age_filter, fourtyone_cat);
+  datacube.reset_global_filter();
+  datacube.add_global_filter(age_filter, fourtyone_cat);
   QCOMPARE(datacube.row_count(),1);
   QCOMPARE(datacube.column_count(),1);
   rows = datacube.elements(0,0);
@@ -324,7 +325,8 @@ void testplaincube::test_global_filter() {
   QCOMPARE(m_underlying_model->data(m_underlying_model->index(row, WEIGHT)).toString(), QString::fromLocal8Bit("76"));
   // Get all with that weight (besides Rigmor Jensen, this includes Lulu Petersen)
   int seventysix = weight_filter->categories(m_underlying_model).indexOf("76");
-  datacube.set_global_filter(weight_filter, seventysix);
+  datacube.remove_global_filter(age_filter);
+  datacube.add_global_filter(weight_filter, seventysix);
   QCOMPARE(datacube.row_count(),2);
   QCOMPARE(datacube.column_count(),2);
   rows = datacube.elements(1,0);

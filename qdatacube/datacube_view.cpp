@@ -133,8 +133,8 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   QRect cornerRect(options.rect.topLeft(), QSize(d->vertical_header_width,d->horizontal_header_height));
   painter.drawRect(cornerRect);
   painter.setPen(palette().buttonText().color());
-  if (std::tr1::shared_ptr<abstract_filter_t> global_filter = datacube()->global_filter()) {
-    QString global_category = global_filter->categories(datacube()->underlying_model()).value(datacube()->global_filter_category());
+  if (std::tr1::shared_ptr<abstract_filter_t> global_filter = datacube()->global_filters().value(0).first) {
+    QString global_category = global_filter->categories(datacube()->underlying_model()).value(datacube()->global_filters().value(0).second);
     painter.drawText(cornerRect.adjusted(1, 1, -2, -2), Qt::AlignCenter, global_category);
   }
 

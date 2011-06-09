@@ -52,10 +52,9 @@ class datacube_t::secret_t {
     QVector<unsigned> col_counts;
     typedef QVector<QList<int> > cells_t;
     cells_t cells;
-    std::tr1::shared_ptr<abstract_filter_t> global_filter;
+    global_filters_t global_filters;
     typedef QHash<int, cell_t> reverse_index_t;
     reverse_index_t reverse_index;
-    int global_filter_category;
     QList<datacube_selection_t*> selection_models;
 };
 
@@ -128,8 +127,7 @@ int datacube_t::secret_t::bucket_to_row(int bucket_row) {
 }
 datacube_t::secret_t::secret_t(const QAbstractItemModel* model) :
                                model(model),
-                               global_filter(),
-                               global_filter_category(-1)
+                               global_filters()
 {
   col_counts = QVector<unsigned>(1);
   row_counts = QVector<unsigned>(1);
@@ -140,8 +138,7 @@ datacube_t::secret_t::secret_t(const QAbstractItemModel* model,
                                shared_ptr<abstract_filter_t> row_filter,
                                shared_ptr<abstract_filter_t> column_filter) :
     model(model),
-    global_filter(),
-    global_filter_category(-1)
+    global_filters()
 {
   col_filters << column_filter;
   row_filters << row_filter;
@@ -211,31 +208,48 @@ datacube_t::datacube_t(const QAbstractItemModel* model, QObject* parent)
 }
 
 
-void datacube_t::set_global_filter(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, int category) {
+void datacube_t::add_global_filter(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, int category) {
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
-  if (d->global_filter) {
-    d->global_filter->disconnect(this);
-  }
   for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
-    const bool was_included = d->global_filter.get() ? (*d->global_filter)(d->model, row) == d->global_filter_category : true;
-    const bool to_be_included = filter.get() ? (*filter)(d->model, row) == category : true;
-    if (!was_included && to_be_included) {
-      add(row);
-    } else if (was_included && !to_be_included) {
+    const bool was_included = d->reverse_index.contains(row);
+    const bool included = filter.get() ? (*filter)(d->model, row) == category : true;
+    if (was_included && !included) {
       remove(row);
     }
   }
-  d->global_filter = filter;
-  d->global_filter_category = category;
-  if (d->global_filter) {
-    connect(d->global_filter.get(), SIGNAL(category_added(int)), SLOT(slot_filter_category_added(int)));
-    connect(d->global_filter.get(), SIGNAL(category_removed(int)), SLOT(slot_filter_category_removed(int)));
-  }
+  d->global_filters << global_filters_t::value_type(filter, category);
+  connect(filter.get(), SIGNAL(category_added(int)), SLOT(slot_filter_category_added(int)));
+  connect(filter.get(), SIGNAL(category_removed(int)), SLOT(slot_filter_category_removed(int)));
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
+}
+
+void datacube_t::remove_global_filter(std::tr1::shared_ptr< abstract_filter_t > filter)
+{
+  remove_global_filter(filter.get());
+}
+
+
+bool datacube_t::remove_global_filter(abstract_filter_t* filter) {
+  for (global_filters_t::iterator it = d->global_filters.begin(), iend = d->global_filters.end(); it != iend; ++it) {
+    if (it->first.get() == filter) {
+      global_filters_t::value_type removed_filter = *it;
+      d->global_filters.erase(it);
+      for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
+        if (filtered_in(row)) {
+          const bool excluded = (*filter)(d->model, row) != removed_filter.second;
+          if (excluded) {
+            add(row);
+          }
+        }
+      }
+      return true;
+    }
+  }
+  return false;
 }
 
 void datacube_t::check() {
@@ -246,8 +260,13 @@ void datacube_t::check() {
   int total_count = 0;
   const int nelements = d->model->rowCount();
   for (int i=0; i<nelements;  ++i) {
-    if (!d->global_filter.get() || (*d->global_filter)(d->model, i) == d->global_filter_category) {
-      ++total_count;
+    for (int filter_index=0, last_filter_index = d->global_filters.size()-1; filter_index<=last_filter_index; ++filter_index) {
+      global_filters_t::const_reference filter_pair = d->global_filters.at(filter_index);
+      if ((*filter_pair.first)(d->model, i) != filter_pair.second) {
+        break;
+      } else if (filter_index == last_filter_index) {
+        ++total_count;
+      }
     }
   }
   QVector<unsigned> check_row_counts(d->row_counts.size());
@@ -272,12 +291,22 @@ void datacube_t::check() {
 
 }
 
-void datacube_t::set_global_filter(abstract_filter_t* filter, int category) {
-  set_global_filter(std::tr1::shared_ptr<abstract_filter_t>(filter), category);
+void datacube_t::add_global_filter(abstract_filter_t* filter, int category) {
+  add_global_filter(std::tr1::shared_ptr<abstract_filter_t>(filter), category);
 }
 
 void datacube_t::reset_global_filter() {
-  set_global_filter(std::tr1::shared_ptr<abstract_filter_t>(), -1);
+  Q_FOREACH(global_filters_t::value_type filter_pair, d->global_filters) {
+    filter_pair.first.get()->disconnect(this);
+  }
+  d->global_filters.clear();
+  for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
+    const bool was_included = d->reverse_index.contains(row);
+    if (!was_included) {
+      add(row);
+    }
+  }
+
 }
 
 int datacube_t::header_count(Qt::Orientation orientation) const {
@@ -413,7 +442,7 @@ void datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
   const int toprow = topleft.row();
   const int buttomrow = bottomRight.row();
   for (int element = toprow; element <= buttomrow; ++element) {
-    const bool filtered_out = d->global_filter.get() && ((*d->global_filter)(d->model, element) != d->global_filter_category);
+    const bool filtered_out = !filtered_in(element);
     int new_row_section = d->compute_section_for_index(Qt::Vertical, element);
     int new_column_section = d->compute_section_for_index(Qt::Horizontal, element);
     cell_t old_cell = d->reverse_index.value(element);
@@ -435,7 +464,7 @@ void datacube_t::insert_data(QModelIndex parent, int start, int end) {
   Q_ASSERT(!parent.isValid());
   d->renumber_cells(start, end-start+1);
   for (int row = start; row <=end; ++row) {
-    if(!d->global_filter.get() || (*d->global_filter)(d->model,row)==d->global_filter_category) {
+    if(filtered_in(row)) {
       add(row);
     }
   }
@@ -662,13 +691,12 @@ void datacube_t::bucket_for_element(int element, cell_t& result) const {
   result = d->reverse_index.value(element);
 }
 
-std::tr1::shared_ptr< abstract_filter_t > datacube_t::global_filter() const {
-  return d->global_filter;
-}
-
-int datacube_t::global_filter_category() const {
-  return d->global_filter_category;
-
+QList< QPair< std::tr1::shared_ptr< abstract_filter_t >, int > >
+ datacube_t::global_filters
+(
+) const {
+  return d->global_filters
+;
 }
 
 }
@@ -712,9 +740,9 @@ void qdatacube::datacube_t::slot_filter_category_added(int index) {
       }
       ++headerno;
     }
-    if (d->global_filter.get() == filter) {
-      if (index <= d->global_filter_category) {
-        d->global_filter_category++;
+    for (global_filters_t::iterator it = d->global_filters.begin(), iend = d->global_filters.end(); it != iend; ++it) {
+      if (it->first.get() == filter && it->second >= index) {
+        ++it->second;
       }
     }
   }
@@ -806,6 +834,25 @@ int qdatacube::datacube_t::category_index(Qt::Orientation orientation, int heade
   }
   const int nfilter_categories = filters[header_index]->categories(d->model).size();
   return bucket % (nfilter_categories*sub_header_size)/sub_header_size;
+}
+
+bool qdatacube::datacube_t::filtered_in(int element) const {
+  Q_FOREACH(global_filters_t::value_type filter, d->global_filters) {
+    if ((*filter.first)(d->model, element) != filter.second) {
+      return false;
+    }
+  }
+  return true;
+}
+
+qdatacube::datacube_t::filters_t qdatacube::datacube_t::column_filters() const
+{
+  return d->col_filters.toList();
+}
+
+qdatacube::datacube_t::filters_t qdatacube::datacube_t::row_filters() const
+{
+  return d->row_filters.toList();
 }
 
 #include "datacube.moc"
