@@ -45,6 +45,12 @@ class QDATACUBE_EXPORT abstract_aggregator_t : public QObject {
       return QString::fromLocal8Bit("unnamed");
     }
 
+    /**
+    * @return underlying model
+    */
+    QAbstractItemModel* underlying_model() const {
+      return m_underlying_model;
+    }
   Q_SIGNALS:
     /**
      * Implementors must emit this signal when a category has been added

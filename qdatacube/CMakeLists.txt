@@ -3,12 +3,14 @@
 #
 
 SET(QDATACUBE_SRC
+  abstract_filter.cpp
   abstract_aggregator.cpp
   cell.cpp
   column_aggregator.cpp
   datacube.cpp
   datacube_selection.cpp
   datacube_view.cpp
+  filter_by_aggregate.cpp
 )
 
 QT4_AUTOMOC(${QDATACUBE_SRC})
@@ -23,11 +25,13 @@ set_target_properties(qdatacube PROPERTIES VERSION "${QDATACUBE_SO_VERSION}.0.0"
 
 SET(CONTAINERS_PUBLIC_HEADERS
   column_aggregator.h
+  column_filter.h
   datacube.h
   datacube_selection.h
   datacube_view.h
   abstract_aggregator.h
   qdatacube_export.h
+  filter_by_aggregate.h
 )
 
 add_subdirectory(test)

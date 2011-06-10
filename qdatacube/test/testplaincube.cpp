@@ -9,6 +9,7 @@
 #include <QStandardItemModel>
 #include "datacube.h"
 #include "column_aggregator.h"
+#include "filter_by_aggregate.h"
 
 using namespace qdatacube;
 
@@ -303,7 +304,7 @@ void testplaincube::test_global_filter() {
   QVERIFY(fourty_cat != -1);
 
   // Set age filter to include 40-years old only (Expect one result, "Einar Madsen"
-  datacube.add_global_filter(age_aggregator, fourty_cat);
+  datacube.add_global_filter(new filter_by_aggregate_t(age_aggregator, fourty_cat));
   QCOMPARE(datacube.row_count(),1);
   QCOMPARE(datacube.column_count(),1);
   QList<int> rows = datacube.elements(0,0);
@@ -314,7 +315,8 @@ void testplaincube::test_global_filter() {
   // Set age filter to include 41-years old only (Expect one result, "Rigmor Jensen", weighting 76
   int fourtyone_cat = age_aggregator->categories().indexOf("41");
   datacube.reset_global_filter();
-  datacube.add_global_filter(age_aggregator, fourtyone_cat);
+  std::tr1::shared_ptr<abstract_filter_t> global_filter(new filter_by_aggregate_t(age_aggregator, fourtyone_cat));
+  datacube.add_global_filter(global_filter);
   QCOMPARE(datacube.row_count(),1);
   QCOMPARE(datacube.column_count(),1);
   rows = datacube.elements(0,0);
@@ -325,8 +327,8 @@ void testplaincube::test_global_filter() {
   QCOMPARE(m_underlying_model->data(m_underlying_model->index(row, WEIGHT)).toString(), QString::fromLocal8Bit("76"));
   // Get all with that weight (besides Rigmor Jensen, this includes Lulu Petersen)
   int seventysix = weight_aggregator->categories().indexOf("76");
-  datacube.remove_global_filter(age_aggregator);
-  datacube.add_global_filter(weight_aggregator, seventysix);
+  datacube.remove_global_filter(global_filter);
+  datacube.add_global_filter(new filter_by_aggregate_t(weight_aggregator, seventysix));
   QCOMPARE(datacube.row_count(),2);
   QCOMPARE(datacube.column_count(),2);
   rows = datacube.elements(1,0);

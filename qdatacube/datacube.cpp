@@ -10,6 +10,7 @@
 
 #include "datacube.h"
 #include "abstract_aggregator.h"
+#include "abstract_filter.h"
 
 #include <QVector>
 #include <algorithm>
@@ -208,39 +209,40 @@ datacube_t::datacube_t(const QAbstractItemModel* model, QObject* parent)
 }
 
 
-void datacube_t::add_global_filter(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > filter, int category) {
+void datacube_t::add_global_filter(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter) {
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
+  if (!filter) {
+    return;
+  }
   for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
     const bool was_included = d->reverse_index.contains(row);
-    const bool included = filter.get() ? (*filter)(row) == category : true;
+    const bool included = (*filter)(row);
     if (was_included && !included) {
       remove(row);
     }
   }
-  d->global_filters << global_filters_t::value_type(filter, category);
-  connect(filter.get(), SIGNAL(category_added(int)), SLOT(slot_aggregator_category_added(int)));
-  connect(filter.get(), SIGNAL(category_removed(int)), SLOT(slot_aggregator_category_removed(int)));
+  d->global_filters << filter;
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
 }
 
-void datacube_t::remove_global_filter(std::tr1::shared_ptr< abstract_aggregator_t > filter)
+void datacube_t::remove_global_filter(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter)
 {
   remove_global_filter(filter.get());
 }
 
 
-bool datacube_t::remove_global_filter(abstract_aggregator_t* filter) {
+bool datacube_t::remove_global_filter(qdatacube::abstract_filter_t* filter) {
   for (global_filters_t::iterator it = d->global_filters.begin(), iend = d->global_filters.end(); it != iend; ++it) {
-    if (it->first.get() == filter) {
+    if (it->get() == filter) {
       global_filters_t::value_type removed_filter = *it;
       d->global_filters.erase(it);
       for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
         if (filtered_in(row)) {
-          const bool excluded = (*filter)(row) != removed_filter.second;
+          const bool excluded = !(*filter)(row);
           if (excluded) {
             add(row);
           }
@@ -261,8 +263,8 @@ void datacube_t::check() {
   const int nelements = d->model->rowCount();
   for (int i=0; i<nelements;  ++i) {
     for (int filter_index=0, last_filter_index = d->global_filters.size()-1; filter_index<=last_filter_index; ++filter_index) {
-      global_filters_t::const_reference filter_pair = d->global_filters.at(filter_index);
-      if ((*filter_pair.first)(i) != filter_pair.second) {
+      global_filters_t::const_reference filter = d->global_filters.at(filter_index);
+      if ((*filter)(i)) {
         break;
       } else if (filter_index == last_filter_index) {
         ++total_count;
@@ -291,14 +293,11 @@ void datacube_t::check() {
 
 }
 
-void datacube_t::add_global_filter(abstract_aggregator_t* filter, int category) {
-  add_global_filter(std::tr1::shared_ptr<abstract_aggregator_t>(filter), category);
+void datacube_t::add_global_filter(qdatacube::abstract_filter_t* filter) {
+  add_global_filter(std::tr1::shared_ptr<abstract_filter_t>(filter));
 }
 
 void datacube_t::reset_global_filter() {
-  Q_FOREACH(global_filters_t::value_type filter_pair, d->global_filters) {
-    filter_pair.first.get()->disconnect(this);
-  }
   d->global_filters.clear();
   for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
     const bool was_included = d->reverse_index.contains(row);
@@ -691,7 +690,7 @@ void datacube_t::bucket_for_element(int element, cell_t& result) const {
   result = d->reverse_index.value(element);
 }
 
-QList< QPair< std::tr1::shared_ptr< abstract_aggregator_t >, int > > datacube_t::global_filters() const {
+QList< std::tr1::shared_ptr< abstract_filter_t > > datacube_t::global_filters() const {
   return d->global_filters;
 }
 
@@ -735,11 +734,6 @@ void qdatacube::datacube_t::slot_aggregator_category_added(int index) {
         aggregator_category_added(f, headerno, index, Qt::Horizontal);
       }
       ++headerno;
-    }
-    for (global_filters_t::iterator it = d->global_filters.begin(), iend = d->global_filters.end(); it != iend; ++it) {
-      if (it->first.get() == aggregator && it->second >= index) {
-        ++it->second;
-      }
     }
   }
 }
@@ -834,7 +828,7 @@ int qdatacube::datacube_t::category_index(Qt::Orientation orientation, int heade
 
 bool qdatacube::datacube_t::filtered_in(int element) const {
   Q_FOREACH(global_filters_t::value_type filter, d->global_filters) {
-    if ((*filter.first)(element) != filter.second) {
+    if ((*filter)(element)) {
       return false;
     }
   }
