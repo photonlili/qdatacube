@@ -25,9 +25,9 @@ class testplaincube : public danishnamecube_t {
 
 
     /**
-     * Test the column filter
+     * Test the column aggregator
      */
-    void test_columnfilter();
+    void test_columnaggregator();
 
     /**
      * Test a basic 2dim datacube
@@ -90,12 +90,12 @@ class testplaincube : public danishnamecube_t {
     void test_reverse_index();
 
     /**
-    * Test add category to a filter
+    * Test add category to an aggregator
     */
     void test_add_category();
 
     /**
-    * Test add category to a filter
+    * Test add category to an aggregator
     */
     void test_add_category_simple();
 

@@ -29,19 +29,19 @@ using namespace qdatacube;
 testheaders::testheaders(QObject* parent) : danishnamecube_t(parent), m_underlying_table_view(0L) {
   load_model_data("plaincubedata.txt");
 
-  m_datacube = new datacube_t(m_underlying_model, first_name_filter, last_name_filter);
-  m_row_used_filter_actions << create_filter_action(first_name_filter);
-  m_col_used_filter_actions << create_filter_action(last_name_filter);
-  m_unused_filter_actions << create_filter_action(sex_filter) << create_filter_action(age_filter) << create_filter_action(weight_filter) << create_filter_action(kommune_filter);
+  m_datacube = new datacube_t(m_underlying_model, first_name_aggregator, last_name_aggregator);
+  m_row_used_aggregator_actions << create_aggregator_action(first_name_aggregator);
+  m_col_used_aggregator_actions << create_aggregator_action(last_name_aggregator);
+  m_unused_aggregator_actions << create_aggregator_action(sex_aggregator) << create_aggregator_action(age_aggregator) << create_aggregator_action(weight_aggregator) << create_aggregator_action(kommune_aggregator);
   m_collapse_action = new QAction("Collapse", this);
-  m_unused_filter_actions << m_collapse_action;
+  m_unused_aggregator_actions << m_collapse_action;
 
 }
 
-QAction* testheaders::create_filter_action(std::tr1::shared_ptr< abstract_aggregator_t > filter)
+QAction* testheaders::create_aggregator_action(std::tr1::shared_ptr< abstract_aggregator_t > aggregator)
 {
-  QAction* rv = new QAction(filter->name(), this);
-  rv->setData(QVariant::fromValue(static_cast<void*>(filter.get())));
+  QAction* rv = new QAction(aggregator->name(), this);
+  rv->setData(QVariant::fromValue(static_cast<void*>(aggregator.get())));
   return rv;
 }
 
@@ -95,12 +95,12 @@ void testheaders::createtableview() {
   clear_button->setProperty("clear", true);
   connect(clear_button, SIGNAL(clicked(bool)), SLOT(slot_global_filter_button_pressed()));
   gfml->addWidget(clear_button);
-  add_global_filter_bottoms(first_name_filter, gfml);
-  add_global_filter_bottoms(last_name_filter, gfml);
-  add_global_filter_bottoms(sex_filter, gfml);
-  add_global_filter_bottoms(age_filter, gfml);
-  add_global_filter_bottoms(weight_filter, gfml);
-  add_global_filter_bottoms(kommune_filter, gfml);
+  add_global_filter_bottoms(first_name_aggregator, gfml);
+  add_global_filter_bottoms(last_name_aggregator, gfml);
+  add_global_filter_bottoms(sex_aggregator, gfml);
+  add_global_filter_bottoms(age_aggregator, gfml);
+  add_global_filter_bottoms(weight_aggregator, gfml);
+  add_global_filter_bottoms(kommune_aggregator, gfml);
 
   QDockWidget* underlying_view = new QDockWidget("Underlying model", top);
   top->addDockWidget(Qt::RightDockWidgetArea, underlying_view);
@@ -117,7 +117,9 @@ void testheaders::createtableview() {
   QDockWidget* second_dc = new QDockWidget("Second datacube");
   top->addDockWidget(Qt::BottomDockWidgetArea, second_dc);
   datacube_view_t* second_view = new datacube_view_t(second_dc);
-  datacube_t* second_datacube = new datacube_t(m_underlying_model, kommune_filter, age_filter);
+  datacube_t* second_datacube = new datacube_t(m_underlying_model, kommune_aggregator
+, age_aggregator
+);
   second_view->set_datacube(second_datacube);
   second_view->datacube_selection()->synchronize_with(m_underlying_table_view->selectionModel());
   second_dc->setWidget(second_view);
@@ -202,7 +204,7 @@ int main(int argc, char* argv[]) {
 }
 
 void testheaders::slot_horizontal_context_menu(QPoint /*pos*/, int headerno, int /*category*/) {
-  QList<QAction*> actions = m_unused_filter_actions;
+  QList<QAction*> actions = m_unused_aggregator_actions;
   if (headerno<0) {
     actions.removeAll(m_collapse_action);
   }
@@ -210,34 +212,34 @@ void testheaders::slot_horizontal_context_menu(QPoint /*pos*/, int headerno, int
   if (action) {
     if (action != m_collapse_action) {
       abstract_aggregator_t* raw_pointer = static_cast<abstract_aggregator_t*>(action->data().value<void*>());
-      std::tr1::shared_ptr<abstract_aggregator_t> filter;
-      if (first_name_filter.get() == raw_pointer) {
-        filter = first_name_filter;
-      } else if (last_name_filter.get() == raw_pointer) {
-        filter = last_name_filter;
-      } else if (sex_filter.get() == raw_pointer) {
-        filter = sex_filter;
-      } else if (age_filter.get() == raw_pointer) {
-        filter = age_filter;
-      } else if (weight_filter.get() == raw_pointer) {
-        filter = weight_filter;
-      } else if (kommune_filter.get() == raw_pointer) {
-        filter = kommune_filter;
+      std::tr1::shared_ptr<abstract_aggregator_t> aggregator;
+      if (first_name_aggregator.get() == raw_pointer) {
+        aggregator = first_name_aggregator;
+      } else if (last_name_aggregator.get() == raw_pointer) {
+        aggregator = last_name_aggregator;
+      } else if (sex_aggregator.get() == raw_pointer) {
+        aggregator = sex_aggregator;
+      } else if (age_aggregator.get() == raw_pointer) {
+        aggregator = age_aggregator;
+      } else if (weight_aggregator.get() == raw_pointer) {
+        aggregator = weight_aggregator;
+      } else if (kommune_aggregator.get() == raw_pointer) {
+        aggregator = kommune_aggregator;
       }
-      m_datacube->split(Qt::Horizontal, qMax(headerno,0), filter);
-      m_unused_filter_actions.removeAll(action);
-      m_col_used_filter_actions.insert(headerno, action);
+      m_datacube->split(Qt::Horizontal, qMax(headerno,0), aggregator);
+      m_unused_aggregator_actions.removeAll(action);
+      m_col_used_aggregator_actions.insert(headerno, action);
     } else {
       m_datacube->collapse(Qt::Horizontal, headerno);
-      QAction* filter_acton = m_col_used_filter_actions.takeAt(headerno);
-      m_unused_filter_actions << filter_acton;
+      QAction* filter_acton = m_col_used_aggregator_actions.takeAt(headerno);
+      m_unused_aggregator_actions << filter_acton;
     }
   }
 
 }
 
 void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno, int /*category*/) {
-  QList<QAction*> actions = m_unused_filter_actions;
+  QList<QAction*> actions = m_unused_aggregator_actions;
   if (headerno<0) {
     actions.removeAll(m_collapse_action);
   }
@@ -245,33 +247,34 @@ void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno
   if (action) {
     if (action != m_collapse_action) {
       abstract_aggregator_t* raw_pointer = static_cast<abstract_aggregator_t*>(action->data().value<void*>());
-      std::tr1::shared_ptr<abstract_aggregator_t> filter;
-      if (first_name_filter.get() == raw_pointer) {
-        filter = first_name_filter;
-      } else if (last_name_filter.get() == raw_pointer) {
-        filter = last_name_filter;
-      } else if (sex_filter.get() == raw_pointer) {
-        filter = sex_filter;
-      } else if (age_filter.get() == raw_pointer) {
-        filter = age_filter;
-      } else if (weight_filter.get() == raw_pointer) {
-        filter = weight_filter;
-      } else if (kommune_filter.get() == raw_pointer) {
-        filter = kommune_filter;
+      std::tr1::shared_ptr<abstract_aggregator_t> aggregator;
+      if (first_name_aggregator.get() == raw_pointer) {
+        aggregator = first_name_aggregator;
+      } else if (last_name_aggregator.get() == raw_pointer) {
+        aggregator = last_name_aggregator;
+      } else if (sex_aggregator.get() == raw_pointer) {
+        aggregator = sex_aggregator;
+      } else if (age_aggregator.get() == raw_pointer) {
+        aggregator = age_aggregator;
+      } else if (weight_aggregator.get() == raw_pointer) {
+        aggregator = weight_aggregator;
+      } else if (kommune_aggregator.get() == raw_pointer) {
+        aggregator = kommune_aggregator;
       }
       if (headerno+1 < m_datacube->header_count(Qt::Vertical)) {
-        m_row_used_filter_actions << action;
+        m_row_used_aggregator_actions << action;
       } else {
-        m_row_used_filter_actions.insert(headerno+1, action);
+        m_row_used_aggregator_actions.insert(headerno+1, action);
       }
-      m_datacube->split(Qt::Vertical, headerno+1, filter);
-      m_unused_filter_actions.removeAll(action);
+      m_datacube->split(Qt::Vertical, headerno+1, aggregator);
+      m_unused_aggregator_actions.removeAll(action);
     } else {
       m_datacube->collapse(Qt::Vertical, headerno);
-      QAction* filter_acton = m_row_used_filter_actions.takeAt(headerno);
-      m_unused_filter_actions << filter_acton;
+      QAction* filter_acton = m_row_used_aggregator_actions.takeAt(headerno);
+      m_unused_aggregator_actions << filter_acton;
     }
   }
 
 }
+
 #include "testheaders.moc"

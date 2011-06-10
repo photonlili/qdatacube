@@ -28,12 +28,12 @@ class danishnamecube_t : public QObject {
      */
     QStandardItemModel* copy_model();
     QStandardItemModel* m_underlying_model;
-    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> first_name_filter;
-    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> last_name_filter;
-    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> sex_filter;
-    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> age_filter;
-    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> weight_filter;
-    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> kommune_filter;
+    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> first_name_aggregator;
+    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> last_name_aggregator;
+    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> sex_aggregator;
+    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> age_aggregator;
+    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> weight_aggregator;
+    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> kommune_aggregator;
     enum columns_t {
       FIRST_NAME,
       LAST_NAME,

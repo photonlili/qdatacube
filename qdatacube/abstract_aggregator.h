@@ -34,12 +34,12 @@ class QDATACUBE_EXPORT abstract_aggregator_t : public QObject {
     virtual int operator()(int row) = 0;
 
     /**
-     * @returns list of categories for this filter
+     * @returns list of categories for this aggregator
      */
     virtual const QList<QString>& categories() = 0;
 
     /**
-     * @returns an name for this filter. Default implementation returns "unnamed";
+     * @returns an name for this aggregator. Default implementation returns "unnamed";
      */
     virtual QString name() const {
       return QString::fromLocal8Bit("unnamed");

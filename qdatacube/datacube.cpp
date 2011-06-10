@@ -24,8 +24,8 @@ namespace qdatacube {
 class datacube_t::secret_t {
   public:
     secret_t(const QAbstractItemModel* model,
-             shared_ptr<abstract_aggregator_t> row_filter,
-             shared_ptr<abstract_aggregator_t> column_filter);
+             shared_ptr<abstract_aggregator_t> row_aggregator,
+             shared_ptr<abstract_aggregator_t> column_aggregator);
     secret_t(const QAbstractItemModel* model);
     int compute_row_section_for_index(int index) {
       return compute_section_for_index(Qt::Vertical, index);
@@ -45,9 +45,9 @@ class datacube_t::secret_t {
     void renumber_cells(int start, int adjustment);
 
     const QAbstractItemModel* model;
-    typedef QVector<shared_ptr<abstract_aggregator_t> >filters_t;
-    filters_t row_filters;
-    filters_t col_filters;
+    typedef QVector<shared_ptr<abstract_aggregator_t> >aggregators_t;
+    aggregators_t row_aggregators;
+    aggregators_t col_aggregators;
     QVector<unsigned> row_counts;
     QVector<unsigned> col_counts;
     typedef QVector<QList<int> > cells_t;
@@ -59,13 +59,13 @@ class datacube_t::secret_t {
 };
 
 int datacube_t::secret_t::compute_section_for_index(Qt::Orientation orientation, int index) {
-  qdatacube::datacube_t::secret_t::filters_t& filters = orientation == Qt::Horizontal ? col_filters : row_filters;
+  qdatacube::datacube_t::secret_t::aggregators_t& aggregators = orientation == Qt::Horizontal ? col_aggregators : row_aggregators;
   int stride = 1;
   int rv = 0;
-  for (int filter_index = filters.size()-1; filter_index>=0; --filter_index) {
-    const shared_ptr<abstract_aggregator_t>& filter = filters.at(filter_index);
-    rv += stride * (*filter)(index);
-    stride *= filter->categories().size();
+  for (int aggregator_index = aggregators.size()-1; aggregator_index>=0; --aggregator_index) {
+    const shared_ptr<abstract_aggregator_t>& aggregator = aggregators.at(aggregator_index);
+    rv += stride * (*aggregator)(index);
+    stride *= aggregator->categories().size();
   }
   return rv;
 }
@@ -135,32 +135,32 @@ datacube_t::secret_t::secret_t(const QAbstractItemModel* model) :
 }
 
 datacube_t::secret_t::secret_t(const QAbstractItemModel* model,
-                               shared_ptr<abstract_aggregator_t> row_filter,
-                               shared_ptr<abstract_aggregator_t> column_filter) :
+                               shared_ptr<abstract_aggregator_t> row_aggregator,
+                               shared_ptr<abstract_aggregator_t> column_aggregator) :
     model(model),
     global_filters()
 {
-  col_filters << column_filter;
-  row_filters << row_filter;
-  col_counts = QVector<unsigned>(column_filter->categories().size());
-  row_counts = QVector<unsigned>(row_filter->categories().size());
+  col_aggregators << column_aggregator;
+  row_aggregators << row_aggregator;
+  col_counts = QVector<unsigned>(column_aggregator->categories().size());
+  row_counts = QVector<unsigned>(row_aggregator->categories().size());
   cells = QVector<QList<int> >(col_counts.size() * row_counts.size());
 }
 
 datacube_t::datacube_t(const QAbstractItemModel* model,
-                       shared_ptr<abstract_aggregator_t> row_filter,
-                       shared_ptr<abstract_aggregator_t> column_filter,
+                       shared_ptr<abstract_aggregator_t> row_aggregator,
+                       shared_ptr<abstract_aggregator_t> column_aggregator,
                        QObject* parent):
     QObject(parent),
-    d(new secret_t(model, row_filter, column_filter))
+    d(new secret_t(model, row_aggregator, column_aggregator))
 {
   connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(update_data(QModelIndex,QModelIndex)));
   connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), SLOT(remove_data(QModelIndex,int,int)));
   connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), SLOT(insert_data(QModelIndex,int,int)));
-  connect(column_filter.get(), SIGNAL(category_added(int)), SLOT(slot_filter_category_added(int)));
-  connect(row_filter.get(), SIGNAL(category_added(int)), SLOT(slot_filter_category_added(int)));
-  connect(column_filter.get(), SIGNAL(category_removed(int)), SLOT(slot_filter_category_removed(int)));
-  connect(row_filter.get(), SIGNAL(category_removed(int)), SLOT(slot_filter_category_removed(int)));;
+  connect(column_aggregator.get(), SIGNAL(category_added(int)), SLOT(slot_aggregator_category_added(int)));
+  connect(row_aggregator.get(), SIGNAL(category_added(int)), SLOT(slot_aggregator_category_added(int)));
+  connect(column_aggregator.get(), SIGNAL(category_removed(int)), SLOT(slot_aggregator_category_removed(int)));
+  connect(row_aggregator.get(), SIGNAL(category_removed(int)), SLOT(slot_aggregator_category_removed(int)));;
   for (int element = 0, nelements = model->rowCount(); element < nelements; ++element) {
     add(element);
   }
@@ -171,19 +171,19 @@ datacube_t::datacube_t(const QAbstractItemModel* model,
 }
 
 datacube_t::datacube_t(const QAbstractItemModel* model,
-                       abstract_aggregator_t* row_filter,
-                       abstract_aggregator_t* column_filter,
+                       abstract_aggregator_t* row_aggregator,
+                       abstract_aggregator_t* column_aggregator,
                        QObject* parent):
     QObject(parent),
-    d(new secret_t(model, shared_ptr<abstract_aggregator_t>(row_filter), shared_ptr<abstract_aggregator_t>(column_filter)))
+    d(new secret_t(model, shared_ptr<abstract_aggregator_t>(row_aggregator), shared_ptr<abstract_aggregator_t>(column_aggregator)))
 {
   connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(update_data(QModelIndex,QModelIndex)));
   connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), SLOT(remove_data(QModelIndex,int,int)));
   connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), SLOT(insert_data(QModelIndex,int,int)));
-  connect(column_filter, SIGNAL(category_added(int)), SLOT(slot_filter_category_added(int)));
-  connect(row_filter, SIGNAL(category_added(int)), SLOT(slot_filter_category_added(int)));
-  connect(column_filter, SIGNAL(category_removed(int)), SLOT(slot_filter_category_removed(int)));
-  connect(row_filter, SIGNAL(category_removed(int)), SLOT(slot_filter_category_removed(int)));;
+  connect(column_aggregator, SIGNAL(category_added(int)), SLOT(slot_aggregator_category_added(int)));
+  connect(row_aggregator, SIGNAL(category_added(int)), SLOT(slot_aggregator_category_added(int)));
+  connect(column_aggregator, SIGNAL(category_removed(int)), SLOT(slot_aggregator_category_removed(int)));
+  connect(row_aggregator, SIGNAL(category_removed(int)), SLOT(slot_aggregator_category_removed(int)));;
   for (int element = 0, nelements = model->rowCount(); element < nelements; ++element) {
     add(element);
   }
@@ -220,8 +220,8 @@ void datacube_t::add_global_filter(std::tr1::shared_ptr< qdatacube::abstract_agg
     }
   }
   d->global_filters << global_filters_t::value_type(filter, category);
-  connect(filter.get(), SIGNAL(category_added(int)), SLOT(slot_filter_category_added(int)));
-  connect(filter.get(), SIGNAL(category_removed(int)), SLOT(slot_filter_category_removed(int)));
+  connect(filter.get(), SIGNAL(category_added(int)), SLOT(slot_aggregator_category_added(int)));
+  connect(filter.get(), SIGNAL(category_removed(int)), SLOT(slot_aggregator_category_removed(int)));
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
@@ -310,7 +310,7 @@ void datacube_t::reset_global_filter() {
 }
 
 int datacube_t::header_count(Qt::Orientation orientation) const {
-  return orientation == Qt::Horizontal ? d->col_filters.size() : d->row_filters.size();
+  return orientation == Qt::Horizontal ? d->col_aggregators.size() : d->row_aggregators.size();
 }
 
 int datacube_t::element_count(int row, int column) const {
@@ -335,14 +335,14 @@ QList< int > datacube_t::elements(int row, int column) const {
 
 QList< QPair<QString,int> > datacube_t::headers(Qt::Orientation orientation, int index) const {
   QList< QPair<QString,int> > rv;
-  QVector<shared_ptr<abstract_aggregator_t> >& filters = (orientation == Qt::Horizontal) ? d->col_filters : d->row_filters;
+  QVector<shared_ptr<abstract_aggregator_t> >& aggregators = (orientation == Qt::Horizontal) ? d->col_aggregators : d->row_aggregators;
   const QVector<unsigned>& counts = (orientation == Qt::Horizontal) ? d->col_counts : d->row_counts;
-  shared_ptr<abstract_aggregator_t> filter = filters.at(index);
-  QList<QString> categories = filter->categories();
+  shared_ptr<abstract_aggregator_t> aggregator = aggregators.at(index);
+  QList<QString> categories = aggregator->categories();
   const int ncats = categories.size();
   int stride = 1;
-  for (int i=index+1; i<filters.size(); ++i) {
-    stride *= filters.at(i)->categories().size();
+  for (int i=index+1; i<aggregators.size(); ++i) {
+    stride *= aggregators.at(i)->categories().size();
   }
   for (int c=0; c<counts.size(); c+=stride) {
     int count = 0;
@@ -522,35 +522,35 @@ void datacube_t::slot_rows_changed(int row, int count) {
   emit headers_changed(Qt::Vertical, row, row+count-1);
 }
 
-void datacube_t::split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr< abstract_aggregator_t > filter) {
+void datacube_t::split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr< abstract_aggregator_t > aggregator) {
   emit about_to_be_reset();
   if (orientation == Qt::Vertical) {
-    split_row(headerno, filter);
+    split_row(headerno, aggregator);
   } else {
-    split_column(headerno, filter);
+    split_column(headerno, aggregator);
   }
-  if (!d->row_filters.contains(filter) && d->col_filters.contains(filter)) {
-    connect(filter.get(), SIGNAL(category_added(int)), SLOT(slot_filter_category_added(int)));
-    connect(filter.get(), SIGNAL(category_removed(int)), SLOT(slot_filter_category_removed(int)));;
+  if (!d->row_aggregators.contains(aggregator) && d->col_aggregators.contains(aggregator)) {
+    connect(aggregator.get(), SIGNAL(category_added(int)), SLOT(slot_aggregator_category_added(int)));
+    connect(aggregator.get(), SIGNAL(category_removed(int)), SLOT(slot_aggregator_category_removed(int)));;
   }
   emit reset();
 }
 
-void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > filter)
+void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > aggregator)
 {
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
   emit about_to_be_reset();
   QVector<QList<int> > oldcells = d->cells;
-  const int ncats = filter->categories().size();
+  const int ncats = aggregator->categories().size();
   const int newsize = oldcells.size() * ncats;
   d->cells = QVector<QList<int> >(newsize);
   const int source_row_count = d->row_counts.size();
   const int target_row_count = source_row_count * ncats;
   int cat_stride = 1;
-  for (int i=headerno; i<d->row_filters.size(); ++i) {
-    cat_stride *= d->row_filters.at(i)->categories().size();
+  for (int i=headerno; i<d->row_aggregators.size(); ++i) {
+    cat_stride *= d->row_aggregators.at(i)->categories().size();
   }
   int target_stride = cat_stride*ncats;
   QVector<unsigned> old_row_counts = d->row_counts;
@@ -562,7 +562,7 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_aggregat
       for (int minor = 0; minor<cat_stride; ++minor) {
         const int r = major*cat_stride + minor;
         Q_FOREACH(int element, oldcells[source_row_count*c+r]) {
-          const int target_row = major*target_stride + minor + (*filter).operator()(element) * cat_stride;
+          const int target_row = major*target_stride + minor + (*aggregator).operator()(element) * cat_stride;
           const int target_index = target_row + c*target_row_count;
           d->cells[target_index] << element;
           ++d->row_counts[target_row];
@@ -571,7 +571,7 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_aggregat
       }
     }
   }
-  d->row_filters.insert(headerno, filter);
+  d->row_aggregators.insert(headerno, aggregator);
   emit reset();
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
@@ -579,19 +579,19 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_aggregat
 
 }
 
-void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > filter) {
+void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > aggregator) {
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
   emit about_to_be_reset();
   QVector<QList<int> > oldcells = d->cells;
-  const int ncats = filter->categories().size();
+  const int ncats = aggregator->categories().size();
   const int newsize = oldcells.size() * ncats;
   d->cells = QVector<QList<int> >(newsize);
   const int row_count = d->row_counts.size();
   int cat_stride = 1;
-  for (int i=headerno; i<d->col_filters.size(); ++i) {
-    cat_stride *= d->col_filters.at(i)->categories().size();
+  for (int i=headerno; i<d->col_aggregators.size(); ++i) {
+    cat_stride *= d->col_aggregators.at(i)->categories().size();
   }
   int target_stride = cat_stride*ncats;
   QVector<unsigned> old_column_counts = d->col_counts;
@@ -603,7 +603,7 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_aggre
       const int c = major*cat_stride + minor;
       for (int r=0; r<d->row_counts.size(); ++r) {
         Q_FOREACH(int element, oldcells[row_count*c+r]) {
-          const int target_column = major*target_stride + minor + (*filter).operator()(element) * cat_stride;
+          const int target_column = major*target_stride + minor + (*aggregator).operator()(element) * cat_stride;
           const int target_index = r + target_column*d->row_counts.size();
           d->cells[target_index] << element;
           d->reverse_index.insert(element, cell_t(r, target_column));
@@ -612,7 +612,7 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_aggre
       }
     }
   }
-  d->col_filters.insert(headerno, filter);
+  d->col_aggregators.insert(headerno, aggregator);
   emit reset();
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
@@ -621,8 +621,8 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_aggre
 }
 
 
-void datacube_t::split(Qt::Orientation orientation, int headerno, abstract_aggregator_t* filter) {
-  split(orientation, headerno, std::tr1::shared_ptr<abstract_aggregator_t>(filter));
+void datacube_t::split(Qt::Orientation orientation, int headerno, abstract_aggregator_t* aggregator) {
+  split(orientation, headerno, std::tr1::shared_ptr<abstract_aggregator_t>(aggregator));
 }
 
 
@@ -633,16 +633,16 @@ void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
   emit about_to_be_reset();
   QVector<QList<int> > oldcells = d->cells;
   const bool horizontal = (orientation == Qt::Horizontal);
-  secret_t::filters_t& parallel_filters = horizontal ? d->col_filters : d->row_filters;
-  shared_ptr<abstract_aggregator_t> filter = parallel_filters[headerno];
-  parallel_filters.remove(headerno);
-  const int ncats = filter->categories().size();
+  secret_t::aggregators_t& parallel_aggregators = horizontal ? d->col_aggregators : d->row_aggregators;
+  shared_ptr<abstract_aggregator_t> aggregator = parallel_aggregators[headerno];
+  parallel_aggregators.remove(headerno);
+  const int ncats = aggregator->categories().size();
   const int newsize = oldcells.size() / ncats;
   d->cells = QVector<QList<int> >(newsize);
   const int normal_count = horizontal ? d->row_counts.size() : d->col_counts.size();
   int cat_stride = 1;
-  for (int i=headerno; i<parallel_filters.size(); ++i) {
-    cat_stride *= parallel_filters.at(i)->categories().size();
+  for (int i=headerno; i<parallel_aggregators.size(); ++i) {
+    cat_stride *= parallel_aggregators.at(i)->categories().size();
   }
   const int source_stride = cat_stride * ncats;
   QVector<unsigned>& new_counts = horizontal ? d->col_counts : d->row_counts;
@@ -691,12 +691,8 @@ void datacube_t::bucket_for_element(int element, cell_t& result) const {
   result = d->reverse_index.value(element);
 }
 
-QList< QPair< std::tr1::shared_ptr< abstract_aggregator_t >, int > >
- datacube_t::global_filters
-(
-) const {
-  return d->global_filters
-;
+QList< QPair< std::tr1::shared_ptr< abstract_aggregator_t >, int > > datacube_t::global_filters() const {
+  return d->global_filters;
 }
 
 }
@@ -724,50 +720,50 @@ void qdatacube::datacube_t::dump(bool cells, bool rowcounts, bool col_counts) co
   }
 
 }
-void qdatacube::datacube_t::slot_filter_category_added(int index) {
-  if (abstract_aggregator_t* filter = qobject_cast<abstract_aggregator_t*>(sender())) {
+void qdatacube::datacube_t::slot_aggregator_category_added(int index) {
+  if (abstract_aggregator_t* aggregator = qobject_cast<abstract_aggregator_t*>(sender())) {
     int headerno = 0;
-    Q_FOREACH(std::tr1::shared_ptr<abstract_aggregator_t> f, d->row_filters) {
-      if (f.get() == filter) {
-        filter_category_added(f, headerno,index, Qt::Vertical);
+    Q_FOREACH(std::tr1::shared_ptr<abstract_aggregator_t> f, d->row_aggregators) {
+      if (f.get() == aggregator) {
+        aggregator_category_added(f, headerno,index, Qt::Vertical);
       }
       ++headerno;
     }
     headerno = 0;
-    Q_FOREACH(std::tr1::shared_ptr<abstract_aggregator_t> f, d->col_filters) {
-      if (f.get() == filter) {
-        filter_category_added(f, headerno, index, Qt::Horizontal);
+    Q_FOREACH(std::tr1::shared_ptr<abstract_aggregator_t> f, d->col_aggregators) {
+      if (f.get() == aggregator) {
+        aggregator_category_added(f, headerno, index, Qt::Horizontal);
       }
       ++headerno;
     }
     for (global_filters_t::iterator it = d->global_filters.begin(), iend = d->global_filters.end(); it != iend; ++it) {
-      if (it->first.get() == filter && it->second >= index) {
+      if (it->first.get() == aggregator && it->second >= index) {
         ++it->second;
       }
     }
   }
 }
 
-void qdatacube::datacube_t::slot_filter_category_removed(int /*index*/) {
+void qdatacube::datacube_t::slot_aggregator_category_removed(int /*index*/) {
   Q_ASSERT(false); // TODO
 
 }
 
 
-void qdatacube::datacube_t::filter_category_added(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > filter, int headerno, int index, Qt::Orientation orientation)
+void qdatacube::datacube_t::aggregator_category_added(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > aggregator, int headerno, int index, Qt::Orientation orientation)
 {
-  // NB! Since more filters might need to be adjusted, the col/row filters catogories() cannot be trusted downwards
-  // and in the other direction. operator() cannot be trusted except for filter itself
-  const secret_t::filters_t& parallel_filters = orientation == Qt::Horizontal ? d->col_filters : d->row_filters;
+  // NB! Since more aggregators might need to be adjusted, the col/row aggregators catogories() cannot be trusted downwards
+  // and in the other direction. operator() cannot be trusted except for aggregator itself
+  const secret_t::aggregators_t& parallel_aggregators = orientation == Qt::Horizontal ? d->col_aggregators : d->row_aggregators;
   QVector<unsigned>& new_parallel_counts = orientation == Qt::Horizontal ? d->col_counts : d->row_counts;
   const int normal_count = orientation == Qt::Horizontal ? d->row_counts.size() : d->col_counts.size();
   const QVector<unsigned> old_parallel_counts = new_parallel_counts;
   QVector<QList<int> > old_cells = d->cells;
   int nsuper_categories = 1;
   for (int h=0; h<headerno; ++h) {
-    nsuper_categories *= parallel_filters[h]->categories().size();
+    nsuper_categories *= parallel_aggregators[h]->categories().size();
   }
-  const int new_ncats = filter->categories().size();
+  const int new_ncats = aggregator->categories().size();
   const int old_ncats = new_ncats - 1;
   const int stride = old_parallel_counts.size()/old_ncats/nsuper_categories;
   Q_ASSERT(stride*nsuper_categories*old_ncats == old_parallel_counts.size());
@@ -828,12 +824,12 @@ void qdatacube::datacube_t::remove_selection_model(QObject* selection_model) {
 int qdatacube::datacube_t::category_index(Qt::Orientation orientation, int header_index, int section) const {
   const int bucket = (orientation == Qt::Vertical) ? d->bucket_for_row(section) : d->bucket_for_column(section);
   int sub_header_size = 1;
-  const secret_t::filters_t& filters = (orientation == Qt::Vertical) ? d->row_filters : d->col_filters;
-  for (int i=header_index+1; i<filters.size(); ++i) {
-    sub_header_size *= filters[i]->categories().size();
+  const secret_t::aggregators_t& aggregators = (orientation == Qt::Vertical) ? d->row_aggregators : d->col_aggregators;
+  for (int i=header_index+1; i<aggregators.size(); ++i) {
+    sub_header_size *= aggregators[i]->categories().size();
   }
-  const int nfilter_categories = filters[header_index]->categories().size();
-  return bucket % (nfilter_categories*sub_header_size)/sub_header_size;
+  const int naggregator_categories = aggregators[header_index]->categories().size();
+  return bucket % (naggregator_categories*sub_header_size)/sub_header_size;
 }
 
 bool qdatacube::datacube_t::filtered_in(int element) const {
@@ -845,14 +841,14 @@ bool qdatacube::datacube_t::filtered_in(int element) const {
   return true;
 }
 
-qdatacube::datacube_t::filters_t qdatacube::datacube_t::column_filters() const
+qdatacube::datacube_t::aggregators_t qdatacube::datacube_t::column_aggregators() const
 {
-  return d->col_filters.toList();
+  return d->col_aggregators.toList();
 }
 
-qdatacube::datacube_t::filters_t qdatacube::datacube_t::row_filters() const
+qdatacube::datacube_t::aggregators_t qdatacube::datacube_t::row_aggregators() const
 {
-  return d->row_filters.toList();
+  return d->row_aggregators.toList();
 }
 
 #include "datacube.moc"

@@ -35,30 +35,29 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
   Q_OBJECT
   public:
     /**
-     * Construct simple 2-dimensional datacube with the 2 filters
+     * Construct simple 2-dimensional datacube with the 2 aggregators
      * @param underlying_model the model whose rows are the data elements in the datacube
-     * @param row_filter initial filter. Ownership is claimed, and filter will be deleted
-     * @param column_filter initial filter. Ownership is claimed, and filter will be deleted
+     * @param row_aggregator initial aggregator. Ownership is claimed, and aggregator will be deleted
+     * @param column_aggregator initial aggregator. Ownership is claimed, and aggregator will be deleted
      */
     datacube_t(const QAbstractItemModel* underlying_model,
-               abstract_aggregator_t* row_filter,
-               abstract_aggregator_t* column_filter,
+               abstract_aggregator_t* row_aggregator,
+               abstract_aggregator_t* column_aggregator,
                QObject* parent = 0);
 
     /**
-     * Construct simple 2-dimensional datacube with the 2 filters
-     * Construct simple 2-dimensional datacube with the 2 filters
+     * Construct simple 2-dimensional datacube with the 2 aggregators
      * @param underlying_model the model whose rows are the data elements in the datacube
-     * @param row_filter initial filter.
-     * @param column_filter initial filter.
+     * @param row_aggregator initial aggregator.
+     * @param column_aggregator initial aggregator.
      */
     datacube_t(const QAbstractItemModel* model,
-            std::tr1::shared_ptr<abstract_aggregator_t> row_filter,
-            std::tr1::shared_ptr<abstract_aggregator_t> column_filter,
+            std::tr1::shared_ptr<abstract_aggregator_t> row_aggregator,
+            std::tr1::shared_ptr<abstract_aggregator_t> column_aggregator,
             QObject* parent = 0);
 
     /**
-     * Construct datacube with no filters at all.
+     * Construct datacube with no aggregators at all.
      */
     explicit datacube_t(const QAbstractItemModel* model, QObject* parent = 0);
 
@@ -134,19 +133,19 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     bool remove_global_filter(qdatacube::abstract_aggregator_t* filter);
 
     /**
-     * Split header with filter.
+     * Split header with aggregator.
      * @param orientation split by column or row
      * @param headerno which header to split. 0 means this is the new topmost split,
      *                 header_count(orientation) is the bottommost.
-     * @param filter filter to use. Each non-empty category will give a new row or column
+     * @param aggregator aggregator to use. Each non-empty category will give a new row or column
      */
-    void split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr<abstract_aggregator_t> filter);
+    void split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr<abstract_aggregator_t> aggregator);
 
     /**
-     * Split header with filter.
-     * convenience overload, same as split(orientation, headerno, std::tr1::shared_ptr<abstract_aggregator_t>(filter));
+     * Split header with aggregator.
+     * convenience overload, same as split(orientation, headerno, std::tr1::shared_ptr<abstract_aggregator_t>(aggregator));
      */
-    void split(Qt::Orientation orientation, int headerno, abstract_aggregator_t* filter);
+    void split(Qt::Orientation orientation, int headerno, abstract_aggregator_t* aggregator);
 
     /**
      * Collapse header, removing it from datacube. Requries headercount(orientation)>=2
@@ -170,7 +169,7 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     int section_for_element_internal(int element, Qt::Orientation orientation) const;
 
     typedef QList<QPair< std::tr1::shared_ptr<abstract_aggregator_t>, int > > global_filters_t;
-    typedef QList<std::tr1::shared_ptr<abstract_aggregator_t> > filters_t;
+    typedef QList<std::tr1::shared_ptr<abstract_aggregator_t> > aggregators_t;
 
     /**
      * @return Return all global filters in effect with their categories
@@ -178,14 +177,14 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     global_filters_t global_filters() const;
 
     /**
-     * @return list of column filters, in order
+     * @return list of column aggregators, in order
      */
-    filters_t column_filters() const;
+    aggregators_t column_aggregators() const;
 
     /**
-     * @return list of row filters, in order
+     * @return list of row aggregators, in order
      */
-    filters_t row_filters() const;
+    aggregators_t row_aggregators() const;
 
     /**
      * @return the underlying model
@@ -270,16 +269,16 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void insert_data(QModelIndex parent, int start, int end);
     void slot_columns_changed(int column, int count);
     void slot_rows_changed(int row, int count);
-    void slot_filter_category_added(int index);
-    void slot_filter_category_removed(int);
+    void slot_aggregator_category_added(int index);
+    void slot_aggregator_category_removed(int);
     void remove_selection_model(QObject* selection_model);
 
   private:
     void remove(int index);
     void add(int index);
-    void split_row(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > filter);
-    void split_column(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > filter);
-    void filter_category_added(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > filter, int headerno, int index, Qt::Orientation orientation);
+    void split_row(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > aggregator);
+    void split_column(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > aggregator);
+    void aggregator_category_added(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > aggregator, int headerno, int index, Qt::Orientation orientation);
 
     /**
      * @returns the number of buckets (i.e. sections including empty sections) in datacube for
