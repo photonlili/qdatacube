@@ -9,7 +9,7 @@
 // #define ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS 1
 
 #include "datacube.h"
-#include "abstract_filter.h"
+#include "abstract_aggregator.h"
 
 #include <QVector>
 #include <algorithm>
@@ -24,8 +24,8 @@ namespace qdatacube {
 class datacube_t::secret_t {
   public:
     secret_t(const QAbstractItemModel* model,
-             shared_ptr<abstract_filter_t> row_filter,
-             shared_ptr<abstract_filter_t> column_filter);
+             shared_ptr<abstract_aggregator_t> row_filter,
+             shared_ptr<abstract_aggregator_t> column_filter);
     secret_t(const QAbstractItemModel* model);
     int compute_row_section_for_index(int index) {
       return compute_section_for_index(Qt::Vertical, index);
@@ -45,7 +45,7 @@ class datacube_t::secret_t {
     void renumber_cells(int start, int adjustment);
 
     const QAbstractItemModel* model;
-    typedef QVector<shared_ptr<abstract_filter_t> >filters_t;
+    typedef QVector<shared_ptr<abstract_aggregator_t> >filters_t;
     filters_t row_filters;
     filters_t col_filters;
     QVector<unsigned> row_counts;
@@ -63,9 +63,9 @@ int datacube_t::secret_t::compute_section_for_index(Qt::Orientation orientation,
   int stride = 1;
   int rv = 0;
   for (int filter_index = filters.size()-1; filter_index>=0; --filter_index) {
-    const shared_ptr<abstract_filter_t>& filter = filters.at(filter_index);
-    rv += stride * (*filter)(model, index);
-    stride *= filter->categories(model).size();
+    const shared_ptr<abstract_aggregator_t>& filter = filters.at(filter_index);
+    rv += stride * (*filter)(index);
+    stride *= filter->categories().size();
   }
   return rv;
 }
@@ -135,21 +135,21 @@ datacube_t::secret_t::secret_t(const QAbstractItemModel* model) :
 }
 
 datacube_t::secret_t::secret_t(const QAbstractItemModel* model,
-                               shared_ptr<abstract_filter_t> row_filter,
-                               shared_ptr<abstract_filter_t> column_filter) :
+                               shared_ptr<abstract_aggregator_t> row_filter,
+                               shared_ptr<abstract_aggregator_t> column_filter) :
     model(model),
     global_filters()
 {
   col_filters << column_filter;
   row_filters << row_filter;
-  col_counts = QVector<unsigned>(column_filter->categories(model).size());
-  row_counts = QVector<unsigned>(row_filter->categories(model).size());
+  col_counts = QVector<unsigned>(column_filter->categories().size());
+  row_counts = QVector<unsigned>(row_filter->categories().size());
   cells = QVector<QList<int> >(col_counts.size() * row_counts.size());
 }
 
 datacube_t::datacube_t(const QAbstractItemModel* model,
-                       shared_ptr<abstract_filter_t> row_filter,
-                       shared_ptr<abstract_filter_t> column_filter,
+                       shared_ptr<abstract_aggregator_t> row_filter,
+                       shared_ptr<abstract_aggregator_t> column_filter,
                        QObject* parent):
     QObject(parent),
     d(new secret_t(model, row_filter, column_filter))
@@ -171,11 +171,11 @@ datacube_t::datacube_t(const QAbstractItemModel* model,
 }
 
 datacube_t::datacube_t(const QAbstractItemModel* model,
-                       abstract_filter_t* row_filter,
-                       abstract_filter_t* column_filter,
+                       abstract_aggregator_t* row_filter,
+                       abstract_aggregator_t* column_filter,
                        QObject* parent):
     QObject(parent),
-    d(new secret_t(model, shared_ptr<abstract_filter_t>(row_filter), shared_ptr<abstract_filter_t>(column_filter)))
+    d(new secret_t(model, shared_ptr<abstract_aggregator_t>(row_filter), shared_ptr<abstract_aggregator_t>(column_filter)))
 {
   connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(update_data(QModelIndex,QModelIndex)));
   connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), SLOT(remove_data(QModelIndex,int,int)));
@@ -208,13 +208,13 @@ datacube_t::datacube_t(const QAbstractItemModel* model, QObject* parent)
 }
 
 
-void datacube_t::add_global_filter(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, int category) {
+void datacube_t::add_global_filter(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > filter, int category) {
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
   for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
     const bool was_included = d->reverse_index.contains(row);
-    const bool included = filter.get() ? (*filter)(d->model, row) == category : true;
+    const bool included = filter.get() ? (*filter)(row) == category : true;
     if (was_included && !included) {
       remove(row);
     }
@@ -227,20 +227,20 @@ void datacube_t::add_global_filter(std::tr1::shared_ptr< qdatacube::abstract_fil
 #endif
 }
 
-void datacube_t::remove_global_filter(std::tr1::shared_ptr< abstract_filter_t > filter)
+void datacube_t::remove_global_filter(std::tr1::shared_ptr< abstract_aggregator_t > filter)
 {
   remove_global_filter(filter.get());
 }
 
 
-bool datacube_t::remove_global_filter(abstract_filter_t* filter) {
+bool datacube_t::remove_global_filter(abstract_aggregator_t* filter) {
   for (global_filters_t::iterator it = d->global_filters.begin(), iend = d->global_filters.end(); it != iend; ++it) {
     if (it->first.get() == filter) {
       global_filters_t::value_type removed_filter = *it;
       d->global_filters.erase(it);
       for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
         if (filtered_in(row)) {
-          const bool excluded = (*filter)(d->model, row) != removed_filter.second;
+          const bool excluded = (*filter)(row) != removed_filter.second;
           if (excluded) {
             add(row);
           }
@@ -262,7 +262,7 @@ void datacube_t::check() {
   for (int i=0; i<nelements;  ++i) {
     for (int filter_index=0, last_filter_index = d->global_filters.size()-1; filter_index<=last_filter_index; ++filter_index) {
       global_filters_t::const_reference filter_pair = d->global_filters.at(filter_index);
-      if ((*filter_pair.first)(d->model, i) != filter_pair.second) {
+      if ((*filter_pair.first)(i) != filter_pair.second) {
         break;
       } else if (filter_index == last_filter_index) {
         ++total_count;
@@ -291,8 +291,8 @@ void datacube_t::check() {
 
 }
 
-void datacube_t::add_global_filter(abstract_filter_t* filter, int category) {
-  add_global_filter(std::tr1::shared_ptr<abstract_filter_t>(filter), category);
+void datacube_t::add_global_filter(abstract_aggregator_t* filter, int category) {
+  add_global_filter(std::tr1::shared_ptr<abstract_aggregator_t>(filter), category);
 }
 
 void datacube_t::reset_global_filter() {
@@ -335,14 +335,14 @@ QList< int > datacube_t::elements(int row, int column) const {
 
 QList< QPair<QString,int> > datacube_t::headers(Qt::Orientation orientation, int index) const {
   QList< QPair<QString,int> > rv;
-  QVector<shared_ptr<abstract_filter_t> >& filters = (orientation == Qt::Horizontal) ? d->col_filters : d->row_filters;
+  QVector<shared_ptr<abstract_aggregator_t> >& filters = (orientation == Qt::Horizontal) ? d->col_filters : d->row_filters;
   const QVector<unsigned>& counts = (orientation == Qt::Horizontal) ? d->col_counts : d->row_counts;
-  shared_ptr<abstract_filter_t> filter = filters.at(index);
-  QList<QString> categories = filter->categories(d->model);
+  shared_ptr<abstract_aggregator_t> filter = filters.at(index);
+  QList<QString> categories = filter->categories();
   const int ncats = categories.size();
   int stride = 1;
   for (int i=index+1; i<filters.size(); ++i) {
-    stride *= filters.at(i)->categories(d->model).size();
+    stride *= filters.at(i)->categories().size();
   }
   for (int c=0; c<counts.size(); c+=stride) {
     int count = 0;
@@ -522,7 +522,7 @@ void datacube_t::slot_rows_changed(int row, int count) {
   emit headers_changed(Qt::Vertical, row, row+count-1);
 }
 
-void datacube_t::split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr< abstract_filter_t > filter) {
+void datacube_t::split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr< abstract_aggregator_t > filter) {
   emit about_to_be_reset();
   if (orientation == Qt::Vertical) {
     split_row(headerno, filter);
@@ -536,21 +536,21 @@ void datacube_t::split(Qt::Orientation orientation, int headerno, std::tr1::shar
   emit reset();
 }
 
-void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t > filter)
+void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > filter)
 {
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
   emit about_to_be_reset();
   QVector<QList<int> > oldcells = d->cells;
-  const int ncats = filter->categories(d->model).size();
+  const int ncats = filter->categories().size();
   const int newsize = oldcells.size() * ncats;
   d->cells = QVector<QList<int> >(newsize);
   const int source_row_count = d->row_counts.size();
   const int target_row_count = source_row_count * ncats;
   int cat_stride = 1;
   for (int i=headerno; i<d->row_filters.size(); ++i) {
-    cat_stride *= d->row_filters.at(i)->categories(d->model).size();
+    cat_stride *= d->row_filters.at(i)->categories().size();
   }
   int target_stride = cat_stride*ncats;
   QVector<unsigned> old_row_counts = d->row_counts;
@@ -562,7 +562,7 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t
       for (int minor = 0; minor<cat_stride; ++minor) {
         const int r = major*cat_stride + minor;
         Q_FOREACH(int element, oldcells[source_row_count*c+r]) {
-          const int target_row = major*target_stride + minor + (*filter).operator()(d->model, element) * cat_stride;
+          const int target_row = major*target_stride + minor + (*filter).operator()(element) * cat_stride;
           const int target_index = target_row + c*target_row_count;
           d->cells[target_index] << element;
           ++d->row_counts[target_row];
@@ -579,19 +579,19 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t
 
 }
 
-void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_filter_t > filter) {
+void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > filter) {
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
   emit about_to_be_reset();
   QVector<QList<int> > oldcells = d->cells;
-  const int ncats = filter->categories(d->model).size();
+  const int ncats = filter->categories().size();
   const int newsize = oldcells.size() * ncats;
   d->cells = QVector<QList<int> >(newsize);
   const int row_count = d->row_counts.size();
   int cat_stride = 1;
   for (int i=headerno; i<d->col_filters.size(); ++i) {
-    cat_stride *= d->col_filters.at(i)->categories(d->model).size();
+    cat_stride *= d->col_filters.at(i)->categories().size();
   }
   int target_stride = cat_stride*ncats;
   QVector<unsigned> old_column_counts = d->col_counts;
@@ -603,7 +603,7 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_filte
       const int c = major*cat_stride + minor;
       for (int r=0; r<d->row_counts.size(); ++r) {
         Q_FOREACH(int element, oldcells[row_count*c+r]) {
-          const int target_column = major*target_stride + minor + (*filter).operator()(d->model, element) * cat_stride;
+          const int target_column = major*target_stride + minor + (*filter).operator()(element) * cat_stride;
           const int target_index = r + target_column*d->row_counts.size();
           d->cells[target_index] << element;
           d->reverse_index.insert(element, cell_t(r, target_column));
@@ -621,8 +621,8 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_filte
 }
 
 
-void datacube_t::split(Qt::Orientation orientation, int headerno, abstract_filter_t* filter) {
-  split(orientation, headerno, std::tr1::shared_ptr<abstract_filter_t>(filter));
+void datacube_t::split(Qt::Orientation orientation, int headerno, abstract_aggregator_t* filter) {
+  split(orientation, headerno, std::tr1::shared_ptr<abstract_aggregator_t>(filter));
 }
 
 
@@ -634,15 +634,15 @@ void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
   QVector<QList<int> > oldcells = d->cells;
   const bool horizontal = (orientation == Qt::Horizontal);
   secret_t::filters_t& parallel_filters = horizontal ? d->col_filters : d->row_filters;
-  shared_ptr<abstract_filter_t> filter = parallel_filters[headerno];
+  shared_ptr<abstract_aggregator_t> filter = parallel_filters[headerno];
   parallel_filters.remove(headerno);
-  const int ncats = filter->categories(d->model).size();
+  const int ncats = filter->categories().size();
   const int newsize = oldcells.size() / ncats;
   d->cells = QVector<QList<int> >(newsize);
   const int normal_count = horizontal ? d->row_counts.size() : d->col_counts.size();
   int cat_stride = 1;
   for (int i=headerno; i<parallel_filters.size(); ++i) {
-    cat_stride *= parallel_filters.at(i)->categories(d->model).size();
+    cat_stride *= parallel_filters.at(i)->categories().size();
   }
   const int source_stride = cat_stride * ncats;
   QVector<unsigned>& new_counts = horizontal ? d->col_counts : d->row_counts;
@@ -691,7 +691,7 @@ void datacube_t::bucket_for_element(int element, cell_t& result) const {
   result = d->reverse_index.value(element);
 }
 
-QList< QPair< std::tr1::shared_ptr< abstract_filter_t >, int > >
+QList< QPair< std::tr1::shared_ptr< abstract_aggregator_t >, int > >
  datacube_t::global_filters
 (
 ) const {
@@ -725,16 +725,16 @@ void qdatacube::datacube_t::dump(bool cells, bool rowcounts, bool col_counts) co
 
 }
 void qdatacube::datacube_t::slot_filter_category_added(int index) {
-  if (abstract_filter_t* filter = qobject_cast<abstract_filter_t*>(sender())) {
+  if (abstract_aggregator_t* filter = qobject_cast<abstract_aggregator_t*>(sender())) {
     int headerno = 0;
-    Q_FOREACH(std::tr1::shared_ptr<abstract_filter_t> f, d->row_filters) {
+    Q_FOREACH(std::tr1::shared_ptr<abstract_aggregator_t> f, d->row_filters) {
       if (f.get() == filter) {
         filter_category_added(f, headerno,index, Qt::Vertical);
       }
       ++headerno;
     }
     headerno = 0;
-    Q_FOREACH(std::tr1::shared_ptr<abstract_filter_t> f, d->col_filters) {
+    Q_FOREACH(std::tr1::shared_ptr<abstract_aggregator_t> f, d->col_filters) {
       if (f.get() == filter) {
         filter_category_added(f, headerno, index, Qt::Horizontal);
       }
@@ -754,7 +754,7 @@ void qdatacube::datacube_t::slot_filter_category_removed(int /*index*/) {
 }
 
 
-void qdatacube::datacube_t::filter_category_added(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, int headerno, int index, Qt::Orientation orientation)
+void qdatacube::datacube_t::filter_category_added(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > filter, int headerno, int index, Qt::Orientation orientation)
 {
   // NB! Since more filters might need to be adjusted, the col/row filters catogories() cannot be trusted downwards
   // and in the other direction. operator() cannot be trusted except for filter itself
@@ -765,9 +765,9 @@ void qdatacube::datacube_t::filter_category_added(std::tr1::shared_ptr< qdatacub
   QVector<QList<int> > old_cells = d->cells;
   int nsuper_categories = 1;
   for (int h=0; h<headerno; ++h) {
-    nsuper_categories *= parallel_filters[h]->categories(d->model).size();
+    nsuper_categories *= parallel_filters[h]->categories().size();
   }
-  const int new_ncats = filter->categories(d->model).size();
+  const int new_ncats = filter->categories().size();
   const int old_ncats = new_ncats - 1;
   const int stride = old_parallel_counts.size()/old_ncats/nsuper_categories;
   Q_ASSERT(stride*nsuper_categories*old_ncats == old_parallel_counts.size());
@@ -830,15 +830,15 @@ int qdatacube::datacube_t::category_index(Qt::Orientation orientation, int heade
   int sub_header_size = 1;
   const secret_t::filters_t& filters = (orientation == Qt::Vertical) ? d->row_filters : d->col_filters;
   for (int i=header_index+1; i<filters.size(); ++i) {
-    sub_header_size *= filters[i]->categories(d->model).size();
+    sub_header_size *= filters[i]->categories().size();
   }
-  const int nfilter_categories = filters[header_index]->categories(d->model).size();
+  const int nfilter_categories = filters[header_index]->categories().size();
   return bucket % (nfilter_categories*sub_header_size)/sub_header_size;
 }
 
 bool qdatacube::datacube_t::filtered_in(int element) const {
   Q_FOREACH(global_filters_t::value_type filter, d->global_filters) {
-    if ((*filter.first)(d->model, element) != filter.second) {
+    if ((*filter.first)(element) != filter.second) {
       return false;
     }
   }

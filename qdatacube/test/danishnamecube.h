@@ -15,7 +15,7 @@ class QStandardItemModel;
 class QAbstractItemModel;
 namespace qdatacube {
 class datacube_t;
-class abstract_filter_t;
+class abstract_aggregator_t;
 }
 class danishnamecube_t : public QObject {
   Q_OBJECT
@@ -28,12 +28,12 @@ class danishnamecube_t : public QObject {
      */
     QStandardItemModel* copy_model();
     QStandardItemModel* m_underlying_model;
-    std::tr1::shared_ptr<qdatacube::abstract_filter_t> first_name_filter;
-    std::tr1::shared_ptr<qdatacube::abstract_filter_t> last_name_filter;
-    std::tr1::shared_ptr<qdatacube::abstract_filter_t> sex_filter;
-    std::tr1::shared_ptr<qdatacube::abstract_filter_t> age_filter;
-    std::tr1::shared_ptr<qdatacube::abstract_filter_t> weight_filter;
-    std::tr1::shared_ptr<qdatacube::abstract_filter_t> kommune_filter;
+    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> first_name_filter;
+    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> last_name_filter;
+    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> sex_filter;
+    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> age_filter;
+    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> weight_filter;
+    std::tr1::shared_ptr<qdatacube::abstract_aggregator_t> kommune_filter;
     enum columns_t {
       FIRST_NAME,
       LAST_NAME,

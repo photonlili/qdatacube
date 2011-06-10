@@ -8,7 +8,7 @@
 #ifndef COLUMN_FILTER_H
 #define COLUMN_FILTER_H
 
-#include "abstract_filter.h"
+#include "abstract_aggregator.h"
 
 #include <QScopedPointer>
 
@@ -17,14 +17,14 @@
 class QModelIndex;
 namespace qdatacube {
 
-class QDATACUBE_EXPORT column_filter_t : public abstract_filter_t {
+class QDATACUBE_EXPORT column_aggregator_t : public abstract_aggregator_t {
   Q_OBJECT
   public:
-    column_filter_t(int section);
-    ~column_filter_t();
-    virtual const QList< QString >& categories(const QAbstractItemModel* model);
-    virtual int operator()(const QAbstractItemModel* model, int row);
-    virtual QString name(const QAbstractItemModel* model) const;
+    column_aggregator_t(QAbstractItemModel* model,  int section);
+    ~column_aggregator_t();
+    virtual const QList< QString >& categories();
+    virtual int operator()(int row);
+    virtual QString name() const;
     /**
      * Return section
      */

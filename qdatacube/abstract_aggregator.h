@@ -5,8 +5,8 @@
 
 */
 
-#ifndef QDATACUBE_ABSTRACT_FILTER_H
-#define QDATACUBE_ABSTRACT_FILTER_H
+#ifndef QDATACUBE_ABSTRACT_AGGREGATOR_H
+#define QDATACUBE_ABSTRACT_AGGREGATOR_H
 #include <QList>
 
 #include "qdatacube_export.h"
@@ -18,33 +18,33 @@ class QAbstractItemModel;
 namespace qdatacube {
 
 /**
- * container filter for recaps interface
- * Note that these filters are currently designed to be independent of the underlying model
+ * aggregate elements into a number of categories
  * Note that category_removed is unsupported as yet.
  */
-class QDATACUBE_EXPORT abstract_filter_t : public QObject {
+class QDATACUBE_EXPORT abstract_aggregator_t : public QObject {
   Q_OBJECT
   public:
+    explicit abstract_aggregator_t(QAbstractItemModel* model, QObject* parent = 0);
+
     /**
-     * @param model
-     * @param row number in model
-     * @returns the category number for container, 0 <= return value < categories().size()
+     * @param row number in m_model
+     * @returns the category number for row, 0 <= return value < categories().size()
      *
      */
-    virtual int operator()(const QAbstractItemModel* model, int row) = 0;
+    virtual int operator()(int row) = 0;
 
     /**
      * @returns list of categories for this filter
      */
-    virtual const QList<QString>& categories(const QAbstractItemModel* model) = 0;
+    virtual const QList<QString>& categories() = 0;
 
     /**
      * @returns an name for this filter. Default implementation returns "unnamed";
      */
-    virtual QString name(const QAbstractItemModel* model) const {
-      Q_UNUSED(model);
+    virtual QString name() const {
       return QString::fromLocal8Bit("unnamed");
     }
+
   Q_SIGNALS:
     /**
      * Implementors must emit this signal when a category has been added
@@ -58,8 +58,10 @@ class QDATACUBE_EXPORT abstract_filter_t : public QObject {
      * @param index index of new category
      */
     void category_removed(int index) const;
+  protected:
+    QAbstractItemModel* m_underlying_model;
 };
 
 }
 
-#endif // QDATACUBE_ABSTRACT_FILTER_H
+#endif // QDATACUBE_ABSTRACT_AGGREGATOR_H

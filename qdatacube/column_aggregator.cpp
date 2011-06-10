@@ -5,14 +5,14 @@
 
 */
 
-#include "column_filter.h"
+#include "column_aggregator.h"
 #include <QStringList>
 #include <QAbstractItemModel>
 #include <QSet>
 
 namespace qdatacube {
 
-class column_filter_t::secret_t {
+class column_aggregator_t::secret_t {
   public:
     secret_t(int section) : categories(), section(section), trim_right(false), max_chars(3) {
     }
@@ -24,18 +24,17 @@ class column_filter_t::secret_t {
     int max_chars;
 };
 
-void column_filter_t::set_trim_new_categories_from_right(int max_chars) {
+void column_aggregator_t::set_trim_new_categories_from_right(int max_chars) {
   d->trim_right = true;
   d->max_chars = max_chars;
 }
 
-const QList< QString >& column_filter_t::categories(const QAbstractItemModel* model) {
-  Q_ASSERT(model);
-  Q_ASSERT(d->section < model->columnCount());
+const QList< QString >& column_aggregator_t::categories() {
+  Q_ASSERT(d->section < m_underlying_model->columnCount());
   if (d->categories.isEmpty()) {
     QSet<QString> categories;
-    for (int i=0, iend = model->rowCount(); i<iend; ++i) {
-      QString cat = model->data(model->index(i, d->section)).toString();
+    for (int i=0, iend = m_underlying_model->rowCount(); i<iend; ++i) {
+      QString cat = m_underlying_model->data(m_underlying_model->index(i, d->section)).toString();
       if (d->trim_right) {
         cat = cat.right(d->max_chars);
       }
@@ -48,23 +47,22 @@ const QList< QString >& column_filter_t::categories(const QAbstractItemModel* mo
       d->cat_map.insert(cat, i);
     }
     if (d->categories.isEmpty()) {
-      d->categories << model->tr("other"); // Have to have at least one
+      d->categories << m_underlying_model->tr("other"); // Have to have at least one
     }
   }
   return d->categories;
 }
 
-column_filter_t::column_filter_t(int section): abstract_filter_t(), d(new secret_t(section)) {
+column_aggregator_t::column_aggregator_t(QAbstractItemModel* model, int section): abstract_aggregator_t(model), d(new secret_t(section)) {
 }
 
-int column_filter_t::operator()(const QAbstractItemModel* model, int row) {
-  Q_ASSERT(model);
-  Q_ASSERT(model->rowCount() > row);
+int column_aggregator_t::operator()(int row) {
+  Q_ASSERT(m_underlying_model->rowCount() > row);
   if (d->categories.isEmpty()) {
     // Create categories
-    categories(model);
+    categories();
   }
-  QString data = model->data(model->index(row, d->section)).toString();
+  QString data = m_underlying_model->data(m_underlying_model->index(row, d->section)).toString();
   if (d->trim_right) {
     data = data.right(d->max_chars);
   }
@@ -85,20 +83,20 @@ int column_filter_t::operator()(const QAbstractItemModel* model, int row) {
   return rv;
 }
 
-column_filter_t::~column_filter_t() {
+column_aggregator_t::~column_aggregator_t() {
 
 }
 
-int column_filter_t::section() const {
+int column_aggregator_t::section() const {
   return d->section;
 }
 
-QString column_filter_t::name(const QAbstractItemModel* model) const
+QString column_aggregator_t::name() const
 {
-  return model->headerData(d->section, Qt::Horizontal).toString();
+  return m_underlying_model->headerData(d->section, Qt::Horizontal).toString();
 }
 
 
 }
 
-#include "column_filter.moc"
+#include "column_aggregator.moc"

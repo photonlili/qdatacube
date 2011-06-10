@@ -3,9 +3,9 @@
 #
 
 SET(QDATACUBE_SRC
-  abstract_filter.cpp
+  abstract_aggregator.cpp
   cell.cpp
-  column_filter.cpp
+  column_aggregator.cpp
   datacube.cpp
   datacube_selection.cpp
   datacube_view.cpp
@@ -22,11 +22,11 @@ SET(QDATACUBE_SO_VERSION 0)
 set_target_properties(qdatacube PROPERTIES VERSION "${QDATACUBE_SO_VERSION}.0.0" SOVERSION "${QDATACUBE_SO_VERSION}" DEFINE_SYMBOL BUILDING_QDATACUBE )
 
 SET(CONTAINERS_PUBLIC_HEADERS
-  column_filter.h
+  column_aggregator.h
   datacube.h
   datacube_selection.h
   datacube_view.h
-  abstract_filter.h
+  abstract_aggregator.h
   qdatacube_export.h
 )
 

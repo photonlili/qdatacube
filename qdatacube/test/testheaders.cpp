@@ -6,7 +6,7 @@
 */
 
 #include "testheaders.h"
-#include "column_filter.h"
+#include "column_aggregator.h"
 #include "datacube.h"
 #include <QStandardItemModel>
 #include <QFile>
@@ -38,21 +38,21 @@ testheaders::testheaders(QObject* parent) : danishnamecube_t(parent), m_underlyi
 
 }
 
-QAction* testheaders::create_filter_action(std::tr1::shared_ptr< abstract_filter_t > filter)
+QAction* testheaders::create_filter_action(std::tr1::shared_ptr< abstract_aggregator_t > filter)
 {
-  QAction* rv = new QAction(filter->name(m_underlying_model), this);
+  QAction* rv = new QAction(filter->name(), this);
   rv->setData(QVariant::fromValue(static_cast<void*>(filter.get())));
   return rv;
 }
 
-void testheaders::add_global_filter_bottoms(std::tr1::shared_ptr< abstract_filter_t > filter, QLayout* layout) {
+void testheaders::add_global_filter_bottoms(std::tr1::shared_ptr< abstract_aggregator_t > aggregator, QLayout* layout) {
   QWidget* top = new QWidget(layout->widget());
   layout->addWidget(top);
   QBoxLayout* lay = new QVBoxLayout(top);
   int categoryno = 0;
-  Q_FOREACH(QString cat, filter->categories(m_underlying_model)) {
+  Q_FOREACH(QString cat, aggregator->categories()) {
     QPushButton* button = new QPushButton(cat, top);
-    column_filter_t* cf = static_cast<column_filter_t*>(filter.get());
+    column_aggregator_t* cf = static_cast<column_aggregator_t*>(aggregator.get());
     button->setProperty("section", cf->section());
     button->setProperty("categoryno", categoryno++);
     lay->addWidget(button);
@@ -69,7 +69,7 @@ void testheaders::slot_global_filter_button_pressed() {
   } else {
     int section = s->property("section").toInt();
     int categoryno = s->property("categoryno").toInt();
-    m_datacube->add_global_filter(new column_filter_t(section), categoryno);
+    m_datacube->add_global_filter(new column_aggregator_t(m_underlying_model, section), categoryno);
   }
 }
 
@@ -146,9 +146,9 @@ void testheaders::slot_set_data() {
 
 void testheaders::slot_set_filter() {
   static int count = 0;
-  std::tr1::shared_ptr<abstract_filter_t> filter(new column_filter_t(SEX));
+  std::tr1::shared_ptr<abstract_aggregator_t> aggregator(new column_aggregator_t(m_underlying_model, SEX));
   m_datacube->reset_global_filter();
-  m_datacube->add_global_filter(filter, (count++%2));
+  m_datacube->add_global_filter(aggregator, (count++%2));
   QTimer::singleShot(2000, this, SLOT(slot_set_filter()));
 }
 
@@ -209,8 +209,8 @@ void testheaders::slot_horizontal_context_menu(QPoint /*pos*/, int headerno, int
   QAction* action = QMenu::exec(actions, QCursor::pos());
   if (action) {
     if (action != m_collapse_action) {
-      abstract_filter_t* raw_pointer = static_cast<abstract_filter_t*>(action->data().value<void*>());
-      std::tr1::shared_ptr<abstract_filter_t> filter;
+      abstract_aggregator_t* raw_pointer = static_cast<abstract_aggregator_t*>(action->data().value<void*>());
+      std::tr1::shared_ptr<abstract_aggregator_t> filter;
       if (first_name_filter.get() == raw_pointer) {
         filter = first_name_filter;
       } else if (last_name_filter.get() == raw_pointer) {
@@ -244,8 +244,8 @@ void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno
   QAction* action = QMenu::exec(actions, QCursor::pos());
   if (action) {
     if (action != m_collapse_action) {
-      abstract_filter_t* raw_pointer = static_cast<abstract_filter_t*>(action->data().value<void*>());
-      std::tr1::shared_ptr<abstract_filter_t> filter;
+      abstract_aggregator_t* raw_pointer = static_cast<abstract_aggregator_t*>(action->data().value<void*>());
+      std::tr1::shared_ptr<abstract_aggregator_t> filter;
       if (first_name_filter.get() == raw_pointer) {
         filter = first_name_filter;
       } else if (last_name_filter.get() == raw_pointer) {

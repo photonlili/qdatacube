@@ -19,16 +19,10 @@ class QAbstractItemModel;
 
 namespace qdatacube {
 
+class abstract_aggregator_t;
 class cell_t;
-
-
 class datacube_selection_t;
-
-
 class datacube_colrow_t;
-
-
-class abstract_filter_t;
 
 /**
  * row: row in datacube
@@ -47,8 +41,8 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * @param column_filter initial filter. Ownership is claimed, and filter will be deleted
      */
     datacube_t(const QAbstractItemModel* underlying_model,
-               abstract_filter_t* row_filter,
-               abstract_filter_t* column_filter,
+               abstract_aggregator_t* row_filter,
+               abstract_aggregator_t* column_filter,
                QObject* parent = 0);
 
     /**
@@ -59,8 +53,8 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * @param column_filter initial filter.
      */
     datacube_t(const QAbstractItemModel* model,
-            std::tr1::shared_ptr<abstract_filter_t> row_filter,
-            std::tr1::shared_ptr<abstract_filter_t> column_filter,
+            std::tr1::shared_ptr<abstract_aggregator_t> row_filter,
+            std::tr1::shared_ptr<abstract_aggregator_t> column_filter,
             QObject* parent = 0);
 
     /**
@@ -116,13 +110,13 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     /**
      * Add global filter. Elements in "category" are included, the rest are excluded
      */
-    void add_global_filter(std::tr1::shared_ptr<abstract_filter_t> filter, int category);
+    void add_global_filter(std::tr1::shared_ptr<abstract_aggregator_t> filter, int category);
 
     /**
      * Add global filter. Convenience overload. Filter is claimed by this datacube and will be deleted at some point
-     * equivalent to add_global_filter(std::tr1::shared_ptr<abstract_filter_t*>(filter), category);
+     * equivalent to add_global_filter(std::tr1::shared_ptr<abstract_aggregator_t*>(filter), category);
      */
-    void add_global_filter(abstract_filter_t* filter, int category);
+    void add_global_filter(abstract_aggregator_t* filter, int category);
 
     /**
      * Remove all global filters
@@ -132,12 +126,12 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     /**
      * Remove global filter from list
      */
-    void remove_global_filter(std::tr1::shared_ptr<abstract_filter_t> filter);
+    void remove_global_filter(std::tr1::shared_ptr<abstract_aggregator_t> filter);
 
     /**
      * Remove global filter from list
      */
-    bool remove_global_filter(qdatacube::abstract_filter_t* filter);
+    bool remove_global_filter(qdatacube::abstract_aggregator_t* filter);
 
     /**
      * Split header with filter.
@@ -146,13 +140,13 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      *                 header_count(orientation) is the bottommost.
      * @param filter filter to use. Each non-empty category will give a new row or column
      */
-    void split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr<abstract_filter_t> filter);
+    void split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr<abstract_aggregator_t> filter);
 
     /**
      * Split header with filter.
-     * convenience overload, same as split(orientation, headerno, std::tr1::shared_ptr<abstract_filter_t>(filter));
+     * convenience overload, same as split(orientation, headerno, std::tr1::shared_ptr<abstract_aggregator_t>(filter));
      */
-    void split(Qt::Orientation orientation, int headerno, abstract_filter_t* filter);
+    void split(Qt::Orientation orientation, int headerno, abstract_aggregator_t* filter);
 
     /**
      * Collapse header, removing it from datacube. Requries headercount(orientation)>=2
@@ -175,8 +169,8 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      */
     int section_for_element_internal(int element, Qt::Orientation orientation) const;
 
-    typedef QList<QPair< std::tr1::shared_ptr<abstract_filter_t>, int > > global_filters_t;
-    typedef QList<std::tr1::shared_ptr<abstract_filter_t> > filters_t;
+    typedef QList<QPair< std::tr1::shared_ptr<abstract_aggregator_t>, int > > global_filters_t;
+    typedef QList<std::tr1::shared_ptr<abstract_aggregator_t> > filters_t;
 
     /**
      * @return Return all global filters in effect with their categories
@@ -283,9 +277,9 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
   private:
     void remove(int index);
     void add(int index);
-    void split_row(int headerno, std::tr1::shared_ptr< abstract_filter_t > filter);
-    void split_column(int headerno, std::tr1::shared_ptr< abstract_filter_t > filter);
-    void filter_category_added(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter, int headerno, int index, Qt::Orientation orientation);
+    void split_row(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > filter);
+    void split_column(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > filter);
+    void filter_category_added(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > filter, int headerno, int index, Qt::Orientation orientation);
 
     /**
      * @returns the number of buckets (i.e. sections including empty sections) in datacube for

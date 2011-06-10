@@ -11,7 +11,7 @@
 #include <QStandardItemModel>
 #include <QDebug>
 
-#include "column_filter.h"
+#include "column_aggregator.h"
 #include "datacube.h"
 
 using namespace qdatacube;
@@ -45,7 +45,6 @@ int danishnamecube_t::printdatacube(const qdatacube::datacube_t* datacube) {
 void danishnamecube_t::load_model_data(QString filename) {
   QFile data(QString(DATADIR)+"/"+filename);
   data.open(QIODevice::ReadOnly);
-  m_underlying_model = new QStandardItemModel(0, N_COLUMNS, this);
   while (!data.atEnd()) {
     QString line = QString::fromLocal8Bit(data.readLine());
     QStringList columns = line.split(' ');
@@ -60,19 +59,19 @@ void danishnamecube_t::load_model_data(QString filename) {
   QStringList labels;
   labels << "firstname" << "lastname" << "sex" << "age" << "weight" << "kommune";
   m_underlying_model->setHorizontalHeaderLabels(labels);
-  qDebug() << "Read " << m_underlying_model->rowCount() << " rows";
+  qDebug() << "Read " << m_underlying_model->rowCount() << " rows" << "with" << m_underlying_model->columnCount() << "columns";
 
 }
 
 danishnamecube_t::danishnamecube_t(QObject* parent):
     QObject(parent),
-    m_underlying_model(new QStandardItemModel(this)),
-    first_name_filter(new column_filter_t(FIRST_NAME)),
-    last_name_filter(new column_filter_t(LAST_NAME)),
-    sex_filter(new column_filter_t(SEX)),
-    age_filter(new column_filter_t(AGE)),
-    weight_filter(new column_filter_t(WEIGHT)),
-    kommune_filter(new column_filter_t(KOMMUNE))
+    m_underlying_model(new QStandardItemModel(0, N_COLUMNS, this)),
+    first_name_filter(new column_aggregator_t(m_underlying_model, FIRST_NAME)),
+    last_name_filter(new column_aggregator_t(m_underlying_model, LAST_NAME)),
+    sex_filter(new column_aggregator_t(m_underlying_model, SEX)),
+    age_filter(new column_aggregator_t(m_underlying_model, AGE)),
+    weight_filter(new column_aggregator_t(m_underlying_model, WEIGHT)),
+    kommune_filter(new column_aggregator_t(m_underlying_model, KOMMUNE))
 {
 }
 
