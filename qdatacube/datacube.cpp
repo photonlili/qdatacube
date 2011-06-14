@@ -535,10 +535,8 @@ void datacube_t::split(Qt::Orientation orientation, int headerno, std::tr1::shar
   } else {
     split_column(headerno, aggregator);
   }
-  if (!d->row_aggregators.contains(aggregator) && d->col_aggregators.contains(aggregator)) {
-    connect(aggregator.get(), SIGNAL(category_added(int)), SLOT(slot_aggregator_category_added(int)));
-    connect(aggregator.get(), SIGNAL(category_removed(int)), SLOT(slot_aggregator_category_removed(int)));;
-  }
+  connect(aggregator.get(), SIGNAL(category_added(int)), SLOT(slot_aggregator_category_added(int)));
+  connect(aggregator.get(), SIGNAL(category_removed(int)), SLOT(slot_aggregator_category_removed(int)));;
   emit reset();
 }
 
