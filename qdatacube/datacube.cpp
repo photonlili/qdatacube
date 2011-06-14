@@ -833,7 +833,7 @@ int qdatacube::datacube_t::category_index(Qt::Orientation orientation, int heade
 
 bool qdatacube::datacube_t::filtered_in(int element) const {
   Q_FOREACH(global_filters_t::value_type filter, d->global_filters) {
-    if ((*filter)(element)) {
+    if (!(*filter)(element)) {
       return false;
     }
   }
