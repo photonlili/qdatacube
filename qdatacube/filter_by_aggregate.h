@@ -18,6 +18,8 @@ class QDATACUBE_EXPORT  filter_by_aggregate_t : public abstract_filter_t {
 
     virtual QString name() const;
 
+    virtual QString short_name() const;
+
     virtual bool operator()(int row);
 
     std::tr1::shared_ptr<abstract_aggregator_t> aggregator() const {

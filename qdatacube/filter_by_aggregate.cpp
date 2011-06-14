@@ -29,6 +29,12 @@ filter_by_aggregate_t::filter_by_aggregate_t(qdatacube::abstract_aggregator_t* a
 
 QString filter_by_aggregate_t::name() const
 {
+  const static QString name = m_aggregator->name() + "=" + m_aggregator->categories().at(m_category_index);;
+  return name;
+}
+
+QString filter_by_aggregate_t::short_name() const
+{
   return m_aggregator->categories().at(m_category_index);
 }
 

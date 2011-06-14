@@ -24,6 +24,11 @@ class QDATACUBE_EXPORT abstract_filter_t : public QObject {
     virtual QString name() const = 0;
 
     /**
+     * @return short name of filter (for corner label)
+     */
+    virtual QString short_name() const = 0;
+
+    /**
      * @return underlying model
      */
     QAbstractItemModel* underlying_model() const {
