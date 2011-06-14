@@ -266,6 +266,11 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      */
     void reset();
 
+    /**
+     * Global filtering changed
+     */
+    void global_filter_changed();
+
   private Q_SLOTS:
     void update_data(QModelIndex topleft, QModelIndex bottomRight);
     void remove_data(QModelIndex parent, int start, int end);

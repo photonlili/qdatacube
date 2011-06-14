@@ -79,6 +79,7 @@ void datacube_view_t::set_datacube(datacube_t* datacube) {
   connect(datacube, SIGNAL(rows_inserted(int, int)), SLOT(relayout()));
   connect(datacube, SIGNAL(columns_removed(int, int)), SLOT(relayout()));
   connect(datacube, SIGNAL(rows_removed(int, int)), SLOT(relayout()));
+  connect(datacube, SIGNAL(global_filter_changed()), SLOT(relayout()));
   connect(datacube, SIGNAL(destroyed(QObject*)), SLOT(deleteLater()));
   relayout();
 }

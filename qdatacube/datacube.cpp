@@ -224,6 +224,7 @@ void datacube_t::add_global_filter(std::tr1::shared_ptr< qdatacube::abstract_fil
     }
   }
   d->global_filters << filter;
+  emit global_filter_changed();
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
@@ -232,6 +233,7 @@ void datacube_t::add_global_filter(std::tr1::shared_ptr< qdatacube::abstract_fil
 void datacube_t::remove_global_filter(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter)
 {
   remove_global_filter(filter.get());
+  emit global_filter_changed();
 }
 
 
@@ -248,6 +250,7 @@ bool datacube_t::remove_global_filter(qdatacube::abstract_filter_t* filter) {
           }
         }
       }
+      emit global_filter_changed();
       return true;
     }
   }
@@ -298,6 +301,9 @@ void datacube_t::add_global_filter(qdatacube::abstract_filter_t* filter) {
 }
 
 void datacube_t::reset_global_filter() {
+  if (d->global_filters.empty()) {
+    return;
+  }
   d->global_filters.clear();
   for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
     const bool was_included = d->reverse_index.contains(row);
@@ -305,6 +311,7 @@ void datacube_t::reset_global_filter() {
       add(row);
     }
   }
+  emit global_filter_changed();
 
 }
 
