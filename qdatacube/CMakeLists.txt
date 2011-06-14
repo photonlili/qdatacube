@@ -25,7 +25,6 @@ set_target_properties(qdatacube PROPERTIES VERSION "${QDATACUBE_SO_VERSION}.0.0"
 
 SET(CONTAINERS_PUBLIC_HEADERS
   column_aggregator.h
-  column_filter.h
   datacube.h
   datacube_selection.h
   datacube_view.h
