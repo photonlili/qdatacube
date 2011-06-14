@@ -29,6 +29,7 @@ SET(CONTAINERS_PUBLIC_HEADERS
   datacube_selection.h
   datacube_view.h
   abstract_aggregator.h
+  abstract_filter.h
   qdatacube_export.h
   filter_by_aggregate.h
 )
