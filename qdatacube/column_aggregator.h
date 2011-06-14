@@ -13,6 +13,7 @@
 #include <QScopedPointer>
 
 #include "qdatacube_export.h"
+#include <QAbstractItemModel>
 
 class QModelIndex;
 namespace qdatacube {
@@ -37,6 +38,10 @@ class QDATACUBE_EXPORT column_aggregator_t : public abstract_aggregator_t {
   private:
     class secret_t;
     QScopedPointer<secret_t> d;
+    void add_new_category(QString data);
+private Q_SLOTS:
+    void refresh_categories_in_rect(QModelIndex top_left, QModelIndex bottom_right);
+    void add_rows_to_categories(const QModelIndex& parent, int start, int end);
 };
 
 }

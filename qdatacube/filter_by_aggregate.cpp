@@ -42,8 +42,7 @@ bool filter_by_aggregate_t::operator()(int row) {
   return ((*m_aggregator)(row) == m_category_index);
 }
 
-void filter_by_aggregate_t::slot_aggregator_category_inserted
-(int index) {
+void filter_by_aggregate_t::slot_aggregator_category_inserted(int index) {
   if (index <= m_category_index) {
     ++m_category_index;
   }
