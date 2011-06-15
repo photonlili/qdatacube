@@ -27,6 +27,20 @@ class column_aggregator_t::secret_t {
 void column_aggregator_t::set_trim_new_categories_from_right(int max_chars) {
   d->trim_right = true;
   d->max_chars = max_chars;
+  // Rebuild categories
+  QStringList cats;
+  secret_t::cat_map_t map;
+  Q_FOREACH(QString cat, d->categories) {
+    cat = cat.right(max_chars);
+    if (cats.isEmpty() || cats.last() != cat) {
+      cats << cat;
+    }
+  }
+  d->categories = cats;
+  for (int i=0; i<cats.size(); ++i) {
+    map.insert(cats.at(i),i);
+  }
+  d->cat_map = map;
 }
 
 const QList< QString >& column_aggregator_t::categories() {
@@ -83,6 +97,9 @@ void column_aggregator_t::add_rows_to_categories(const QModelIndex& parent, int 
   }
   for (int row=start; row<=end; ++row) {
     QString data = m_underlying_model->index(row, d->section).data().toString();
+    if (d->trim_right) {
+      data = data.right(d->max_chars);
+    }
     add_new_category(data);
   }
 }
@@ -96,6 +113,9 @@ void column_aggregator_t::refresh_categories_in_rect(QModelIndex top_left, QMode
   }
   for (int row=top_left.row(); row<=bottom_right.row(); ++row) {
     QString data = m_underlying_model->index(row, d->section).data().toString();
+    if (d->trim_right) {
+      data = data.right(d->max_chars);
+    }
     add_new_category(data);
   }
 
