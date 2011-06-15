@@ -287,6 +287,7 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void split_row(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > aggregator);
     void split_column(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > aggregator);
     void aggregator_category_added(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > aggregator, int headerno, int index, Qt::Orientation orientation);
+    void aggregator_category_removed(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > aggregator, int headerno, int index, Qt::Orientation orientation);
 
     /**
      * @returns the number of buckets (i.e. sections including empty sections) in datacube for

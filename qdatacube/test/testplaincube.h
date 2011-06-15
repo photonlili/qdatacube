@@ -102,7 +102,7 @@ class testplaincube : public danishnamecube_t {
     /**
     * Test remove category from a filter;
     */
-//    void test_remove_category(); // TODO
+    void test_remove_category();
 
     /**
      * Test section_for_element_internal

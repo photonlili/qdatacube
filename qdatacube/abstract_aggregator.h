@@ -19,7 +19,6 @@ namespace qdatacube {
 
 /**
  * aggregate elements into a number of categories
- * Note that category_removed is unsupported as yet.
  */
 class QDATACUBE_EXPORT abstract_aggregator_t : public QObject {
   Q_OBJECT
@@ -60,7 +59,6 @@ class QDATACUBE_EXPORT abstract_aggregator_t : public QObject {
 
     /**
      * Implementors must emit this signal when a category has been removed
-     * NOTE: This is unsupported currently.
      * @param index index of new category
      */
     void category_removed(int index) const;

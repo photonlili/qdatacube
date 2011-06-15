@@ -608,6 +608,79 @@ void testplaincube::test_add_rows() {
 
 }
 
+void testplaincube::test_remove_category()
+{
+  QStandardItemModel* tmp_model = copy_model();
+  std::tr1::shared_ptr<column_aggregator_t> age_aggregator(new column_aggregator_t(tmp_model, AGE));
+  std::tr1::shared_ptr<abstract_aggregator_t> kommune_aggregator(new column_aggregator_t(tmp_model, KOMMUNE));
+  std::tr1::shared_ptr<abstract_aggregator_t> sex_aggregator(new column_aggregator_t(tmp_model, SEX));
+  std::tr1::shared_ptr<abstract_aggregator_t> last_name_aggregator(new column_aggregator_t(tmp_model, LAST_NAME));
+  datacube_t datacube(tmp_model, kommune_aggregator, age_aggregator);
+  datacube.split(Qt::Horizontal, 1, last_name_aggregator);
+  datacube.split(Qt::Horizontal, 0, sex_aggregator);
+  QList<int> aged20;
+  aged20 << 65 << 32 << 12; // Inverse order to help removal
+  Q_FOREACH(int row, aged20) {
+    QCOMPARE(tmp_model->index(row, AGE).data().toInt(), 20);
+  }
+  QVERIFY(age_aggregator->categories().contains("20"));
+
+  Q_FOREACH(int row, aged20) {
+    tmp_model->removeRow(row);
+  }
+  // At this point, we should not see the removal triggered
+  QVERIFY(age_aggregator->categories().contains("20"));
+
+  // Manually trigger removal
+  age_aggregator->reset_categories();
+
+  // age_filter should now not have an "20" aged category
+  QVERIFY(!age_aggregator->categories().contains("20"));
+
+  // Check datacube
+  int total = 0;
+  QStringList column0_headers;
+  typedef QPair<QString, int> header_pair_t;
+  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Horizontal,0)) {
+    for (int i=0; i<hp.second; ++i) {
+      column0_headers << hp.first;
+    }
+  }
+  QStringList column1_headers;
+  typedef QPair<QString, int> header_pair_t;
+  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Horizontal,1)) {
+    for (int i=0; i<hp.second; ++i) {
+      column1_headers << hp.first;
+    }
+  }
+  QStringList column2_headers;
+  typedef QPair<QString, int> header_pair_t;
+  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Horizontal,2)) {
+    for (int i=0; i<hp.second; ++i) {
+      column2_headers << hp.first;
+    }
+  }
+  QStringList row0_headers;
+  Q_FOREACH(header_pair_t hp, datacube.headers(Qt::Vertical,0)) {
+    for (int i=0; i<hp.second; ++i) {
+      row0_headers << hp.first;
+    }
+  }
+  for (int r = 0; r < datacube.row_count(); ++r) {
+    for (int c = 0; c < datacube.column_count(); ++c) {
+      QList<int> elements = datacube.elements(r,c);
+      Q_FOREACH(int cell, elements) {
+        ++total;
+        QCOMPARE(tmp_model->data(tmp_model->index(cell, SEX)).toString(), column0_headers.at(c));
+        QCOMPARE(tmp_model->data(tmp_model->index(cell, AGE)).toString(), column1_headers.at(c));
+        QCOMPARE(tmp_model->data(tmp_model->index(cell, LAST_NAME)).toString(), column2_headers.at(c));
+        QCOMPARE(tmp_model->data(tmp_model->index(cell, KOMMUNE)).toString(), row0_headers.at(r));
+      }
+    }
+  }
+  QCOMPARE(total, 97);
+
+}
 
 QTEST_MAIN(testplaincube)
 

@@ -35,13 +35,21 @@ class QDATACUBE_EXPORT column_aggregator_t : public abstract_aggregator_t {
      * trim (new) categories from the right to max max_chars characters
      **/
     void set_trim_new_categories_from_right(int max_chars);
+  public Q_SLOTS:
+    /**
+     * Recalculate categories. This is also triggered automatically when the number of changed or removed rows
+     * exceeds the half the current size
+     */
+    void reset_categories();
   private:
     class secret_t;
     QScopedPointer<secret_t> d;
     void add_new_category(QString data);
-private Q_SLOTS:
+    void remove_category(QString category);
+  private Q_SLOTS:
     void refresh_categories_in_rect(QModelIndex top_left, QModelIndex bottom_right);
     void add_rows_to_categories(const QModelIndex& parent, int start, int end);
+    void remove_rows_from_categories(const QModelIndex& parent, int start, int end);
 };
 
 }

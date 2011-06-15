@@ -14,7 +14,7 @@ namespace qdatacube {
 
 class column_aggregator_t::secret_t {
   public:
-    secret_t(int section) : categories(), section(section), trim_right(false), max_chars(3) {
+    secret_t(int section) : categories(), section(section), trim_right(false), max_chars(3), possible_removed_counts(0) {
     }
     QStringList categories;
     typedef QHash<QString, int> cat_map_t;
@@ -22,6 +22,7 @@ class column_aggregator_t::secret_t {
     int section;
     bool trim_right;
     int max_chars;
+    int possible_removed_counts;
 };
 
 void column_aggregator_t::set_trim_new_categories_from_right(int max_chars) {
@@ -65,6 +66,8 @@ column_aggregator_t::column_aggregator_t(QAbstractItemModel* model, int section)
   }
   connect(m_underlying_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(refresh_categories_in_rect(QModelIndex,QModelIndex)));
   connect(m_underlying_model, SIGNAL(rowsInserted(const QModelIndex&,int, int)), SLOT(add_rows_to_categories(const QModelIndex&,int,int)));
+  connect(m_underlying_model, SIGNAL(modelReset()), SLOT(reset_categories()));
+  connect(m_underlying_model, SIGNAL(rowsRemoved(const QModelIndex&,int, int)), SLOT(remove_rows_from_categories(const QModelIndex&,int,int)));
 }
 
 int column_aggregator_t::operator()(int row) {
@@ -118,6 +121,10 @@ void column_aggregator_t::refresh_categories_in_rect(QModelIndex top_left, QMode
     }
     add_new_category(data);
   }
+  d->possible_removed_counts += bottom_right.row() - top_left.row();
+  if (d->possible_removed_counts*2 > m_underlying_model->rowCount()) {
+    reset_categories();
+  }
 
 }
 
@@ -135,6 +142,53 @@ void column_aggregator_t::add_new_category(QString data)
     d->categories.insert(index, data);
     emit category_added(index);
   }
+}
+void column_aggregator_t::remove_category(QString category)
+{
+  const int index = d->cat_map.value(category, -1);
+  if (index<0) {
+    Q_ASSERT(false);
+    return;
+  }
+  for (int i=index+1; i<d->categories.size(); ++i) {
+    int rv = --d->cat_map[d->categories[i]];
+    Q_ASSERT(rv>=index);
+  }
+  d->categories.removeAt(index);
+  emit category_removed(index);
+
+}
+
+
+void column_aggregator_t::remove_rows_from_categories(const QModelIndex& parent, int start, int end) {
+  if (parent.isValid()) {
+    return;
+  }
+  d->possible_removed_counts += (end-start);
+  if (d->possible_removed_counts*2 > m_underlying_model->rowCount()) {
+    reset_categories();
+  }
+}
+
+void column_aggregator_t::reset_categories() {
+  QSet<QString> categories;
+  for (int i=0, iend = m_underlying_model->rowCount(); i<iend; ++i) {
+    QString cat = m_underlying_model->data(m_underlying_model->index(i, d->section)).toString();
+    if (d->trim_right) {
+      cat = cat.right(d->max_chars);
+    }
+    categories << cat;
+  }
+  Q_FOREACH(QString cat, d->categories) {
+    if (!categories.contains(cat)) {
+      remove_category(cat);
+    }
+    categories.remove(cat);
+  }
+  Q_FOREACH(QString cat, categories) {
+    add_new_category(cat);
+  }
+
 }
 
 }

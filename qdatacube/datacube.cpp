@@ -743,16 +743,29 @@ void qdatacube::datacube_t::slot_aggregator_category_added(int index) {
   }
 }
 
-void qdatacube::datacube_t::slot_aggregator_category_removed(int /*index*/) {
-  Q_ASSERT(false); // TODO
+void qdatacube::datacube_t::slot_aggregator_category_removed(int index) {
+  if (abstract_aggregator_t* aggregator = qobject_cast<abstract_aggregator_t*>(sender())) {
+    int headerno = 0;
+    Q_FOREACH(std::tr1::shared_ptr<abstract_aggregator_t> f, d->row_aggregators) {
+      if (f.get() == aggregator) {
+        aggregator_category_removed(f, headerno,index, Qt::Vertical);
+      }
+      ++headerno;
+    }
+    headerno = 0;
+    Q_FOREACH(std::tr1::shared_ptr<abstract_aggregator_t> f, d->col_aggregators) {
+      if (f.get() == aggregator) {
+        aggregator_category_removed(f, headerno, index, Qt::Horizontal);
+      }
+      ++headerno;
+    }
+  }
 
 }
 
 
 void qdatacube::datacube_t::aggregator_category_added(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > aggregator, int headerno, int index, Qt::Orientation orientation)
 {
-  // NB! Since more aggregators might need to be adjusted, the col/row aggregators catogories() cannot be trusted downwards
-  // and in the other direction. operator() cannot be trusted except for aggregator itself
   const secret_t::aggregators_t& parallel_aggregators = orientation == Qt::Horizontal ? d->col_aggregators : d->row_aggregators;
   QVector<unsigned>& new_parallel_counts = orientation == Qt::Horizontal ? d->col_counts : d->row_counts;
   const int normal_count = orientation == Qt::Horizontal ? d->row_counts.size() : d->col_counts.size();
@@ -768,21 +781,64 @@ void qdatacube::datacube_t::aggregator_category_added(std::tr1::shared_ptr< qdat
   Q_ASSERT(stride*nsuper_categories*old_ncats == old_parallel_counts.size());
   new_parallel_counts = QVector<unsigned>(new_ncats * nsuper_categories * stride);
   d->cells = QVector<QList<int> >(new_parallel_counts.size() * normal_count);
+  d->reverse_index.clear();
   for (int normal_index=0; normal_index<normal_count; ++normal_index) {
     for (int super_index=0; super_index<nsuper_categories; ++super_index) {
-        for (int category_index=0; category_index<old_ncats; ++category_index) {
-          for (int sub_index=0; sub_index<stride; ++sub_index) {
-            const int old_p = super_index*stride*old_ncats + category_index*stride + sub_index;
-            const int new_category_index = index<=category_index ? category_index+1 : category_index;
-            const int p = super_index*stride*new_ncats + new_category_index*stride + sub_index;
-            QList<int>& cell = orientation == Qt::Horizontal ? d->cell(normal_index, p) : d->cell(p, normal_index);
-            cell = orientation == Qt::Horizontal ? old_cells.at(normal_index+ old_p*normal_count) : old_cells.at(normal_index*old_parallel_counts.size()+old_p);
-            new_parallel_counts[p] = old_parallel_counts[old_p];
+      for (int category_index=0; category_index<old_ncats; ++category_index) {
+        for (int sub_index=0; sub_index<stride; ++sub_index) {
+          const int old_p = super_index*stride*old_ncats + category_index*stride + sub_index;
+          const int new_category_index = index<=category_index ? category_index+1 : category_index;
+          const int p = super_index*stride*new_ncats + new_category_index*stride + sub_index;
+          QList<int>& cell = orientation == Qt::Horizontal ? d->cell(normal_index, p) : d->cell(p, normal_index);
+          cell = orientation == Qt::Horizontal ? old_cells.at(normal_index+ old_p*normal_count) : old_cells.at(normal_index*old_parallel_counts.size()+old_p);
+          new_parallel_counts[p] = old_parallel_counts[old_p];
+          Q_FOREACH(int element, cell) {
+            d->reverse_index.insert(element, orientation == Qt::Horizontal ? cell_t(normal_index,p) : cell_t(p, normal_index));
           }
         }
+      }
     }
   }
   emit reset(); // TODO: It is not impossible to emit the correct row/column changed instead
+}
+
+void qdatacube::datacube_t::aggregator_category_removed(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > aggregator, int headerno, int index, Qt::Orientation orientation)
+{
+  const secret_t::aggregators_t& parallel_aggregators = orientation == Qt::Horizontal ? d->col_aggregators : d->row_aggregators;
+  QVector<unsigned>& new_parallel_counts = orientation == Qt::Horizontal ? d->col_counts : d->row_counts;
+  const int normal_count = orientation == Qt::Horizontal ? d->row_counts.size() : d->col_counts.size();
+  const QVector<unsigned> old_parallel_counts = new_parallel_counts;
+  QVector<QList<int> > old_cells = d->cells;
+  int nsuper_categories = 1;
+  for (int h=0; h<headerno; ++h) {
+    nsuper_categories *= parallel_aggregators[h]->categories().size();
+  }
+  const int new_ncats = aggregator->categories().size();
+  const int old_ncats = new_ncats + 1;
+  const int stride = old_parallel_counts.size()/old_ncats/nsuper_categories;
+  Q_ASSERT(stride*nsuper_categories*old_ncats == old_parallel_counts.size());
+  new_parallel_counts = QVector<unsigned>(new_ncats * nsuper_categories * stride);
+  d->cells = QVector<QList<int> >(new_parallel_counts.size() * normal_count);
+  d->reverse_index.clear();
+  for (int normal_index=0; normal_index<normal_count; ++normal_index) {
+    for (int super_index=0; super_index<nsuper_categories; ++super_index) {
+      for (int category_index=0; category_index<new_ncats; ++category_index) {
+        for (int sub_index=0; sub_index<stride; ++sub_index) {
+          const int old_category_index = index<=category_index ? category_index+1 : category_index;
+          const int old_p = super_index*stride*old_ncats + old_category_index*stride + sub_index;
+          const int p = super_index*stride*new_ncats + category_index*stride + sub_index;
+          QList<int>& cell = orientation == Qt::Horizontal ? d->cell(normal_index, p) : d->cell(p, normal_index);
+          cell = orientation == Qt::Horizontal ? old_cells.at(normal_index+ old_p*normal_count) : old_cells.at(normal_index*old_parallel_counts.size()+old_p);
+          new_parallel_counts[p] = old_parallel_counts[old_p];
+          Q_FOREACH(int element, cell) {
+            d->reverse_index.insert(element, orientation == Qt::Horizontal ? cell_t(normal_index,p) : cell_t(p, normal_index));
+          }
+        }
+      }
+    }
+  }
+  emit reset(); // TODO: It is not impossible to emit the correct row/column changed instead
+
 }
 
 int qdatacube::datacube_t::bucket_for_column(int column) const
