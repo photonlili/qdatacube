@@ -9,6 +9,7 @@
 #include <QSet>
 #include "cell.h"
 #include <QAbstractProxyModel>
+#include <QDate>
 
 namespace qdatacube {
 
@@ -18,6 +19,7 @@ struct datacube_selection_t::secret_t {
   QVector<int> cells;
   QSet<int> selected_elements;
   QItemSelectionModel* synchronized_selection_model;
+  bool ignore_synchronized;
   int nrows;
   int ncolumns;
 
@@ -86,28 +88,47 @@ QItemSelection datacube_selection_t::secret_t::map_to_synchronized(QList< int > 
     }
     std::reverse(proxies.begin(), proxies.end());
 
-    // Create selection on source model
-    Q_FOREACH(int element, elements) {
-      selection << QItemSelectionRange(model->index(element,0),model->index(element,0));
-    }
+    QList<int> rows = elements;
 
     // Map from source to whatever proxy model the synchronized model
+    const QAbstractItemModel* last_model = model;
+    QList<int> proxy_rows;
     Q_FOREACH(const QAbstractProxyModel* proxy, proxies) {
-      QItemSelection proxyselection;
-      Q_FOREACH(QItemSelectionRange range, selection) {
-        QModelIndex mapped = proxy->mapFromSource(range.topLeft());
-        proxyselection << QItemSelectionRange(mapped, mapped);
+      proxy_rows.clear();
+      Q_FOREACH(int row, rows) {
+        proxy_rows << proxy->mapFromSource(last_model->index(row,0)).row();
       }
-      selection = proxyselection;
+      rows = proxy_rows;
+      last_model = proxy;
+    }
+    qSort(rows);
+    const int last_column = model->columnCount()-1;
+    model = synchronized_selection_model->model();
+    if (rows.size()>0) {
+      int lastrow = rows.front();
+      int start = lastrow;
+      for (int i=1, iend=rows.size(); i<iend; ++i) {
+        ++lastrow;
+        const int row = rows.at(i);
+        if ( row != lastrow) {
+          selection << QItemSelectionRange(model->index(start,0), model->index(lastrow-1, last_column));
+          start = row;
+          lastrow = row;
+        }
+      }
+      selection << QItemSelectionRange(model->index(start,0), model->index(lastrow, last_column));
     }
   }
   return selection;
 }
 
 void datacube_selection_t::secret_t::select_on_synchronized(QList<int> elements) {
-  if (synchronized_selection_model) {
+  if (synchronized_selection_model && !ignore_synchronized) {
     // Select on sync. model
-    synchronized_selection_model->select(map_to_synchronized(elements), QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    QItemSelection selection(map_to_synchronized(selected_elements.toList()));
+    ignore_synchronized = true;
+    synchronized_selection_model->select(selection, QItemSelectionModel::ClearAndSelect);
+    ignore_synchronized = false;
   }
 
 }
@@ -128,6 +149,7 @@ void datacube_selection_t::secret_t::clear_synchronized() {
 datacube_selection_t::secret_t::secret_t() :
     datacube(0L),
     synchronized_selection_model(0L),
+    ignore_synchronized(false),
     nrows(0),
     ncolumns(0)
 {
