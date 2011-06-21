@@ -323,9 +323,6 @@ void datacube_selection_t::synchronize_with(QItemSelectionModel* synchronized_se
     connect(synchronized_selection_model,
           SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
           SLOT(update_selection(QItemSelection,QItemSelection)));
-    connect(synchronized_selection_model->model(),
-            SIGNAL(rowsAboutToBeRemoved(const QModelIndex&,int,int)),
-            SLOT(remove_elements_from_selection(const QModelIndex&,int,int)));
     update_selection(synchronized_selection_model->selection(), QItemSelection());
   }
 
