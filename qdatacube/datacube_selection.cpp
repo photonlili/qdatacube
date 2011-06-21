@@ -123,6 +123,9 @@ QItemSelection datacube_selection_t::secret_t::map_to_synchronized(QList< int > 
 }
 
 void datacube_selection_t::secret_t::select_on_synchronized(QList<int> elements) {
+  if (elements.isEmpty()) {
+    return;
+  }
   if (synchronized_selection_model && !ignore_synchronized) {
     // Select on sync. model
     QItemSelection selection(map_to_synchronized(selected_elements.toList()));
@@ -136,13 +139,17 @@ void datacube_selection_t::secret_t::select_on_synchronized(QList<int> elements)
 void datacube_selection_t::secret_t::deselect_on_synchronized(QList< int > elements) {
   if (synchronized_selection_model) {
     // Select on sync. model
+    ignore_synchronized = true;
     synchronized_selection_model->select(map_to_synchronized(elements), QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
+    ignore_synchronized = false;
   }
 
 }
 void datacube_selection_t::secret_t::clear_synchronized() {
   if (synchronized_selection_model) {
+    ignore_synchronized = true;
     synchronized_selection_model->clearSelection();
+    ignore_synchronized = false;
   }
 }
 
@@ -296,8 +303,10 @@ void datacube_selection_t::clear() {
 }
 
 void datacube_selection_t::update_selection(QItemSelection select, QItemSelection deselect) {
-  add_elements(d->elements_from_selection(select));
-  remove_elements(d->elements_from_selection(deselect));
+  if (!d->ignore_synchronized) {
+    add_elements(d->elements_from_selection(select));
+    remove_elements(d->elements_from_selection(deselect));
+  }
 }
 
 datacube_selection_t::~datacube_selection_t() {
@@ -314,11 +323,35 @@ void datacube_selection_t::synchronize_with(QItemSelectionModel* synchronized_se
     connect(synchronized_selection_model,
           SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
           SLOT(update_selection(QItemSelection,QItemSelection)));
+    connect(synchronized_selection_model->model(),
+            SIGNAL(rowsAboutToBeRemoved(const QModelIndex&,int,int)),
+            SLOT(remove_elements_from_selection(const QModelIndex&,int,int)));
     update_selection(synchronized_selection_model->selection(), QItemSelection());
   }
 
 }
 
+void datacube_selection_t::datacube_deletes_elements(int start, int end)
+{
+  const int adjust = (end-start)+1;
+  QSet<int> new_selected_elements;
+  Q_FOREACH(int e, d->selected_elements) {
+    Q_ASSERT(e<start || e>end);
+    new_selected_elements << (e>start? e-adjust:e);
+  }
+  d->selected_elements = new_selected_elements;
+
+}
+
+void datacube_selection_t::datacube_inserts_elements(int start, int end) {
+  const int adjust = (end-start)+1;
+  QSet<int> new_selected_elements;
+  Q_FOREACH(int e, d->selected_elements) {
+    new_selected_elements << (e>=start? e+adjust:e);
+  }
+  d->selected_elements = new_selected_elements;
+
+}
 
 } // end of namespace
 

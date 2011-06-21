@@ -468,6 +468,9 @@ void datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
 
 void datacube_t::insert_data(QModelIndex parent, int start, int end) {
   Q_ASSERT(!parent.isValid());
+  Q_FOREACH(datacube_selection_t* selection, d->selection_models) {
+    selection->datacube_inserts_elements(start, end);
+  }
   d->renumber_cells(start, end-start+1);
   for (int row = start; row <=end; ++row) {
     if(filtered_in(row)) {
@@ -487,6 +490,9 @@ void datacube_t::remove_data(QModelIndex parent, int start, int end) {
   Q_ASSERT(!parent.isValid());
   for (int row = end; row>=start; --row) {
     remove(row);
+  }
+  Q_FOREACH(datacube_selection_t* selection, d->selection_models) {
+    selection->datacube_deletes_elements(start, end);
   }
   // Now, all the remaining elements have to be renumbered
   d->renumber_cells(end+1, start-end-1);
