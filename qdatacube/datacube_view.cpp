@@ -294,7 +294,7 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
           }
         }
       }
-      c -= d->cell_size.width() + horizontalScrollBar()->value(); // Account for scrolled off headers
+      c -= d->cell_size.width() * horizontalScrollBar()->value(); // Account for scrolled off headers
       QPoint header_element_pos = pos - QPoint(d->vertical_header_width + d->cell_size.width() * c, d->cell_size.height() * level);
       emit horizontal_header_context_menu(header_element_pos, level, section);
     } else {
@@ -316,7 +316,7 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
           }
         }
       }
-      r -= d->cell_size.width() + verticalScrollBar()->value(); // Account for scrolled off headers
+      r -= d->cell_size.height() * verticalScrollBar()->value(); // Account for scrolled off headers
       QPoint header_element_pos = pos - QPoint(d->cell_size.width() * level, d->horizontal_header_height + d->cell_size.height() * r);
       emit vertical_header_context_menu(header_element_pos, level, section);
     } else {
