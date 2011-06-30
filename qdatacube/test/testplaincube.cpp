@@ -7,6 +7,7 @@
 
 #include "testplaincube.h"
 #include <QStandardItemModel>
+#include <algorithm>
 #include "datacube.h"
 #include "column_aggregator.h"
 #include "filter_by_aggregate.h"
@@ -680,6 +681,78 @@ void testplaincube::test_remove_category()
   }
   QCOMPARE(total, 97);
 
+}
+
+void testplaincube::test_header_element_count()
+{
+  datacube_t datacube(m_underlying_model, last_name_aggregator, first_name_aggregator);
+  datacube.split(Qt::Vertical, 1, age_aggregator);
+  datacube.split(Qt::Horizontal, 0, sex_aggregator);
+
+  // Go through rows, do the sums manually and test versus the number the datacube provides
+  typedef QPair<QString, int> header_pair_t;
+  {
+    QList<header_pair_t> row0_headers = datacube.headers(Qt::Vertical,0);
+    QList<header_pair_t> row1_headers = datacube.headers(Qt::Vertical,1);
+    int h1 = 0;
+    for (int h0=0; h0 < row0_headers.size(); ++h0) {
+      header_pair_t row0_header = row0_headers.at(h0);
+      const int row0_section = last_name_aggregator->categories().indexOf(row0_header.first);
+      for (int h1_end = h1+row0_header.second;h1 < h1_end; ++h1) {
+        header_pair_t row1_header = row1_headers.at(h1);
+        Q_ASSERT(row1_header.second == 1); // If we split futher, we must be more clever)
+        const int row1_section = age_aggregator->categories().indexOf(row1_header.first);
+        Q_ASSERT(row1_section != -1);
+        int count = 0;
+        for (int i=0; i<m_underlying_model->rowCount(); ++i) {
+          if ((*age_aggregator)(i) == row1_section && (*last_name_aggregator)(i) == row0_section) {
+            ++count;
+          }
+        }
+        QVERIFY(count>0); // Otherwise, they should have collapsed.
+        QCOMPARE(datacube.element_count(Qt::Vertical, 1, h1), count);
+      }
+      int count = 0;
+      for (int i=0; i<m_underlying_model->rowCount(); ++i) {
+        if ((*last_name_aggregator)(i) == row0_section) {
+          ++count;
+        }
+      }
+      QCOMPARE(datacube.element_count(Qt::Vertical, 0, h0), count);
+    }
+  }
+
+  // Do the same with the columns
+  {
+    QList<header_pair_t> col0_headers = datacube.headers(Qt::Horizontal,0);
+    QList<header_pair_t> col1_headers = datacube.headers(Qt::Horizontal,1);
+    int h1 = 0;
+    for (int h0=0; h0 < col0_headers.size(); ++h0) {
+      header_pair_t col0_header = col0_headers.at(h0);
+      const int col0_section = sex_aggregator->categories().indexOf(col0_header.first);
+      for (int h1_end = h1+col0_header.second;h1 < h1_end; ++h1) {
+        header_pair_t col1_header = col1_headers.at(h1);
+        Q_ASSERT(col1_header.second == 1); // If we split futher, we must be more clever)
+        const int col1_section = first_name_aggregator->categories().indexOf(col1_header.first);
+        Q_ASSERT(col1_section != -1);
+        int count = 0;
+        for (int i=0; i<m_underlying_model->rowCount(); ++i) {
+          if ((*first_name_aggregator)(i) == col1_section && (*sex_aggregator)(i) == col0_section) {
+            ++count;
+          }
+        }
+        QVERIFY(count>0); // Otherwise, they should have collapsed.
+        QCOMPARE(datacube.element_count(Qt::Horizontal, 1, h1), count);
+      }
+      int count = 0;
+      for (int i=0; i<m_underlying_model->rowCount(); ++i) {
+        if ((*sex_aggregator)(i) == col0_section) {
+          ++count;
+        }
+      }
+      QCOMPARE(datacube.element_count(Qt::Horizontal, 0, h0), count);
+    }
+  }
 }
 
 QTEST_MAIN(testplaincube)

@@ -912,4 +912,26 @@ qdatacube::datacube_t::aggregators_t qdatacube::datacube_t::row_aggregators() co
   return d->row_aggregators.toList();
 }
 
+int qdatacube::datacube_t::element_count(Qt::Orientation orientation, int headerno, int section) const
+{
+  QVector<shared_ptr<abstract_aggregator_t> >& aggregators = (orientation == Qt::Horizontal) ? d->col_aggregators : d->row_aggregators;
+  const QVector<unsigned>& counts = (orientation == Qt::Horizontal) ? d->col_counts : d->row_counts;
+  int count = 0;
+  int stride = 1;
+  for (int i=headerno+1; i<aggregators.size(); ++i) {
+    stride *= aggregators.at(i)->categories().size();
+  }
+  int offset = 0;
+  for (int section_index = 0; section_index <= section; section_index += (count>0) ? 1 : 0) {
+    Q_ASSERT_X(offset < counts.size(), "QDatacube", QString("Section %1 at header %2 orientation %3 too big for qdatacube").arg(section).arg(headerno).arg(orientation == Qt::Horizontal ? "Horizontal" : "Vertical").toLocal8Bit().data());
+    count = 0;
+    for (int i=0; i<stride; ++i) {
+      count += counts.at(offset+i);
+    }
+    offset += stride;
+  }
+  return count;
+}
+
+
 #include "datacube.moc"

@@ -120,6 +120,11 @@ class testplaincube : public danishnamecube_t {
      * Test add model rows (in the middle)
      **/
     void test_add_rows();
+
+    /**
+     * Test element_count for headers
+     */
+    void test_header_element_count();
 };
 
 #endif // TESTPLAINCUBE_H
