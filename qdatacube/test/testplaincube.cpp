@@ -755,6 +755,64 @@ void testplaincube::test_header_element_count()
   }
 }
 
+// Make QTest able to print QPair<int,int>
+namespace QTest {
+template<>
+char* toString(const QPair<int,int>& value)
+{
+  QByteArray ba = "(";
+  ba += QByteArray::number(value.first) + ", " + QByteArray::number(value.second);
+  ba += ")";
+  return qstrdup(ba.data());
+}
+} // End of namespace QTest
+
+
+void testplaincube::test_section_to_header_section_and_back_again()
+{
+  datacube_t datacube(m_underlying_model, last_name_aggregator, first_name_aggregator);
+  datacube.split(Qt::Vertical, 1, age_aggregator);
+  datacube.split(Qt::Horizontal, 0, sex_aggregator);
+
+  // Go through rows, testing that to_section and to_header_section returns correspond with manual counts
+  typedef QPair<QString, int> header_pair_t;
+  {
+    QList<header_pair_t> row0_headers = datacube.headers(Qt::Vertical,0);
+    QList<header_pair_t> row1_headers = datacube.headers(Qt::Vertical,1);
+    int h1 = 0;
+    for (int h0=0; h0 < row0_headers.size(); ++h0) {
+      header_pair_t row0_header = row0_headers.at(h0);
+      typedef QPair<int,int> intpair_t;
+      QCOMPARE(datacube.to_section(Qt::Vertical, 0, h0), intpair_t(h1,h1+row0_header.second-1));
+      for (int h1_end = h1+row0_header.second;h1 < h1_end; ++h1) {
+        header_pair_t row1_header = row1_headers.at(h1);
+        Q_ASSERT(row1_header.second == 1); // If we split futher, we must be more clever)
+        QCOMPARE(datacube.to_header_section(Qt::Vertical, 1, h1), h1);
+        QCOMPARE(datacube.to_header_section(Qt::Vertical, 0, h1), h0);
+        QCOMPARE(datacube.to_section(Qt::Vertical, 1, h1), intpair_t(h1,h1));
+      }
+    }
+  }
+  // Go through columns, testing that to_section and to_header_section returns correspond with manual counts
+  {
+    QList<header_pair_t> column0_headers = datacube.headers(Qt::Horizontal,0);
+    QList<header_pair_t> column1_headers = datacube.headers(Qt::Horizontal,1);
+    int h1 = 0;
+    for (int h0=0; h0 < column0_headers.size(); ++h0) {
+      header_pair_t row0_header = column0_headers.at(h0);
+      typedef QPair<int,int> intpair_t;
+      QCOMPARE(datacube.to_section(Qt::Horizontal, 0, h0), intpair_t(h1,h1+row0_header.second-1));
+      for (int h1_end = h1+row0_header.second;h1 < h1_end; ++h1) {
+        header_pair_t row1_header = column1_headers.at(h1);
+        Q_ASSERT(row1_header.second == 1); // If we split futher, we must be more clever)
+        QCOMPARE(datacube.to_header_section(Qt::Horizontal, 1, h1), h1);
+        QCOMPARE(datacube.to_header_section(Qt::Horizontal, 0, h1), h0);
+        QCOMPARE(datacube.to_section(Qt::Horizontal, 1, h1), intpair_t(h1,h1));
+      }
+    }
+  }
+}
+
 QTEST_MAIN(testplaincube)
 
 #include "testplaincube.moc"

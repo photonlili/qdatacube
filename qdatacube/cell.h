@@ -13,12 +13,12 @@ class cell_t
 {
   public:
     cell_t(int row_section, int column_section) : m_row(row_section), m_column(column_section) {}
-    cell_t() : m_row(-1), m_column(-1) {}
+    cell_t() : m_row(-1000), m_column(-1000) {}
     bool operator==(const cell_t& rhs) {
       return rhs.m_row == m_row && rhs.m_column == m_column;
     }
     bool invalid() const {
-      return m_row == -1;
+      return m_row == -1000;
     }
     int row() const {
       return m_row;

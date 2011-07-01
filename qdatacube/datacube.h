@@ -90,8 +90,25 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * @return pair of (name of header, number of columns spanned)
      * @param orientation
      * @param index 0 is first header, 1 is next and so on, up until headerCount(orientation)
+     * This function is meant to be convinient for drawing and similar. 
      */
     QList<QPair<QString,int> > headers(Qt::Orientation orientation, int index) const;
+
+    /**
+     * @return the header section correcsponding to section in the datacube.
+     * E.g., if a cube had 2 levels of headers, with the first header dividing
+     * the cube in 2 equal parts, any section in the first part would return 0,
+     * and the other part 1 for to_header_section(orientation, 0, section);
+     * This is sort-of the reverse for to_section.
+     */
+    int to_header_section(Qt::Orientation orientation, int headerno, int section) const;
+
+    /**
+     * @return the range of section corresponding to a given header section
+     * The range is given as a pair, (leftmost section, rightmost section)
+     * The reverse is to_header_section
+     */
+    QPair<int,int> to_section(Qt::Orientation orientation, int headerno, int header_section) const;
 
     /**
      * @returns The number of elements for the given row, column.

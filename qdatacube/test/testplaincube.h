@@ -125,6 +125,11 @@ class testplaincube : public danishnamecube_t {
      * Test element_count for headers
      */
     void test_header_element_count();
+
+    /**
+     * Test to_section and to_header_section
+     */
+    void test_section_to_header_section_and_back_again();
 };
 
 #endif // TESTPLAINCUBE_H

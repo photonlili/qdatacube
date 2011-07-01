@@ -933,5 +933,72 @@ int qdatacube::datacube_t::element_count(Qt::Orientation orientation, int header
   return count;
 }
 
+int qdatacube::datacube_t::to_header_section(const Qt::Orientation orientation, const int headerno, const int section) const
+{
+//   qDebug() << __func__ << headerno << section << row_count() << column_count();
+  QVector<shared_ptr<abstract_aggregator_t> >& aggregators = (orientation == Qt::Horizontal) ? d->col_aggregators : d->row_aggregators;
+  const QVector<unsigned>& counts = (orientation == Qt::Horizontal) ? d->col_counts : d->row_counts;
+  int stride = 1;
+  for (int i=headerno+1; i<aggregators.size(); ++i) {
+    stride *= aggregators.at(i)->categories().size();
+  }
+  // Skip forward to section
+  int bucket = 0;
+  int s = 0;
+  int header_section = 0;
+  for (; bucket<counts.size(); bucket+=stride) {
+    int old_section = s;
+    for (int i=0;i<stride; ++i) {
+//       qDebug() << __func__ << bucket << s << header_section << stride << counts.at(bucket+i) << counts.size();
+      if (counts.at(bucket+i)>0) {
+        if (s++==section) {
+          return header_section;
+        }
+      }
+    }
+    if (s>old_section) {
+      ++header_section;
+    }
+  }
+  Q_ASSERT_X(bucket<counts.size(), "QDatacube", QString("Section %1 in datacube orientation %3 too big for qdatacube").arg(section).arg(headerno).arg(orientation == Qt::Horizontal ? "Horizontal" : "Vertical").toLocal8Bit().data());
+  return header_section;
+}
+
+QPair< int, int > qdatacube::datacube_t::to_section(Qt::Orientation orientation, const int headerno, const int header_section) const
+{
+  QVector<shared_ptr<abstract_aggregator_t> >& aggregators = (orientation == Qt::Horizontal) ? d->col_aggregators : d->row_aggregators;
+  const QVector<unsigned>& counts = (orientation == Qt::Horizontal) ? d->col_counts : d->row_counts;
+  int stride = 1;
+  for (int i=headerno+1; i<aggregators.size(); ++i) {
+    stride *= aggregators.at(i)->categories().size();
+  }
+  // Skip forward to section
+  int bucket = 0;
+  int section = 0;
+  for (int hs=0; bucket<counts.size() && hs < header_section; bucket+=stride) {
+    int old_section = section;
+    for (int i=0;i<stride; ++i) {
+      if (counts.at(bucket+i)>0) {
+        ++section;
+      }
+    }
+    if (section>old_section) {
+      ++hs;
+    }
+  }
+
+  // count number of (active) sections
+  int count = 0;
+  for (; bucket<counts.size() && count == 0; bucket+=stride) {
+    for (int i=0;i<stride && (bucket+i)<counts.size(); ++i) {
+      if (counts.at(bucket+i)>0) {
+        ++count;
+      }
+    }
+  }
+  Q_ASSERT_X(count > 0, "QDatacube", QString("Section %1 in header %2 orientation %3 too big for qdatacube").arg(header_section).arg(headerno).arg(orientation == Qt::Horizontal ? "Horizontal" : "Vertical").toLocal8Bit().data());
+  return QPair<int,int>(section,section+count-1);
+}
+
 
 #include "datacube.moc"
