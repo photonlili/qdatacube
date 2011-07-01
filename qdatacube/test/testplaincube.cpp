@@ -703,21 +703,27 @@ void testplaincube::test_header_element_count()
         Q_ASSERT(row1_header.second == 1); // If we split futher, we must be more clever)
         const int row1_section = age_aggregator->categories().indexOf(row1_header.first);
         Q_ASSERT(row1_section != -1);
+        QList<int> row1_elements = datacube.elements(Qt::Vertical, 1, h1);
         int count = 0;
         for (int i=0; i<m_underlying_model->rowCount(); ++i) {
           if ((*age_aggregator)(i) == row1_section && (*last_name_aggregator)(i) == row0_section) {
             ++count;
+            QVERIFY(row1_elements.contains(i)); // Check that elements does contain the selected element
           }
         }
         QVERIFY(count>0); // Otherwise, they should have collapsed.
+        QCOMPARE(datacube.element_count(Qt::Vertical, 1, h1), row1_elements.size());
         QCOMPARE(datacube.element_count(Qt::Vertical, 1, h1), count);
       }
+      QList<int> row0_elements = datacube.elements(Qt::Vertical, 0, h0);
       int count = 0;
       for (int i=0; i<m_underlying_model->rowCount(); ++i) {
         if ((*last_name_aggregator)(i) == row0_section) {
+          QVERIFY(row0_elements.contains(i));
           ++count;
         }
       }
+      QCOMPARE(datacube.element_count(Qt::Vertical, 0, h0), row0_elements.size());
       QCOMPARE(datacube.element_count(Qt::Vertical, 0, h0), count);
     }
   }
@@ -735,21 +741,27 @@ void testplaincube::test_header_element_count()
         Q_ASSERT(col1_header.second == 1); // If we split futher, we must be more clever)
         const int col1_section = first_name_aggregator->categories().indexOf(col1_header.first);
         Q_ASSERT(col1_section != -1);
+        QList<int> column1_elements = datacube.elements(Qt::Horizontal,1,h1);
         int count = 0;
         for (int i=0; i<m_underlying_model->rowCount(); ++i) {
           if ((*first_name_aggregator)(i) == col1_section && (*sex_aggregator)(i) == col0_section) {
             ++count;
+            QVERIFY(column1_elements.contains(i));
           }
         }
         QVERIFY(count>0); // Otherwise, they should have collapsed.
+        QCOMPARE(datacube.element_count(Qt::Horizontal, 1, h1), column1_elements.size());
         QCOMPARE(datacube.element_count(Qt::Horizontal, 1, h1), count);
       }
       int count = 0;
+        QList<int> column0_elements = datacube.elements(Qt::Horizontal,0,h0);
       for (int i=0; i<m_underlying_model->rowCount(); ++i) {
         if ((*sex_aggregator)(i) == col0_section) {
           ++count;
+            QVERIFY(column0_elements.contains(i));
         }
       }
+      QCOMPARE(datacube.element_count(Qt::Horizontal, 0, h0), column0_elements.size());
       QCOMPARE(datacube.element_count(Qt::Horizontal, 0, h0), count);
     }
   }

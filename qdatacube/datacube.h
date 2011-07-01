@@ -129,7 +129,16 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * @param section section of header. Note that this is not the same as the row or column for the datacube,
      *    except for the bottommost/rightmost header.
      */
-    int element_count(Qt::Orientation orientation, int headerno, int section) const;
+    int element_count(Qt::Orientation orientation, int headerno, int header_section) const;
+
+    /**
+     * @return elements corresponding to header section
+     * @param orientation Qt::Vertical for rows, Qt::Horizontal for columns
+     * @param headerno index of header, 0 for top or leftmost
+     * @param section section of header. Note that this is not the same as the row or column for the datacube,
+     *    except for the bottommost/rightmost header.
+     */
+    QList< int > elements(Qt::Orientation orientation, int headerno, int header_section) const;
 
     /**
      * @returns the category index

@@ -912,7 +912,7 @@ qdatacube::datacube_t::aggregators_t qdatacube::datacube_t::row_aggregators() co
   return d->row_aggregators.toList();
 }
 
-int qdatacube::datacube_t::element_count(Qt::Orientation orientation, int headerno, int section) const
+int qdatacube::datacube_t::element_count(Qt::Orientation orientation, int headerno, int header_section) const
 {
   QVector<shared_ptr<abstract_aggregator_t> >& aggregators = (orientation == Qt::Horizontal) ? d->col_aggregators : d->row_aggregators;
   const QVector<unsigned>& counts = (orientation == Qt::Horizontal) ? d->col_counts : d->row_counts;
@@ -922,8 +922,8 @@ int qdatacube::datacube_t::element_count(Qt::Orientation orientation, int header
     stride *= aggregators.at(i)->categories().size();
   }
   int offset = 0;
-  for (int section_index = 0; section_index <= section; section_index += (count>0) ? 1 : 0) {
-    Q_ASSERT_X(offset < counts.size(), "QDatacube", QString("Section %1 at header %2 orientation %3 too big for qdatacube").arg(section).arg(headerno).arg(orientation == Qt::Horizontal ? "Horizontal" : "Vertical").toLocal8Bit().data());
+  for (int section_index = 0; section_index <= header_section; section_index += (count>0) ? 1 : 0) {
+    Q_ASSERT_X(offset < counts.size(), "QDatacube", QString("Section %1 at header %2 orientation %3 too big for qdatacube").arg(header_section).arg(headerno).arg(orientation == Qt::Horizontal ? "Horizontal" : "Vertical").toLocal8Bit().data());
     count = 0;
     for (int i=0; i<stride; ++i) {
       count += counts.at(offset+i);
@@ -931,6 +931,45 @@ int qdatacube::datacube_t::element_count(Qt::Orientation orientation, int header
     offset += stride;
   }
   return count;
+}
+
+QList<int> qdatacube::datacube_t::elements(Qt::Orientation orientation, int headerno, int header_section) const
+{
+  QVector<shared_ptr<abstract_aggregator_t> >& aggregators = (orientation == Qt::Horizontal) ? d->col_aggregators : d->row_aggregators;
+  const QVector<unsigned>& counts = (orientation == Qt::Horizontal) ? d->col_counts : d->row_counts;
+  int stride = 1;
+  for (int i=headerno+1; i<aggregators.size(); ++i) {
+    stride *= aggregators.at(i)->categories().size();
+  }
+  // Skip forward to section
+  int bucket = 0;
+  int section = 0;
+  for (int hs=0; bucket<counts.size() && hs < header_section; bucket+=stride) {
+    int old_section = section;
+    for (int i=0;i<stride; ++i) {
+      if (counts.at(bucket+i)>0) {
+        ++section;
+      }
+    }
+    if (section>old_section) {
+      ++hs;
+    }
+  }
+
+  // Accumulate answer
+  QList<int> rv;
+  const int normal_count = (orientation == Qt::Horizontal) ? d->row_counts.size() : d->col_counts.size();
+  for (; bucket<counts.size() && rv.isEmpty(); bucket+=stride) {
+    for (int i=0;i<stride && (bucket+i)<counts.size(); ++i) {
+      if (counts.at(bucket+i)>0) {
+        for (int n=0; n<normal_count; ++n) {
+          rv << ((orientation == Qt::Horizontal) ? d->cell(n,bucket+i) : d->cell(bucket+i,n));
+        }
+      }
+    }
+  }
+  return rv;
+
 }
 
 int qdatacube::datacube_t::to_header_section(const Qt::Orientation orientation, const int headerno, const int section) const
