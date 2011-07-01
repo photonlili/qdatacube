@@ -29,6 +29,7 @@ class datacube_view_private_t : public QSharedData {
     QSize datacube_size;
     QSize visible_cells;
     QPoint mouse_press_point;
+    QPoint mouse_press_scrollbar_state;
     QRect selection_area;
     QRect header_selection_area;
     bool show_totals;
@@ -383,6 +384,8 @@ void datacube_view_t::mousePressEvent(QMouseEvent* event) {
   }
   QPoint pos = event->pos();
   d->mouse_press_point = pos;
+  d->mouse_press_scrollbar_state.setX(horizontalScrollBar()->value());
+  d->mouse_press_scrollbar_state.setY(verticalScrollBar()->value());
   cell_t press = d->cell_for_position(pos, verticalScrollBar()->value(), horizontalScrollBar()->value());
   if (!(event->modifiers() & Qt::CTRL)) {
     d->selection->clear();
@@ -418,7 +421,7 @@ void datacube_view_t::mousePressEvent(QMouseEvent* event) {
 
 void datacube_view_t::mouseMoveEvent(QMouseEvent* event) {
   QAbstractScrollArea::mouseMoveEvent(event);
-  cell_t press = d->cell_for_position(d->mouse_press_point, verticalScrollBar()->value(), horizontalScrollBar()->value());
+  cell_t press = d->cell_for_position(d->mouse_press_point, d->mouse_press_scrollbar_state.y(), d->mouse_press_scrollbar_state.x());
   QPoint constrained_pos = QPoint(qMax(1, qMin(event->pos().x(), d->vertical_header_width + d->datacube_size.width() * d->cell_size.width() + (d->show_totals ? d->vertical_header_width : 0) -1)),
                                   qMax(1, qMin(event->pos().y(), d->horizontal_header_height + d->datacube_size.height() * d->cell_size.height() + (d->show_totals ? d->horizontal_header_height : 0) - 1)));
   cell_t current = d->cell_for_position(constrained_pos,verticalScrollBar()->value(), horizontalScrollBar()->value());
