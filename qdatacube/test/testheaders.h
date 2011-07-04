@@ -37,6 +37,7 @@ class testheaders : public danishnamecube_t {
 
     void slot_horizontal_context_menu(QPoint pos, int headerno, int category);
     void slot_vertical_context_menu(const QPoint& pos, int headerno, int category);
+    void summarize_weight();
   private:
     qdatacube::datacube_t* m_datacube;
     qdatacube::datacube_view_t* m_view;

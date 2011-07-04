@@ -24,6 +24,9 @@
 #include <datacube_selection.h>
 #include <qsortfilterproxymodel.h>
 #include <filter_by_aggregate.h>
+#include <qmenubar.h>
+#include "column_sum_formatter.h"
+#include <count_formatter.h>
 
 using namespace qdatacube;
 
@@ -80,6 +83,7 @@ void testheaders::createtableview() {
   top->setCentralWidget(mw);
   new QVBoxLayout(mw);
   m_view = new datacube_view_t(top);
+  m_view->add_formatter(new count_formatter_t(m_underlying_model, m_view));
   m_view->set_datacube(m_datacube);
   mw->layout()->addWidget(m_view);
   connect(m_view, SIGNAL(horizontal_header_context_menu(QPoint,int,int)), SLOT(slot_horizontal_context_menu(QPoint,int,int)));
@@ -118,12 +122,13 @@ void testheaders::createtableview() {
   QDockWidget* second_dc = new QDockWidget("Second datacube");
   top->addDockWidget(Qt::BottomDockWidgetArea, second_dc);
   datacube_view_t* second_view = new datacube_view_t(second_dc);
-  datacube_t* second_datacube = new datacube_t(m_underlying_model, kommune_aggregator
-, age_aggregator
-);
+  second_view->add_formatter(new count_formatter_t(m_underlying_model, second_view));
+  datacube_t* second_datacube = new datacube_t(m_underlying_model, kommune_aggregator, age_aggregator);
   second_view->set_datacube(second_datacube);
   second_view->datacube_selection()->synchronize_with(m_underlying_table_view->selectionModel());
   second_dc->setWidget(second_view);
+  QAction* sum_weight = top->menuBar()->addAction("Summarize over weight");
+  connect(sum_weight, SIGNAL(triggered(bool)), SLOT(summarize_weight()));
 }
 
 void testheaders::slot_set_model() {
@@ -275,6 +280,13 @@ void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno
       m_unused_aggregator_actions << filter_acton;
     }
   }
+
+}
+
+void testheaders::summarize_weight()
+{
+  column_sum_formatter_t* summarizer = new column_sum_formatter_t(m_underlying_model, m_view, WEIGHT, 1, "t", .001);
+  m_view->add_formatter(summarizer);
 
 }
 

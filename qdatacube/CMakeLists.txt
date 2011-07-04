@@ -5,8 +5,11 @@
 SET(QDATACUBE_SRC
   abstract_filter.cpp
   abstract_aggregator.cpp
+  abstract_formatter.cpp
   cell.cpp
   column_aggregator.cpp
+  column_sum_formatter.cpp
+  count_formatter.cpp
   datacube.cpp
   datacube_selection.cpp
   datacube_view.cpp
@@ -29,7 +32,10 @@ SET(CONTAINERS_PUBLIC_HEADERS
   datacube_selection.h
   datacube_view.h
   abstract_aggregator.h
+  abstract_formatter.h
   abstract_filter.h
+  column_sum_formatter.h
+  count_formatter.h
   qdatacube_export.h
   filter_by_aggregate.h
 )

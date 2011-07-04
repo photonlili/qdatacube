@@ -13,9 +13,8 @@
 
 namespace qdatacube {
 
+class abstract_formatter_t;
 class datacube_selection_t;
-
-
 class datacube_t;
 class datacube_selection_model_t;
 class datacube_view_private_t;
@@ -28,6 +27,7 @@ class QDATACUBE_EXPORT datacube_view_t : public QAbstractScrollArea  {
 
     /**
      * Set the datacube to be view
+     * If the underlying model has changed, this will clear all the formatters
      */
     void set_datacube(datacube_t* datacube);
 
@@ -40,6 +40,23 @@ class QDATACUBE_EXPORT datacube_view_t : public QAbstractScrollArea  {
      * @return current datacube_selection
      */
     datacube_selection_t* datacube_selection() const;
+
+    /**
+     * Add formatter below each cell
+     * Ownership over summarizer will be claimed
+     */
+    void add_formatter(abstract_formatter_t* formatter);
+
+    /**
+     * Take formatter by index, clearning parent
+     * @return the formatter taken.
+     */
+    abstract_formatter_t* take_formatter(int index);
+
+    /**
+     * @return all the formatters in current use
+     */
+    QList<abstract_formatter_t*> formatters() const;
   protected:
     virtual void mousePressEvent(QMouseEvent* event);
     virtual void mouseReleaseEvent(QMouseEvent* event );

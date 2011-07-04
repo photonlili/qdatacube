@@ -15,6 +15,7 @@
 #include <QScrollBar>
 #include "abstract_aggregator.h"
 #include "abstract_filter.h"
+#include "abstract_formatter.h"
 
 namespace qdatacube {
 
@@ -23,6 +24,7 @@ class datacube_view_private_t : public QSharedData {
     datacube_view_private_t();
     datacube_t* datacube;
     datacube_selection_t* selection;
+    QList<abstract_formatter_t*> formatters;
     int horizontal_header_height;
     int vertical_header_width;
     QSize cell_size;
@@ -84,6 +86,10 @@ datacube_view_t::datacube_view_t(QWidget* parent):
 void datacube_view_t::set_datacube(datacube_t* datacube) {
   if (d->datacube) {
     d->datacube->disconnect(this);
+    if (datacube && datacube->underlying_model() != d->datacube->underlying_model()) {
+      qDeleteAll(d->formatters);
+      d->formatters.clear();
+    }
   }
   d->datacube = datacube;
   delete d->selection;
@@ -102,8 +108,20 @@ void datacube_view_t::set_datacube(datacube_t* datacube) {
 }
 
 void datacube_view_t::relayout() {
+  if (!d->datacube) {
+    return; // defer layout to datacube is set
+  }
   d->datacube_size = QSize(d->datacube->column_count(), d->datacube->row_count());
-  d->cell_size = QSize(fontMetrics().width("9999"), fontMetrics().lineSpacing());
+  QSize cell_size(fontMetrics().width("9999"), 0);
+  Q_FOREACH(abstract_formatter_t* formatter, d->formatters) {
+    QSize formatter_cell_size = formatter->cell_size();
+    cell_size.setWidth(qMax(formatter_cell_size.width()+2, cell_size.width()));
+    cell_size.setHeight(cell_size.height() + formatter_cell_size.height());
+  }
+  if (cell_size.height() == 0) {
+    cell_size.setHeight(10);
+  }
+  d->cell_size = cell_size;
   d->vertical_header_width = qMax(1, d->datacube->header_count(Qt::Vertical)) * d->cell_size.width();
   d->horizontal_header_height = qMax(1, d->datacube->header_count(Qt::Horizontal)) * d->cell_size.height();
   QSize visible_size = viewport()->size();
@@ -138,6 +156,7 @@ bool datacube_view_t::viewportEvent(QEvent* event) {
   }
   return QAbstractScrollArea::viewportEvent(event);
 }
+
 void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   QPainter painter(viewport());
   QStyleOption options;
@@ -156,7 +175,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   painter.setPen(palette().buttonText().color());
   if (std::tr1::shared_ptr<abstract_filter_t> global_filter = datacube()->global_filters().value(0)) {
     QString global_category = global_filter->short_name();
-    painter.drawText(cornerRect.adjusted(1, 1, -2, -2), Qt::AlignCenter, global_category);
+    painter.drawText(cornerRect.adjusted(1, 1, -1, -1), Qt::AlignCenter, global_category);
   }
 
 
@@ -190,12 +209,19 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
       }
       header_rect.setSize(QSize(cell_size.width()*header_span, cell_size.height()));
       painter.drawRect(header_rect);
-      painter.drawText(header_rect.adjusted(1, 1, -1, -1), Qt::AlignCenter, headers[header_index].first);
+      painter.drawText(header_rect.adjusted(0, 0, 0, 2), Qt::AlignCenter, headers[header_index].first);
       header_rect.translate(header_rect.width(), 0);
       if (d->show_totals && bottommost_column > hh + ndatarows) {
         summary_rect.setSize(header_rect.size());
         painter.drawRect(summary_rect);
-        painter.drawText(summary_rect.adjusted(1,1,-1,-1), Qt::AlignCenter, QString::number(d->datacube->element_count(Qt::Horizontal, hh, header_index)));
+        QRect text_rect(summary_rect);
+        QList<int> elements = d->datacube->elements(Qt::Horizontal, hh, header_index);
+        Q_FOREACH(abstract_formatter_t* formatter, d->formatters) {
+          text_rect.setHeight(formatter->cell_size().height());
+          const QString value = formatter->format(elements);
+          painter.drawText(text_rect.adjusted(0,0,0,2), Qt::AlignCenter, value);
+          text_rect.translate(0, text_rect.height());
+        }
         summary_rect.translate(summary_rect.width(), 0);
       }
     }
@@ -236,12 +262,19 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
       }
       header_rect.setSize(QSize(cell_size.width(), cell_size.height()*header_span));
       painter.drawRect(header_rect);
-      painter.drawText(header_rect.adjusted(1, 1, -2, -2), Qt::AlignCenter, headers[header_index].first);
+      painter.drawText(header_rect.adjusted(0, 0, 0, 2), Qt::AlignCenter, headers[header_index].first);
       header_rect.translate(0, header_rect.height());
       if (d->show_totals && rightmost_column > vh + ndatacolumns) {
         summary_rect.setSize(header_rect.size());
         painter.drawRect(summary_rect);
-        painter.drawText(summary_rect.adjusted(1,1,-1,-1), Qt::AlignCenter, QString::number(d->datacube->element_count(Qt::Vertical, vh, header_index)));
+        QRect text_rect(summary_rect);
+        QList<int> elements = d->datacube->elements(Qt::Vertical, vh, header_index);
+        Q_FOREACH(abstract_formatter_t* formatter, d->formatters) {
+          text_rect.setHeight(formatter->cell_size().height());
+          const QString value = formatter->format(elements);
+          painter.drawText(text_rect.adjusted(0,0,0,-2), Qt::AlignCenter, value);
+          text_rect.translate(0, text_rect.height());
+        }
         summary_rect.translate(0, summary_rect.height());
       }
     }
@@ -295,8 +328,15 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
           }
           break;
       }
-      if (int item_value = d->datacube->element_count(r, c)) {
-        style()->drawItemText(&painter, options.rect, Qt::AlignCenter, palette(), true, QString::number(item_value), highlighted ? QPalette::HighlightedText : QPalette::Text);
+      QList<int> elements = d->datacube->elements(r,c);
+      if (elements.size() > 0) {
+        QRect textrect(options.rect);
+        Q_FOREACH(abstract_formatter_t* formatter, d->formatters) {
+          textrect.setHeight(formatter->cell_size().height());
+          const QString value = formatter->format(elements);
+          style()->drawItemText(&painter, textrect.adjusted(0,0,0,2), Qt::AlignCenter, palette(), true, value, highlighted ? QPalette::HighlightedText : QPalette::Text);
+          textrect.translate(0,textrect.height());
+        }
       }
       painter.drawRect(options.rect);
       options.rect.translate(cell_size.width(), 0);
@@ -505,6 +545,26 @@ datacube_selection_t* datacube_view_t::datacube_selection() const
 
 QRect datacube_view_t::corner() const {
   return QRect(0,0,d->vertical_header_width, d->horizontal_header_height);
+}
+
+void datacube_view_t::add_formatter(abstract_formatter_t* formatter)
+{
+  d->formatters << formatter;
+  formatter->setParent(this);
+  relayout();
+
+}
+
+QList< abstract_formatter_t* > datacube_view_t::formatters() const
+{
+  return d->formatters;
+}
+
+abstract_formatter_t* datacube_view_t::take_formatter(int index)
+{
+  abstract_formatter_t* rv = d->formatters.takeAt(index);
+  relayout();
+  return rv;
 }
 
 } // end of namespace
