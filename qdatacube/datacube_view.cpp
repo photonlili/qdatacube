@@ -270,6 +270,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
         summary_rect.setSize(header_rect.size());
         painter.drawRect(summary_rect);
         QRect text_rect(summary_rect);
+        text_rect.translate(0, (summary_rect.height()-cell_size.height())/2); // Center vertically
         QList<int> elements = d->datacube->elements(Qt::Vertical, vh, header_index);
         Q_FOREACH(abstract_formatter_t* formatter, d->formatters) {
           text_rect.setHeight(formatter->cell_size().height());
