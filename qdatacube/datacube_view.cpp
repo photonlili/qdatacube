@@ -32,6 +32,8 @@ class datacube_view_private_t : public QSharedData {
     QSize visible_cells;
     QPoint mouse_press_point;
     QPoint mouse_press_scrollbar_state;
+    QPoint last_mouse_press_point;
+    QPoint last_mouse_press_scrollbar_state;
     QRect selection_area;
     QRect header_selection_area;
     bool show_totals;
@@ -430,8 +432,24 @@ void datacube_view_t::mousePressEvent(QMouseEvent* event) {
   if (!(event->modifiers() & Qt::CTRL)) {
     d->selection->clear();
   }
+  if (event->modifiers() & Qt::SHIFT) {
+    // In this case, simulate that the user actually first pressed on the lastly-clicked cell,
+    // and then proceeded to drag the mouse to it's current position.
+    // Doing it this way makes it very simple to implement the shift-press
+    // handling.
+    d->mouse_press_point = d->last_mouse_press_point;
+    d->mouse_press_scrollbar_state = d->last_mouse_press_scrollbar_state;
+    mouseMoveEvent(event);
+    return;
+  } else {
+      // Save state for SHIFT-click behavior
+    d->last_mouse_press_point = d->mouse_press_point;
+    d->last_mouse_press_scrollbar_state = d->mouse_press_scrollbar_state;
+  }
+
   const int vertical_header_count = d->datacube->header_count(Qt::Vertical);
   const int horizontal_header_count = d->datacube->header_count(Qt::Horizontal);
+
   if (press.invalid()) {
     d->selection_area = QRect();
   } else if (press.row()>=0 && press.row() < d->datacube_size.height()) {
