@@ -454,7 +454,7 @@ void datacube_view_t::mousePressEvent(QMouseEvent* event) {
   if (press.invalid()) {
     d->selection_area = QRect();
   } else if (press.row()>=0 && press.row() < d->datacube_size.height()) {
-    if (press.column()>=0 && press.row() < d->datacube_size.width()) {
+    if (press.column()>=0 && press.column() < d->datacube_size.width()) {
       d->selection_area = QRect(press.row(), press.column(), 1, 1);
       d->header_selection_area = QRect();
     } else if ((press.column()<0 && -press.column() <= vertical_header_count) || press.column() >= d->datacube_size.width()) {
