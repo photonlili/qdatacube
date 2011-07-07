@@ -275,7 +275,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
         Q_FOREACH(abstract_formatter_t* formatter, d->formatters) {
           text_rect.setHeight(formatter->cell_size().height());
           const QString value = formatter->format(elements);
-          painter.drawText(text_rect.adjusted(0,0,0,-2), Qt::AlignCenter, value);
+          painter.drawText(text_rect.adjusted(0,0,0,2), Qt::AlignCenter, value);
           text_rect.translate(0, text_rect.height());
         }
         summary_rect.translate(0, summary_rect.height());
