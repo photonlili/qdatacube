@@ -266,7 +266,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
       painter.drawRect(header_rect);
       painter.drawText(header_rect.adjusted(0, 0, 0, 2), Qt::AlignCenter, headers[header_index].first);
       header_rect.translate(0, header_rect.height());
-      if (d->show_totals && rightmost_column > vh + ndatacolumns) {
+      if (d->show_totals && rightmost_column >= vh + ndatacolumns) {
         summary_rect.setSize(header_rect.size());
         painter.drawRect(summary_rect);
         QRect text_rect(summary_rect);
