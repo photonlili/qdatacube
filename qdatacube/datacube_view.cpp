@@ -184,12 +184,12 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   // Draw horizontal header
   const int leftmost_column = horizontalScrollBar()->value();
   const int rightmost_column = leftmost_column + d->visible_cells.width();
-  const int topmost_column = verticalScrollBar()->value();
-  const int bottommost_column = topmost_column + d->visible_cells.height();
+  const int topmost_row = verticalScrollBar()->value();
+  const int bottommost_row = topmost_row + d->visible_cells.height();
   const int horizontal_header_count = d->datacube->header_count(Qt::Horizontal);
   const int ndatarows = d->datacube->row_count();
   QRect summary_rect(header_rect);
-  summary_rect.translate(0, d->cell_size.height()*(ndatarows-topmost_column+horizontal_header_count));
+  summary_rect.translate(0, d->cell_size.height()*(ndatarows- topmost_row+horizontal_header_count));
   for (int hh = 0; hh < horizontal_header_count; ++hh) {
     header_rect.moveLeft(viewport()->rect().left() + vertical_header_width);
     summary_rect.moveLeft(header_rect.left());
@@ -213,7 +213,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
       painter.drawRect(header_rect);
       painter.drawText(header_rect.adjusted(0, 0, 0, 2), Qt::AlignCenter, headers[header_index].first);
       header_rect.translate(header_rect.width(), 0);
-      if (d->show_totals && bottommost_column > hh + ndatarows) {
+      if (d->show_totals && bottommost_row >= hh + ndatarows) {
         summary_rect.setSize(header_rect.size());
         painter.drawRect(summary_rect);
         QRect text_rect(summary_rect);
@@ -248,19 +248,19 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
     summary_rect.moveTop(header_rect.top());
     QList<QPair<QString, int> > headers = d->datacube->headers(Qt::Vertical, vh);
     int current_cell_equivalent = 0;
-    for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= bottommost_column; ++header_index) {
+    for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= bottommost_row; ++header_index) {
       painter.setBrush((d->header_selection_area.contains(header_index, -vh-1)) ? palette().highlight() : palette().button());
       int header_span = headers[header_index].second;
       current_cell_equivalent += header_span;
-      if (current_cell_equivalent < topmost_column) {
+      if (current_cell_equivalent < topmost_row) {
         continue; // Outside viewport
       }
-      if (current_cell_equivalent - header_span < topmost_column) {
+      if (current_cell_equivalent - header_span < topmost_row) {
         // Force header cell to available width, for maximum readability
-        header_span = (current_cell_equivalent - topmost_column);
+        header_span = (current_cell_equivalent - topmost_row);
       }
-      if (current_cell_equivalent > bottommost_column) {
-        header_span -= (current_cell_equivalent - bottommost_column - 1);
+      if (current_cell_equivalent > bottommost_row) {
+        header_span -= (current_cell_equivalent - bottommost_row - 1);
       }
       header_rect.setSize(QSize(cell_size.width(), cell_size.height()*header_span));
       painter.drawRect(header_rect);
@@ -301,9 +301,9 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
                                    (highligh_color.green() + background_color.green())/2,
                                    (highligh_color.blue() + background_color.blue())/2);
   options.rect.moveTop(viewport()->rect().top() + horizontal_header_height);
-  for (int r = verticalScrollBar()->value(), nr = d->datacube->row_count(); r < nr; ++r) {
+  for (int r = verticalScrollBar()->value(), nr = qMin(d->datacube->row_count(), bottommost_row); r < nr; ++r) {
     options.rect.moveLeft(viewport()->rect().left() + vertical_header_width);
-    for (int c =horizontalScrollBar()->value(), nc = d->datacube->column_count(); c < nc; ++c) {
+    for (int c =horizontalScrollBar()->value(), nc = qMin(d->datacube->column_count(), rightmost_column); c < nc; ++c) {
       datacube_selection_t::selection_status_t selection_status = d->selection->selection_status(r, c);
       bool highlighted = false;
       switch (selection_status) {
