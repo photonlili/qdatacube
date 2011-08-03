@@ -90,7 +90,7 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * @return pair of (name of header, number of columns spanned)
      * @param orientation
      * @param index 0 is first header, 1 is next and so on, up until headerCount(orientation)
-     * This function is meant to be convinient for drawing and similar. 
+     * This function is meant to be convenient for drawing and similar.
      */
     QList<QPair<QString,int> > headers(Qt::Orientation orientation, int index) const;
 
