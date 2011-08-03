@@ -1039,5 +1039,14 @@ QPair< int, int > qdatacube::datacube_t::to_section(Qt::Orientation orientation,
   return QPair<int,int>(section,section+count-1);
 }
 
+int qdatacube::datacube_t::element_count() const
+{
+  return d->reverse_index.count();
+}
+
+QList< int > qdatacube::datacube_t::elements() const
+{
+  return d->reverse_index.keys();
+}
 
 #include "datacube.moc"

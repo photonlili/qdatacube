@@ -141,6 +141,16 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     QList< int > elements(Qt::Orientation orientation, int headerno, int header_section) const;
 
     /**
+     * @return the total number of (non-filtered) elements
+     */
+    int element_count() const;
+
+    /**
+     * @return all non-filtered elements
+     */
+    QList<int> elements() const;
+
+    /**
      * @returns the category index
      */
     int category_index(Qt::Orientation orientation, int header_index, int section) const;

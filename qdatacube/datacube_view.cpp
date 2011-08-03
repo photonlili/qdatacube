@@ -290,6 +290,24 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
     painter.drawRect(header_rect);
   }
 
+  // Draw grand total cell, if appropriate
+  if (d->show_totals && bottommost_row >= ndatarows  && rightmost_column >= ndatacolumns ) {
+    const int leftmost_summary = ndatacolumns-leftmost_column+vertical_header_count;
+    const int topmost_summary = ndatarows-topmost_row+horizontal_header_count;
+    summary_rect.moveTopLeft(viewport()->rect().topLeft() + QPoint(d->cell_size.width()*leftmost_summary, d->cell_size.height()*topmost_summary));
+    summary_rect.setSize(QSize(cell_size.width() * vertical_header_count, cell_size.height() * horizontal_header_count));
+    painter.drawRect(summary_rect);
+    QRect text_rect(summary_rect);
+    text_rect.translate(0, (summary_rect.height()-cell_size.height())/2); // Center vertically
+    QList<int> elements = d->datacube->elements();
+    Q_FOREACH(abstract_formatter_t* formatter, d->formatters) {
+      text_rect.setHeight(formatter->cell_size().height());
+      const QString value = formatter->format(elements);
+      painter.drawText(text_rect.adjusted(0,0,0,2), Qt::AlignCenter, value);
+      text_rect.translate(0, text_rect.height());
+    }
+  }
+
   painter.setBrush(QBrush());
   painter.setPen(QPen());
 
