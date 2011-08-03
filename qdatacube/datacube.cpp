@@ -782,24 +782,30 @@ void qdatacube::datacube_t::aggregator_category_added(std::tr1::shared_ptr< qdat
     nsuper_categories *= parallel_aggregators[h]->categories().size();
   }
   const int new_ncats = aggregator->categories().size();
-  const int old_ncats = new_ncats - 1;
-  const int stride = old_parallel_counts.size()/old_ncats/nsuper_categories;
-  Q_ASSERT(stride*nsuper_categories*old_ncats == old_parallel_counts.size());
-  new_parallel_counts = QVector<unsigned>(new_ncats * nsuper_categories * stride);
+  int n_new_parallel_counts = nsuper_categories * new_ncats;
+  for (int h = headerno+1; h<parallel_aggregators.size(); ++h) {
+    n_new_parallel_counts *= parallel_aggregators[h]->categories().size();
+  }
+  new_parallel_counts = QVector<unsigned>(n_new_parallel_counts);
   d->cells = QVector<QList<int> >(new_parallel_counts.size() * normal_count);
-  d->reverse_index.clear();
-  for (int normal_index=0; normal_index<normal_count; ++normal_index) {
-    for (int super_index=0; super_index<nsuper_categories; ++super_index) {
-      for (int category_index=0; category_index<old_ncats; ++category_index) {
-        for (int sub_index=0; sub_index<stride; ++sub_index) {
-          const int old_p = super_index*stride*old_ncats + category_index*stride + sub_index;
-          const int new_category_index = index<=category_index ? category_index+1 : category_index;
-          const int p = super_index*stride*new_ncats + new_category_index*stride + sub_index;
-          QList<int>& cell = orientation == Qt::Horizontal ? d->cell(normal_index, p) : d->cell(p, normal_index);
-          cell = orientation == Qt::Horizontal ? old_cells.at(normal_index+ old_p*normal_count) : old_cells.at(normal_index*old_parallel_counts.size()+old_p);
-          new_parallel_counts[p] = old_parallel_counts[old_p];
-          Q_FOREACH(int element, cell) {
-            d->reverse_index.insert(element, orientation == Qt::Horizontal ? cell_t(normal_index,p) : cell_t(p, normal_index));
+  if (!d->reverse_index.empty()) { // If there is no elements in the recap, it is possible some of the aggregators have no categories.
+    const int old_ncats = new_ncats - 1;
+    const int stride = old_parallel_counts.size()/old_ncats/nsuper_categories;
+    Q_ASSERT(stride*nsuper_categories*old_ncats == old_parallel_counts.size());
+    d->reverse_index.clear();
+    for (int normal_index=0; normal_index<normal_count; ++normal_index) {
+      for (int super_index=0; super_index<nsuper_categories; ++super_index) {
+        for (int category_index=0; category_index<old_ncats; ++category_index) {
+          for (int sub_index=0; sub_index<stride; ++sub_index) {
+            const int old_p = super_index*stride*old_ncats + category_index*stride + sub_index;
+            const int new_category_index = index<=category_index ? category_index+1 : category_index;
+            const int p = super_index*stride*new_ncats + new_category_index*stride + sub_index;
+            QList<int>& cell = orientation == Qt::Horizontal ? d->cell(normal_index, p) : d->cell(p, normal_index);
+            cell = orientation == Qt::Horizontal ? old_cells.at(normal_index+ old_p*normal_count) : old_cells.at(normal_index*old_parallel_counts.size()+old_p);
+            new_parallel_counts[p] = old_parallel_counts[old_p];
+            Q_FOREACH(int element, cell) {
+              d->reverse_index.insert(element, orientation == Qt::Horizontal ? cell_t(normal_index,p) : cell_t(p, normal_index));
+            }
           }
         }
       }
