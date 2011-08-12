@@ -569,6 +569,15 @@ void datacube_view_t::mouseReleaseEvent(QMouseEvent* event) {
         }
       }
     }
+  } else {
+    cell_t release = d->cell_for_position(event->pos(), verticalScrollBar()->value(), horizontalScrollBar()->value());
+    if (release.column()>=d->datacube_size.width() && release.row() >= d->datacube_size.height()) {
+      cell_t press = d->cell_for_position(d->last_mouse_press_point, d->last_mouse_press_scrollbar_state.y(), d->last_mouse_press_scrollbar_state.x());
+      if (press.column()>=d->datacube_size.width() && press.row() >= d->datacube_size.height()) {
+        // Lower right corner "total summary" was pressed. Select all
+        d->selection->add_elements(d->datacube->elements());
+      }
+    }
   }
   d->selection_area = QRect();
   d->header_selection_area = QRect();
