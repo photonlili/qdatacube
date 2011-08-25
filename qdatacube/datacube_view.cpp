@@ -319,9 +319,9 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
                                    (highligh_color.green() + background_color.green())/2,
                                    (highligh_color.blue() + background_color.blue())/2);
   options.rect.moveTop(viewport()->rect().top() + horizontal_header_height);
-  for (int r = verticalScrollBar()->value(), nr = qMin(d->datacube->row_count(), bottommost_row); r < nr; ++r) {
+  for (int r = verticalScrollBar()->value(), nr = qMin(d->datacube->row_count(), bottommost_row+1); r < nr; ++r) {
     options.rect.moveLeft(viewport()->rect().left() + vertical_header_width);
-    for (int c =horizontalScrollBar()->value(), nc = qMin(d->datacube->column_count(), rightmost_column); c < nc; ++c) {
+    for (int c =horizontalScrollBar()->value(), nc = qMin(d->datacube->column_count(), rightmost_column+1       ); c < nc; ++c) {
       datacube_selection_t::selection_status_t selection_status = d->selection->selection_status(r, c);
       bool highlighted = false;
       switch (selection_status) {
