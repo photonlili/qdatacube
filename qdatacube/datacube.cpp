@@ -779,7 +779,7 @@ void qdatacube::datacube_t::aggregator_category_added(std::tr1::shared_ptr< qdat
   QVector<QList<int> > old_cells = d->cells;
   int nsuper_categories = 1;
   for (int h=0; h<headerno; ++h) {
-    nsuper_categories *= parallel_aggregators[h]->categories().size();
+    nsuper_categories *= qMax(parallel_aggregators[h]->categories().size(),1);
   }
   const int new_ncats = aggregator->categories().size();
   int n_new_parallel_counts = nsuper_categories * new_ncats;
@@ -823,7 +823,7 @@ void qdatacube::datacube_t::aggregator_category_removed(std::tr1::shared_ptr< qd
   QVector<QList<int> > old_cells = d->cells;
   int nsuper_categories = 1;
   for (int h=0; h<headerno; ++h) {
-    nsuper_categories *= parallel_aggregators[h]->categories().size();
+    nsuper_categories *= qMax(parallel_aggregators[h]->categories().size(),1);
   }
   const int new_ncats = aggregator->categories().size();
   const int old_ncats = new_ncats + 1;
