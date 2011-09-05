@@ -265,13 +265,16 @@ void datacube_t::check() {
   int total_count = 0;
   const int nelements = d->model->rowCount();
   for (int i=0; i<nelements;  ++i) {
+    bool included = true;
     for (int filter_index=0, last_filter_index = d->global_filters.size()-1; filter_index<=last_filter_index; ++filter_index) {
       global_filters_t::const_reference filter = d->global_filters.at(filter_index);
-      if ((*filter)(i)) {
+      if (!(*filter)(i)) {
+        included = false;
         break;
-      } else if (filter_index == last_filter_index) {
-        ++total_count;
       }
+    }
+    if (included) {
+      ++total_count;
     }
   }
   QVector<unsigned> check_row_counts(d->row_counts.size());
@@ -289,7 +292,7 @@ void datacube_t::check() {
     }
     count += col_count;
   }
-  Q_ASSERT(count == total_count);
+  Q_ASSERT_X(count == total_count, __func__, QString("%1 == %2").arg(count).arg(total_count).toLocal8Bit().data());
   for (int i=0; i<d->row_counts.size(); ++i) {
     Q_ASSERT(check_row_counts[i] == d->row_counts[i]);
   }
@@ -645,6 +648,8 @@ void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
   const bool horizontal = (orientation == Qt::Horizontal);
   secret_t::aggregators_t& parallel_aggregators = horizontal ? d->col_aggregators : d->row_aggregators;
   shared_ptr<abstract_aggregator_t> aggregator = parallel_aggregators[headerno];
+  disconnect(aggregator.get(), SIGNAL(category_added(int)), this, SLOT(slot_aggregator_category_added(int)));
+  disconnect(aggregator.get(), SIGNAL(category_removed(int)), this, SLOT(slot_aggregator_category_removed(int)));;
   parallel_aggregators.remove(headerno);
   const int ncats = aggregator->categories().size();
   const int newsize = oldcells.size() / ncats;
