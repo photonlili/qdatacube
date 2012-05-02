@@ -153,6 +153,7 @@ void column_aggregator_t::remove_category(QString category)
   for (int i=index+1; i<d->categories.size(); ++i) {
     int rv = --d->cat_map[d->categories[i]];
     Q_ASSERT(rv>=index);
+    Q_UNUSED(rv);
   }
   d->categories.removeAt(index);
   emit category_removed(index);

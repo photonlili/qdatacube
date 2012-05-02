@@ -471,6 +471,7 @@ void datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
 
 void datacube_t::insert_data(QModelIndex parent, int start, int end) {
   Q_ASSERT(!parent.isValid());
+  Q_UNUSED(parent);
   Q_FOREACH(datacube_selection_t* selection, d->selection_models) {
     selection->datacube_inserts_elements(start, end);
   }
@@ -491,6 +492,7 @@ void datacube_t::remove_data(QModelIndex parent, int start, int end) {
   check();
 #endif
   Q_ASSERT(!parent.isValid());
+  Q_UNUSED(parent);
   for (int row = end; row>=start; --row) {
     remove(row);
   }
