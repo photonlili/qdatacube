@@ -596,6 +596,7 @@ QRect datacube_view_t::corner() const {
 void datacube_view_t::add_formatter(abstract_formatter_t* formatter)
 {
   d->formatters << formatter;
+  connect(formatter,SIGNAL(cell_size_changed(QSize)),SLOT(relayout()));
   formatter->setParent(this);
   relayout();
 
