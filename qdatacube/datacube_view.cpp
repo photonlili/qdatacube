@@ -597,6 +597,7 @@ void datacube_view_t::add_formatter(abstract_formatter_t* formatter)
 {
   d->formatters << formatter;
   connect(formatter,SIGNAL(cell_size_changed(QSize)),SLOT(relayout()));
+  connect(formatter,SIGNAL(formatter_changed()), SLOT(relayout()));
   formatter->setParent(this);
   relayout();
 

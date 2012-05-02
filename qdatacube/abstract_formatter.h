@@ -56,6 +56,11 @@ class QDATACUBE_EXPORT abstract_formatter_t : public QObject
      * Emitted when the size of the cell of the formatter is changed
      */
     void cell_size_changed(QSize newsize);
+
+    /**
+     * emitted when something in the formatter changed so that things needs to be recalculated
+     */
+    void formatter_changed();
   protected:
 
     /**
