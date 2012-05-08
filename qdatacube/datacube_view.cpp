@@ -620,9 +620,11 @@ QList< abstract_formatter_t* > datacube_view_t::formatters() const
 
 abstract_formatter_t* datacube_view_t::take_formatter(int index)
 {
-  abstract_formatter_t* rv = d->formatters.takeAt(index);
+  abstract_formatter_t* formatter = d->formatters.takeAt(index);
+  connect(formatter,SIGNAL(cell_size_changed(QSize)),this,SLOT(relayout()));
+  connect(formatter,SIGNAL(formatter_changed()),this, SLOT(relayout()));
   relayout();
-  return rv;
+  return formatter;
 }
 
 } // end of namespace
