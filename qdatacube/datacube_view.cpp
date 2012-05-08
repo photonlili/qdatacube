@@ -58,6 +58,9 @@ datacube_view_private_t::datacube_view_private_t()
 }
 
 cell_t datacube_view_private_t::cell_for_position(QPoint pos, int vertical_scrollbar_value, int horizontal_scrollbar_value) const {
+  if(!datacube) {
+    return cell_t();
+  }
   const int ncolumn_headers = datacube->header_count(Qt::Horizontal);
   const int nrow_headers = datacube->header_count(Qt::Vertical);
   const int column = (pos.x() / cell_size.width()) - nrow_headers;
@@ -160,6 +163,9 @@ bool datacube_view_t::viewportEvent(QEvent* event) {
 }
 
 void datacube_view_t::paint_datacube(QPaintEvent* event) const {
+  if(!d->datacube) {
+    return;
+  }
   QPainter painter(viewport());
   QStyleOption options;
   options.initFrom(viewport());
@@ -369,6 +375,10 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
 }
 
 void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
+  if(!d->datacube) {
+    event->setAccepted(false);
+    return;
+  }
   QPoint pos = event->pos();
   if (pos.x() >= d->vertical_header_width + d->cell_size.width()*d->datacube->column_count()) {
     event->setAccepted(false);
@@ -439,7 +449,7 @@ datacube_t* datacube_view_t::datacube() const {
 
 void datacube_view_t::mousePressEvent(QMouseEvent* event) {
   QAbstractScrollArea::mousePressEvent(event);
-  if (event->button() != Qt::LeftButton) {
+  if (event->button() != Qt::LeftButton || !d->datacube) {
     event->setAccepted(false);
     return;
   }
