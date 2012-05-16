@@ -74,6 +74,7 @@ class QDATACUBE_EXPORT datacube_view_t : public QAbstractScrollArea  {
     void cell_context_menu(QPoint pos, int row, int column);
   private Q_SLOTS:
     void relayout();
+    void datacube_deleted();
   protected:
     virtual bool viewportEvent(QEvent* event);
     virtual void contextMenuEvent(QContextMenuEvent* event);

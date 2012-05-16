@@ -101,6 +101,7 @@ void datacube_view_t::set_datacube(datacube_t* datacube) {
   d->selection = new datacube_selection_t(datacube, this);
   viewport()->update();
   connect(d->selection, SIGNAL(selection_status_changed(int, int)), viewport(), SLOT(update()));
+  connect(datacube, SIGNAL(destroyed(QObject*)), SLOT(datacube_deleted()));
   connect(datacube, SIGNAL(reset()), SLOT(relayout()));
   connect(datacube, SIGNAL(data_changed(int, int)), viewport(), SLOT(update()));
   connect(datacube, SIGNAL(columns_inserted(int, int)), SLOT(relayout()));
@@ -108,7 +109,6 @@ void datacube_view_t::set_datacube(datacube_t* datacube) {
   connect(datacube, SIGNAL(columns_removed(int, int)), SLOT(relayout()));
   connect(datacube, SIGNAL(rows_removed(int, int)), SLOT(relayout()));
   connect(datacube, SIGNAL(global_filter_changed()), SLOT(relayout()));
-  connect(datacube, SIGNAL(destroyed(QObject*)), SLOT(deleteLater()));
   relayout();
 }
 
@@ -626,6 +626,12 @@ abstract_formatter_t* datacube_view_t::take_formatter(int index)
   relayout();
   return formatter;
 }
+
+void datacube_view_t::datacube_deleted() {
+  d->selection->deleteLater();
+  d = new datacube_view_private_t();
+}
+
 
 } // end of namespace
 
