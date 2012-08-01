@@ -395,7 +395,7 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
     if (pos.x() >= d->vertical_header_width) {
       // Hit horizontal headers
       const int level = d->datacube->header_count(Qt::Horizontal) - (d->horizontal_header_height - pos.y()) / d->cell_size.height() - 1;
-      Q_ASSERT(level>=0);
+      Q_ASSERT(level>=-1);
       typedef QPair<QString, int>  headers_t;
       int c = 0;
       int section = 0;
