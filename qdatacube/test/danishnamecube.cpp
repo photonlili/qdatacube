@@ -13,6 +13,7 @@
 
 #include "column_aggregator.h"
 #include "datacube.h"
+#include "modeltest.h"
 
 using namespace qdatacube;
 
@@ -73,6 +74,7 @@ danishnamecube_t::danishnamecube_t(QObject* parent):
     weight_aggregator(new column_aggregator_t(m_underlying_model, WEIGHT)),
     kommune_aggregator(new column_aggregator_t(m_underlying_model, KOMMUNE))
 {
+  new ModelTest(m_underlying_model);
 }
 
 QStandardItemModel* danishnamecube_t::copy_model() {
