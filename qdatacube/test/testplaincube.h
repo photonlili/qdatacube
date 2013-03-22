@@ -130,6 +130,11 @@ class testplaincube : public danishnamecube_t {
      * Test to_section and to_header_section
      */
     void test_section_to_header_section_and_back_again();
+
+    /**
+     * test many buckets
+     */
+    void test_many_buckets();
 };
 
 #endif // TESTPLAINCUBE_H

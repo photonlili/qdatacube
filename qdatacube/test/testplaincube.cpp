@@ -825,6 +825,43 @@ void testplaincube::test_section_to_header_section_and_back_again()
   }
 }
 
+class HundredBucketsNonAggregator : public abstract_aggregator_t {
+        QList<QString> cats;
+    public:
+        explicit HundredBucketsNonAggregator(QAbstractItemModel* model, QObject* parent = 0) : abstract_aggregator_t(model,0) {
+            for(int i = 0 ; i < 100 ; i++) {
+                cats << QString::number(i);
+            }
+        }
+        virtual const QList< QString >& categories() {
+            return cats;
+        }
+        virtual int operator()(int row) {
+            Q_UNUSED(row);
+            return 0;
+        }
+};
+
+void testplaincube::test_many_buckets()
+{
+    try {
+        {
+            datacube_t datacube(m_underlying_model, new HundredBucketsNonAggregator(m_underlying_model), new HundredBucketsNonAggregator(m_underlying_model));
+            for(int i = 0 ; i <10 ; i++) {
+                datacube.split(Qt::Horizontal,0,new HundredBucketsNonAggregator(m_underlying_model));
+                datacube.split(Qt::Vertical,0,new HundredBucketsNonAggregator(m_underlying_model));
+                qDebug() << "horizontal header count " << datacube.header_count(Qt::Horizontal);
+                qDebug() << "vertical header count " << datacube.header_count(Qt::Vertical);
+           }
+        }
+        QFAIL("Should have got an exception");
+    } catch (std::bad_alloc& ex) {
+        // nothing expected for now
+        qDebug() << "caught std::bad_alloc";
+    }
+}
+
+
 QTEST_MAIN(testplaincube)
 
 #include "testplaincube.moc"
