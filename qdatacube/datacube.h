@@ -248,7 +248,7 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     /**
      * Run some internal checks. Useful for debugging
      */
-    void check();
+    void check() const;
 
   Q_SIGNALS:
     /**

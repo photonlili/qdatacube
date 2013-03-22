@@ -12,6 +12,8 @@
 #include "column_aggregator.h"
 #include "filter_by_aggregate.h"
 
+//#include <valgrind/callgrind.h>
+
 using namespace qdatacube;
 
 void testplaincube::test_empty_cube() {
@@ -825,11 +827,11 @@ void testplaincube::test_section_to_header_section_and_back_again()
   }
 }
 
-class HundredBucketsNonAggregator : public abstract_aggregator_t {
+class TenBucketsNonAggregator : public abstract_aggregator_t {
         QList<QString> cats;
     public:
-        explicit HundredBucketsNonAggregator(QAbstractItemModel* model, QObject* parent = 0) : abstract_aggregator_t(model,0) {
-            for(int i = 0 ; i < 100 ; i++) {
+        explicit TenBucketsNonAggregator(QAbstractItemModel* model, QObject* parent = 0) : abstract_aggregator_t(model,0) {
+            for(int i = 0 ; i < 10 ; i++) {
                 cats << QString::number(i);
             }
         }
@@ -846,18 +848,15 @@ void testplaincube::test_many_buckets()
 {
     try {
         {
-            datacube_t datacube(m_underlying_model, new HundredBucketsNonAggregator(m_underlying_model), new HundredBucketsNonAggregator(m_underlying_model));
+            datacube_t datacube(m_underlying_model, new TenBucketsNonAggregator(m_underlying_model), new TenBucketsNonAggregator(m_underlying_model));
+//            CALLGRIND_START_INSTRUMENTATION;
             for(int i = 0 ; i <10 ; i++) {
-                datacube.split(Qt::Horizontal,0,new HundredBucketsNonAggregator(m_underlying_model));
-                datacube.split(Qt::Vertical,0,new HundredBucketsNonAggregator(m_underlying_model));
-                qDebug() << "horizontal header count " << datacube.header_count(Qt::Horizontal);
-                qDebug() << "vertical header count " << datacube.header_count(Qt::Vertical);
+                datacube.split(Qt::Horizontal,0,new TenBucketsNonAggregator(m_underlying_model));
+                datacube.split(Qt::Vertical,0,new TenBucketsNonAggregator(m_underlying_model));
            }
         }
-        QFAIL("Should have got an exception");
     } catch (std::bad_alloc& ex) {
-        // nothing expected for now
-        qDebug() << "caught std::bad_alloc";
+        QFAIL("Should have got an exception");
     }
 }
 
