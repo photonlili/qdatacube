@@ -23,8 +23,8 @@ using std::tr1::shared_ptr;
 namespace qdatacube {
 
 struct CellPoint {
-    int row;
-    int column;
+    long row;
+    long column;
     CellPoint(int row, int column) : row(row), column(column) {}
 };
 
@@ -41,11 +41,11 @@ class datacube_t::secret_t {
       return compute_section_for_index(Qt::Horizontal, index);
     }
     int compute_section_for_index(Qt::Orientation orientation, int index);
-    const QList<int>& cell(int bucket_row, int bucket_column) const;
-    int hasCell(int bucket_row, int bucket_column) const;
-    void setCell(int bucket_row, int bucket_column, QList<int> cell_content);
+    const QList<int>& cell(long int bucket_row, long int bucket_column) const;
+    int hasCell(long int bucket_row, long int bucket_column) const;
+    void setCell(long int bucket_row, long int bucket_column, QList< int > cell_content);
     void setCell(CellPoint point, QList<int> cell_content);
-    void cellAppend(int bucket_row, int bucket_column, int to_add);
+    void cellAppend(long int bucket_row, long int bucket_column, int to_add);
     void cellAppend(CellPoint point, QList<int> listadd);
     int bucket_to_row(int bucket_row) const;
     int bucket_to_column(int bucket_column) const;
@@ -55,7 +55,7 @@ class datacube_t::secret_t {
      * Renumber cells from start by adding adjustment
      */
     void renumber_cells(int start, int adjustment);
-    bool cellRemoveOne(int row, int column, int index);
+    bool cellRemoveOne(long int row, long int column, int index);
 
     const QAbstractItemModel* model;
     typedef QVector<shared_ptr<abstract_aggregator_t> >aggregators_t;
@@ -63,7 +63,7 @@ class datacube_t::secret_t {
     aggregators_t col_aggregators;
     QVector<unsigned> row_counts;
     QVector<unsigned> col_counts;
-    typedef QHash<int, QList<int> > cells_t;
+    typedef QHash<long, QList<int> > cells_t;
     global_filters_t global_filters;
     typedef QHash<int, cell_t> reverse_index_t;
     reverse_index_t reverse_index;
@@ -113,8 +113,8 @@ int datacube_t::secret_t::bucket_for_column(int column) {
   return -1;
 }
 
-const QList< int >& datacube_t::secret_t::cell(int bucket_row, int bucket_column) const {
-  const int i = bucket_row + bucket_column*row_counts.size();
+const QList< int >& datacube_t::secret_t::cell(long bucket_row, long bucket_column) const {
+  const long i = bucket_row + bucket_column*row_counts.size();
   cells_t::const_iterator it = cells.constFind(i);
   if(it == cells.constEnd()) {
     return empty_list;
@@ -123,17 +123,17 @@ const QList< int >& datacube_t::secret_t::cell(int bucket_row, int bucket_column
 }
 
 void datacube_t::secret_t::cellAppend(CellPoint point, QList< int > listadd) {
-    const int i = point.row + point.column*row_counts.size();
+    const long i = point.row + point.column*row_counts.size();
     cells[i].append(listadd);
 }
 
-void datacube_t::secret_t::cellAppend(int bucket_row, int bucket_column, int to_add) {
-    const int i = bucket_row + bucket_column*row_counts.size();
+void datacube_t::secret_t::cellAppend(long int bucket_row, long bucket_column, int to_add) {
+    const long i = bucket_row + bucket_column*row_counts.size();
     cells[i].append(to_add);
 }
 
-bool datacube_t::secret_t::cellRemoveOne(int row, int column, int index) {
-    const int i = row + column*row_counts.size();
+bool datacube_t::secret_t::cellRemoveOne(long row, long column, int index) {
+    const long i = row + column*row_counts.size();
     cells_t::iterator it = cells.find(i);
     if(it == cells.end()) {
         return false;
@@ -145,18 +145,18 @@ bool datacube_t::secret_t::cellRemoveOne(int row, int column, int index) {
     return success;
 }
 
-int datacube_t::secret_t::hasCell(int bucket_row, int bucket_column) const {
-    const int i = bucket_row + bucket_column*row_counts.size();
+int datacube_t::secret_t::hasCell(long int bucket_row, long bucket_column) const {
+    const long i = bucket_row + bucket_column*row_counts.size();
     cells_t::const_iterator it = cells.constFind(i);
     return it != cells.constEnd();
 }
 
-void datacube_t::secret_t::setCell(int bucket_row, int bucket_column, QList< int > cell_content) {
+void datacube_t::secret_t::setCell(long int bucket_row, long bucket_column, QList< int > cell_content) {
     setCell(CellPoint(bucket_row, bucket_column), cell_content);
 }
 
 void datacube_t::secret_t::setCell(CellPoint point, QList< int > cell_content) {
-    const int i = point.row + point.column*row_counts.size();
+    const long i = point.row + point.column*row_counts.size();
     cells_t::iterator it = cells.find(i);
     if(it == cells.end()) {
         cells.insert(i,cell_content);
@@ -322,7 +322,7 @@ bool datacube_t::remove_global_filter(qdatacube::abstract_filter_t* filter) {
 }
 
 void datacube_t::check() const {
-    qDebug() << "running check" << d->col_counts.size() << d->row_counts.size();
+    qDebug() << "running check" << d->col_counts.size() << d->row_counts.size() << d->cells.size();
   int total_count = 0;
   const int nelements = d->model->rowCount();
   for (int i=0; i<nelements;  ++i) {
@@ -338,6 +338,8 @@ void datacube_t::check() const {
       ++total_count;
     }
   }
+  int failcols = 0;
+  int failrows = 0;
   QVector<unsigned> check_row_counts(d->row_counts.size());
   int count = 0;
   for (int c=0; c<d->col_counts.size(); ++c) {
@@ -349,14 +351,19 @@ void datacube_t::check() const {
     }
     if (col_count != d->col_counts[c]) {
       qDebug() << col_count << "!=" << d->col_counts[c];
+      failcols++;
       Q_ASSERT(col_count == d->col_counts[c]);
     }
     count += col_count;
   }
   Q_ASSERT_X(count == total_count, __func__, QString("%1 == %2").arg(count).arg(total_count).toLocal8Bit().data());
   for (int i=0; i<d->row_counts.size(); ++i) {
-    Q_ASSERT(check_row_counts[i] == d->row_counts[i]);
+        if(check_row_counts[i] != d->row_counts[i]) {
+            failrows++;
+            Q_ASSERT(check_row_counts[i] == d->row_counts[i]);
+        }
   }
+    qDebug() << "check done" << failcols << failrows;
 }
 
 void datacube_t::add_global_filter(qdatacube::abstract_filter_t* filter) {
@@ -617,16 +624,17 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_aggregat
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
-  if(INT_MAX / (d->col_counts.size()) < (d->row_counts.size()*aggregator->categories().size())) {
+  const int ncats = aggregator->categories().size();
+  const int source_row_count = d->row_counts.size();
+  const long target_row_countl = long(source_row_count) * long(ncats);
+  if(INT_MAX/10 < target_row_countl) {
     qWarning("We are overflowing! Avoiding it by not splitting row.");
     return;
   }
+  const int target_row_count = target_row_countl;
   emit about_to_be_reset();
   secret_t::cells_t oldcells = d->cells;
-  const int ncats = aggregator->categories().size();
   d->cells = secret_t::cells_t();
-  const int source_row_count = d->row_counts.size();
-  const int target_row_count = source_row_count * ncats;
   int cat_stride = 1;
   for (int i=headerno; i<d->row_aggregators.size(); ++i) {
     cat_stride *= d->row_aggregators.at(i)->categories().size();
@@ -636,19 +644,19 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_aggregat
   d->row_counts = QVector<unsigned>(old_row_counts.size()*ncats);
   d->reverse_index = secret_t::reverse_index_t();
   // Sort out elements in new categories. Note that the old d->col_counts are unchanged
-  for (int c=0; c<d->col_counts.size(); ++c) {
-    for (int major = 0; major<old_row_counts.size()/cat_stride; ++major) {
-      for (int minor = 0; minor<cat_stride; ++minor) {
-        const int r = major*cat_stride + minor;
-        Q_FOREACH(int element, oldcells.value(source_row_count*c+r)) {
-          const int target_row = major*target_stride + minor + (*aggregator).operator()(element) * cat_stride;
-          const int target_index = target_row + c*target_row_count;
-          d->cells[target_index] << element;
-          ++d->row_counts[target_row];
-          d->reverse_index.insert(element, cell_t(target_row, c));
+  for(secret_t::cells_t::const_iterator it = oldcells.constBegin(), end = oldcells.constEnd(); it!= end; ++it) {
+        const long index = it.key();
+        const long c = index / source_row_count;
+        const long r = index % source_row_count;
+        const long major = r / cat_stride;
+        const long minor = r % cat_stride;
+        Q_FOREACH(int element,it.value()) {
+            const long target_row = major*target_stride + minor + (*aggregator).operator()(element) * cat_stride;
+            const long target_index = target_row + long(c)*target_row_count;
+            d->cells[target_index] << element;
+            ++d->row_counts[target_row];
+            d->reverse_index.insert(element, cell_t(target_row, c));
         }
-      }
-    }
   }
   d->row_aggregators.insert(headerno, aggregator);
   emit reset();
@@ -662,13 +670,15 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_aggre
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
-  if(INT_MAX / (d->row_counts.size()) < (d->col_counts.size()*aggregator->categories().size())) {
+  const int ncats = aggregator->categories().size();
+  const int old_column_count = d->col_counts.size();
+  const long new_column_countl = long(old_column_count) * long(ncats);
+  if(INT_MAX/10 < new_column_countl) {
     qWarning("We are overflowing! Avoiding it by not splitting column.");
     return;
   }
   emit about_to_be_reset();
   secret_t::cells_t oldcells = d->cells;
-  const int ncats = aggregator->categories().size();
   d->cells = secret_t::cells_t();
   const int row_count = d->row_counts.size();
   int cat_stride = 1;
@@ -677,22 +687,23 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_aggre
   }
   int target_stride = cat_stride*ncats;
   QVector<unsigned> old_column_counts = d->col_counts;
-  d->col_counts = QVector<unsigned>(old_column_counts.size()*ncats);
+  d->col_counts = QVector<unsigned>(int(new_column_countl));
   d->reverse_index = secret_t::reverse_index_t();
   // Sort out elements in new categories. Note that the old d->row_counts are unchanged
-  for (int major = 0; major < old_column_counts.size()/cat_stride; ++major) {
-    for (int minor = 0; minor < cat_stride; ++minor) {
-      const int c = major*cat_stride + minor;
-      for (int r=0; r<d->row_counts.size(); ++r) {
-        Q_FOREACH(int element, oldcells.value(row_count*c+r)) {
-          const int target_column = major*target_stride + minor + (*aggregator).operator()(element) * cat_stride;
-          const int target_index = r + target_column*d->row_counts.size();
-          d->cells[target_index] << element;
-          d->reverse_index.insert(element, cell_t(r, target_column));
-          ++d->col_counts[target_column];
+ 
+  for(secret_t::cells_t::const_iterator it = oldcells.constBegin(), end = oldcells.constEnd(); it!= end; ++it) {
+        const long index = it.key();
+        const long r = index % row_count;
+        const long c = index/row_count;
+        const long major = c/cat_stride;
+        const long minor = c%cat_stride;
+        Q_FOREACH(int element,it.value()) {
+            const long target_column = major*target_stride + minor + (*aggregator).operator()(element) * cat_stride;
+            const long target_index = r + long(target_column)*d->row_counts.size();
+            d->cells[target_index] << element;
+            d->reverse_index.insert(element, cell_t(r, target_column));
+            ++d->col_counts[target_column];
         }
-      }
-    }
   }
   d->col_aggregators.insert(headerno, aggregator);
   emit reset();

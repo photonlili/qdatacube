@@ -12,8 +12,6 @@
 #include "column_aggregator.h"
 #include "filter_by_aggregate.h"
 
-//#include <valgrind/callgrind.h>
-
 using namespace qdatacube;
 
 void testplaincube::test_empty_cube() {
@@ -849,14 +847,22 @@ void testplaincube::test_many_buckets()
     try {
         {
             datacube_t datacube(m_underlying_model, new TenBucketsNonAggregator(m_underlying_model), new TenBucketsNonAggregator(m_underlying_model));
-//            CALLGRIND_START_INSTRUMENTATION;
-            for(int i = 0 ; i <10 ; i++) {
+            for(int i = 0 ; i <7 ; i++) {
                 datacube.split(Qt::Horizontal,0,new TenBucketsNonAggregator(m_underlying_model));
+                QCOMPARE(datacube.header_count(Qt::Horizontal),i+2);
                 datacube.split(Qt::Vertical,0,new TenBucketsNonAggregator(m_underlying_model));
+                QCOMPARE(datacube.header_count(Qt::Vertical),i+2);
            }
+           //due to overflow-guards, these shouldn't actually succeed.
+           int horizontal_header_count = datacube.header_count(Qt::Horizontal);
+           datacube.split(Qt::Horizontal,0,new TenBucketsNonAggregator(m_underlying_model));
+           QCOMPARE(horizontal_header_count,datacube.header_count(Qt::Horizontal));
+           int vertical_header_count = datacube.header_count(Qt::Vertical);
+           datacube.split(Qt::Vertical,0,new TenBucketsNonAggregator(m_underlying_model));
+           QCOMPARE(vertical_header_count,datacube.header_count(Qt::Vertical));
         }
     } catch (std::bad_alloc& ex) {
-        QFAIL("Should have got an exception");
+        QFAIL("Should suceeed");
     }
 }
 
