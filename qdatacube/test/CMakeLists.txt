@@ -12,4 +12,3 @@ ADD_EXECUTABLE(testheaders testheaders.cpp danishnamecube.cpp modeltest.cpp)
 TARGET_LINK_LIBRARIES(testheaders qdatacube ${QT_QTTEST_LIBRARY} )
 
 ADD_TEST(testplaincube testplaincube)
-ADD_TEST(testdatacube_model testdatacube_model)
