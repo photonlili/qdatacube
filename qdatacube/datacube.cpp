@@ -82,6 +82,7 @@ int datacube_t::secret_t::compute_section_for_index(Qt::Orientation orientation,
     rv += stride * (*aggregator)(index);
     stride *= aggregator->categories().size();
   }
+  Q_ASSERT(rv >=0);
   return rv;
 }
 
