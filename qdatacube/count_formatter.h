@@ -15,6 +15,10 @@ class QDATACUBE_EXPORT count_formatter_t : public abstract_formatter_t {
     virtual QString name() const;
     virtual QString short_name() const;
     virtual QString format(QList< int > rows) const;
+  protected:
+    virtual bool eventFilter(QObject* filter, QEvent* event);
+  private:
+      void recalculateCellSize();
 };
 }
 #endif // COUNT_FORMATTER_H
