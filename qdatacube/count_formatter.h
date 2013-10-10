@@ -11,7 +11,7 @@ namespace qdatacube {
  */
 class QDATACUBE_EXPORT count_formatter_t : public abstract_formatter_t {
   public:
-    count_formatter_t(QAbstractItemModel* underlying_model, qdatacube::datacube_view_t* view);
+    count_formatter_t(QAbstractItemModel* underlying_model, qdatacube::datacube_view_t* view = 0L);
     virtual QString name() const;
     virtual QString short_name() const;
     virtual QString format(QList< int > rows) const;

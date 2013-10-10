@@ -9,8 +9,9 @@ count_formatter_t::count_formatter_t(QAbstractItemModel* underlying_model, qdata
   : abstract_formatter_t(underlying_model, view)
 {
     recalculateCellSize();
-    view->installEventFilter(this);
-
+    if(view) {
+        view->installEventFilter(this);
+    }
 }
 
 QString count_formatter_t::name() const {
@@ -34,11 +35,11 @@ bool count_formatter_t::eventFilter(QObject* filter, QEvent* event) {
 }
 
 void count_formatter_t::recalculateCellSize() {
+    if(m_datacube_view) {
     QString big_cell_contents = QString::number(m_underlying_model->rowCount());
-    set_cell_size(QSize(m_datacube_view->fontMetrics().width(big_cell_contents), m_datacube_view->fontMetrics().ascent()+1));
+        set_cell_size(QSize(m_datacube_view->fontMetrics().width(big_cell_contents),
+                            m_datacube_view->fontMetrics().ascent()+1));
+    }
 }
-
-
-
 }
 

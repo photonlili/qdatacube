@@ -29,7 +29,7 @@ class QDATACUBE_EXPORT abstract_formatter_t : public QObject
      *
      * To install the formatter, use datacube_view->add_formatter()
      */
-    abstract_formatter_t(QAbstractItemModel* underlying_model, datacube_view_t* view);
+    abstract_formatter_t(QAbstractItemModel* underlying_model, datacube_view_t* view = 0);
 
     /**
      * @return the accumulator, suitably formatted for output. E.g, units could be added, rounding
