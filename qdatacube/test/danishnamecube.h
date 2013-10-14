@@ -17,6 +17,33 @@ namespace qdatacube {
 class datacube_t;
 class abstract_aggregator_t;
 }
+
+#include <column_aggregator.h>
+#include <QColor>
+class SexAggregator : public qdatacube::column_aggregator_t {
+    public:
+        SexAggregator(QAbstractItemModel* model, int section) : column_aggregator_t(model,section) {
+
+        }
+        virtual QVariant categoryHeaderData(int category, int role = Qt::DisplayRole) const {
+            QVariant displayrole = column_aggregator_t::categoryHeaderData(category,Qt::DisplayRole);
+            if(role == Qt::DisplayRole) {
+                return displayrole;
+            }
+            if(role == Qt::BackgroundRole) {
+                QString displayrolestring = displayrole.toString();
+                if(displayrolestring == "male") {
+                    return QColor(Qt::cyan);
+                } else if(displayrolestring == "female") {
+                    return QColor(Qt::magenta);
+                }
+                return QColor(Qt::yellow);
+            }
+            return QVariant();
+        }
+};
+
+
 class danishnamecube_t : public QObject {
   Q_OBJECT
   protected:

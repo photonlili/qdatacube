@@ -69,7 +69,7 @@ danishnamecube_t::danishnamecube_t(QObject* parent):
     m_underlying_model(new QStandardItemModel(0, N_COLUMNS, this)),
     first_name_aggregator(new column_aggregator_t(m_underlying_model, FIRST_NAME)),
     last_name_aggregator(new column_aggregator_t(m_underlying_model, LAST_NAME)),
-    sex_aggregator(new column_aggregator_t(m_underlying_model, SEX)),
+    sex_aggregator(new SexAggregator(m_underlying_model, SEX)),
     age_aggregator(new column_aggregator_t(m_underlying_model, AGE)),
     weight_aggregator(new column_aggregator_t(m_underlying_model, WEIGHT)),
     kommune_aggregator(new column_aggregator_t(m_underlying_model, KOMMUNE))

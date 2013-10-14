@@ -288,10 +288,12 @@ void testplaincube::test_columnaggregator()
   QCOMPARE(cat_of_balt, 2);
   QCOMPARE((*first_name_aggregator)(0), cat_of_balt);
   QCOMPARE((*first_name_aggregator)(1), cat_of_balt);
-  column_aggregator_t  sex_aggregator(m_underlying_model ,testplaincube::SEX);
+  SexAggregator  sex_aggregator(m_underlying_model ,testplaincube::SEX);
   QCOMPARE(sex_aggregator.categoryCount(),2);
   QCOMPARE(sex_aggregator.categoryHeaderData(0).toString(), QString::fromLocal8Bit("female"));
   QCOMPARE(sex_aggregator.categoryHeaderData(1).toString(), QString::fromLocal8Bit("male"));
+  QCOMPARE(sex_aggregator.categoryHeaderData(0, Qt::BackgroundRole).value<QColor>().name(), QColor(Qt::magenta).name());
+  QCOMPARE(sex_aggregator.categoryHeaderData(1, Qt::BackgroundRole).value<QColor>().name(), QColor(Qt::cyan).name());
 
 }
 
