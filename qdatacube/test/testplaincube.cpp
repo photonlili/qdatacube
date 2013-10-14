@@ -840,7 +840,7 @@ void testplaincube::test_section_to_header_section_and_back_again()
 class TenBucketsNonAggregator : public abstract_aggregator_t {
         QList<QString> cats;
     public:
-        explicit TenBucketsNonAggregator(QAbstractItemModel* model) : abstract_aggregator_t(model,0) {
+        explicit TenBucketsNonAggregator(QAbstractItemModel* model) : abstract_aggregator_t(model) {
             for(int i = 0 ; i < 10 ; i++) {
                 cats << QString::number(i);
             }

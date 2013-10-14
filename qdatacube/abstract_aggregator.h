@@ -21,10 +21,11 @@ namespace qdatacube {
 /**
  * aggregate elements into a number of categories
  */
+class AbstractAggregatorPrivate;
 class QDATACUBE_EXPORT abstract_aggregator_t : public QObject {
   Q_OBJECT
   public:
-    explicit abstract_aggregator_t(QAbstractItemModel* model, QObject* parent = 0);
+    explicit abstract_aggregator_t(QAbstractItemModel* model);
 
     /**
      * @param row number in m_model
@@ -48,16 +49,17 @@ class QDATACUBE_EXPORT abstract_aggregator_t : public QObject {
     /**
      * @returns an name for this aggregator. Default implementation returns "unnamed";
      */
-    virtual QString name() const {
-      return QString::fromLocal8Bit("unnamed");
-    }
+    virtual QString name() const;
 
     /**
     * @return underlying model
     */
-    QAbstractItemModel* underlying_model() const {
-      return m_underlying_model;
-    }
+    QAbstractItemModel* underlying_model() const;
+
+    /**
+     * dtor
+     */
+    virtual ~abstract_aggregator_t();
   Q_SIGNALS:
     /**
      * Implementors must emit this signal when a category has been added
@@ -70,8 +72,8 @@ class QDATACUBE_EXPORT abstract_aggregator_t : public QObject {
      * @param index index of new category
      */
     void category_removed(int index) const;
-  protected:
-    QAbstractItemModel* m_underlying_model;
+  private:
+      QScopedPointer<AbstractAggregatorPrivate> d;
 };
 
 }
