@@ -80,7 +80,7 @@ int datacube_t::secret_t::compute_section_for_index(Qt::Orientation orientation,
   for (int aggregator_index = aggregators.size()-1; aggregator_index>=0; --aggregator_index) {
     const shared_ptr<abstract_aggregator_t>& aggregator = aggregators.at(aggregator_index);
     rv += stride * (*aggregator)(index);
-    stride *= aggregator->categories().size();
+    stride *= aggregator->categoryCount();
   }
   Q_ASSERT(rv >=0);
   return rv;
@@ -209,8 +209,8 @@ datacube_t::secret_t::secret_t(const QAbstractItemModel* model,
 {
   col_aggregators << column_aggregator;
   row_aggregators << row_aggregator;
-  col_counts = QVector<unsigned>(column_aggregator->categories().size());
-  row_counts = QVector<unsigned>(row_aggregator->categories().size());
+  col_counts = QVector<unsigned>(column_aggregator->categoryCount());
+  row_counts = QVector<unsigned>(row_aggregator->categoryCount());
 }
 
 datacube_t::datacube_t(const QAbstractItemModel* model,
@@ -410,16 +410,15 @@ QList< int > datacube_t::elements(int row, int column) const {
 
 }
 
-QList< QPair<QString,int> > datacube_t::headers(Qt::Orientation orientation, int index) const {
-  QList< QPair<QString,int> > rv;
+QList< QPair<QVariant,int> > datacube_t::headers(Qt::Orientation orientation, int index, int role) const {
+  QList< QPair<QVariant,int> > rv;
   QVector<shared_ptr<abstract_aggregator_t> >& aggregators = (orientation == Qt::Horizontal) ? d->col_aggregators : d->row_aggregators;
   const QVector<unsigned>& counts = (orientation == Qt::Horizontal) ? d->col_counts : d->row_counts;
   shared_ptr<abstract_aggregator_t> aggregator = aggregators.at(index);
-  QList<QString> categories = aggregator->categories();
-  const int ncats = categories.size();
+  const int ncats = aggregator->categoryCount();
   int stride = 1;
   for (int i=index+1; i<aggregators.size(); ++i) {
-    stride *= aggregators.at(i)->categories().size();
+    stride *= aggregators.at(i)->categoryCount();
   }
   for (int c=0; c<counts.size(); c+=stride) {
     int count = 0;
@@ -429,7 +428,7 @@ QList< QPair<QString,int> > datacube_t::headers(Qt::Orientation orientation, int
       }
     }
     if (count > 0 ) {
-      rv << QPair<QString,int>(categories.at((c/stride)%ncats), count);
+      rv << QPair<QVariant,int>(aggregator->categoryHeaderData((c/stride)%ncats,role), count);
     }
   }
   return rv;
@@ -625,7 +624,7 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_aggregat
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
-  const int ncats = aggregator->categories().size();
+  const int ncats = aggregator->categoryCount();
   const int source_row_count = d->row_counts.size();
   const long target_row_countl = long(source_row_count) * long(ncats);
   if(INT_MAX/10 < target_row_countl) {
@@ -638,7 +637,7 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< abstract_aggregat
   d->cells = secret_t::cells_t();
   int cat_stride = 1;
   for (int i=headerno; i<d->row_aggregators.size(); ++i) {
-    cat_stride *= d->row_aggregators.at(i)->categories().size();
+    cat_stride *= d->row_aggregators.at(i)->categoryCount();
   }
   int target_stride = cat_stride*ncats;
   QVector<unsigned> old_row_counts = d->row_counts;
@@ -671,7 +670,7 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_aggre
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
-  const int ncats = aggregator->categories().size();
+  const int ncats = aggregator->categoryCount();
   const int old_column_count = d->col_counts.size();
   const long new_column_countl = long(old_column_count) * long(ncats);
   if(INT_MAX/10 < new_column_countl) {
@@ -684,7 +683,7 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_aggre
   const int row_count = d->row_counts.size();
   int cat_stride = 1;
   for (int i=headerno; i<d->col_aggregators.size(); ++i) {
-    cat_stride *= d->col_aggregators.at(i)->categories().size();
+    cat_stride *= d->col_aggregators.at(i)->categoryCount();
   }
   int target_stride = cat_stride*ncats;
   QVector<unsigned> old_column_counts = d->col_counts;
@@ -732,12 +731,12 @@ void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
   disconnect(aggregator.get(), SIGNAL(category_added(int)), this, SLOT(slot_aggregator_category_added(int)));
   disconnect(aggregator.get(), SIGNAL(category_removed(int)), this, SLOT(slot_aggregator_category_removed(int)));;
   parallel_aggregators.remove(headerno);
-  const int ncats = aggregator->categories().size();
+  const int ncats = aggregator->categoryCount();
   d->cells = secret_t::cells_t();
   const int normal_count = horizontal ? d->row_counts.size() : d->col_counts.size();
   int cat_stride = 1;
   for (int i=headerno; i<parallel_aggregators.size(); ++i) {
-    cat_stride *= parallel_aggregators.at(i)->categories().size();
+    cat_stride *= parallel_aggregators.at(i)->categoryCount();
   }
   const int source_stride = cat_stride * ncats;
   QVector<unsigned>& new_counts = horizontal ? d->col_counts : d->row_counts;
@@ -865,12 +864,12 @@ void qdatacube::datacube_t::aggregator_category_added(std::tr1::shared_ptr< qdat
   secret_t::cells_t old_cells = d->cells;
   int nsuper_categories = 1;
   for (int h=0; h<headerno; ++h) {
-    nsuper_categories *= qMax(parallel_aggregators[h]->categories().size(),1);
+    nsuper_categories *= qMax(parallel_aggregators[h]->categoryCount(),1);
   }
-  const int new_ncats = aggregator->categories().size();
+  const int new_ncats = aggregator->categoryCount();
   int n_new_parallel_counts = nsuper_categories * new_ncats;
   for (int h = headerno+1; h<parallel_aggregators.size(); ++h) {
-    n_new_parallel_counts *= parallel_aggregators[h]->categories().size();
+    n_new_parallel_counts *= parallel_aggregators[h]->categoryCount();
   }
   new_parallel_counts = QVector<unsigned>(n_new_parallel_counts);
   d->cells = secret_t::cells_t();
@@ -909,9 +908,9 @@ void qdatacube::datacube_t::aggregator_category_removed(std::tr1::shared_ptr< qd
   secret_t::cells_t old_cells = d->cells;
   int nsuper_categories = 1;
   for (int h=0; h<headerno; ++h) {
-    nsuper_categories *= qMax(parallel_aggregators[h]->categories().size(),1);
+    nsuper_categories *= qMax(parallel_aggregators[h]->categoryCount(),1);
   }
-  const int new_ncats = aggregator->categories().size();
+  const int new_ncats = aggregator->categoryCount();
   const int old_ncats = new_ncats + 1;
   const int stride = old_parallel_counts.size()/old_ncats/nsuper_categories;
   Q_ASSERT(stride*nsuper_categories*old_ncats == old_parallel_counts.size());
@@ -979,9 +978,9 @@ int qdatacube::datacube_t::category_index(Qt::Orientation orientation, int heade
   int sub_header_size = 1;
   const secret_t::aggregators_t& aggregators = (orientation == Qt::Vertical) ? d->row_aggregators : d->col_aggregators;
   for (int i=header_index+1; i<aggregators.size(); ++i) {
-    sub_header_size *= aggregators[i]->categories().size();
+    sub_header_size *= aggregators[i]->categoryCount();
   }
-  const int naggregator_categories = aggregators[header_index]->categories().size();
+  const int naggregator_categories = aggregators[header_index]->categoryCount();
   return bucket % (naggregator_categories*sub_header_size)/sub_header_size;
 }
 
@@ -1011,7 +1010,7 @@ int qdatacube::datacube_t::element_count(Qt::Orientation orientation, int header
   int count = 0;
   int stride = 1;
   for (int i=headerno+1; i<aggregators.size(); ++i) {
-    stride *= aggregators.at(i)->categories().size();
+    stride *= aggregators.at(i)->categoryCount();
   }
   int offset = 0;
   for (int section_index = 0; section_index <= header_section; section_index += (count>0) ? 1 : 0) {
@@ -1031,7 +1030,7 @@ QList<int> qdatacube::datacube_t::elements(Qt::Orientation orientation, int head
   const QVector<unsigned>& counts = (orientation == Qt::Horizontal) ? d->col_counts : d->row_counts;
   int stride = 1;
   for (int i=headerno+1; i<aggregators.size(); ++i) {
-    stride *= aggregators.at(i)->categories().size();
+    stride *= aggregators.at(i)->categoryCount();
   }
   // Skip forward to section
   int bucket = 0;
@@ -1071,7 +1070,7 @@ int qdatacube::datacube_t::to_header_section(const Qt::Orientation orientation, 
   const QVector<unsigned>& counts = (orientation == Qt::Horizontal) ? d->col_counts : d->row_counts;
   int stride = 1;
   for (int i=headerno+1; i<aggregators.size(); ++i) {
-    stride *= aggregators.at(i)->categories().size();
+    stride *= aggregators.at(i)->categoryCount();
   }
   // Skip forward to section
   int bucket = 0;
@@ -1101,7 +1100,7 @@ QPair< int, int > qdatacube::datacube_t::to_section(Qt::Orientation orientation,
   const QVector<unsigned>& counts = (orientation == Qt::Horizontal) ? d->col_counts : d->row_counts;
   int stride = 1;
   for (int i=headerno+1; i<aggregators.size(); ++i) {
-    stride *= aggregators.at(i)->categories().size();
+    stride *= aggregators.at(i)->categoryCount();
   }
   // Skip forward to section
   int bucket = 0;

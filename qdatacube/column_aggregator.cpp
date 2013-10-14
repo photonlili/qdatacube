@@ -44,9 +44,16 @@ void column_aggregator_t::set_trim_new_categories_from_right(int max_chars) {
   d->cat_map = map;
 }
 
-const QList< QString >& column_aggregator_t::categories() {
-  Q_ASSERT(d->section < m_underlying_model->columnCount());
-  return d->categories;
+int column_aggregator_t::categoryCount() const {
+    Q_ASSERT(d->section < m_underlying_model->columnCount());
+    return d->categories.size();
+}
+
+QVariant column_aggregator_t::categoryHeaderData(int category, int role) const {
+    if(role == Qt::DisplayRole) {
+        return d->categories.at(category);
+    }
+    return QVariant();
 }
 
 column_aggregator_t::column_aggregator_t(QAbstractItemModel* model, int section): abstract_aggregator_t(model), d(new secret_t(section)) {

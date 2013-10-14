@@ -87,12 +87,13 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     int column_count() const;
 
     /**
-     * @return pair of (name of header, number of columns spanned)
+     * @return pair of (role data for header, number of columns spanned)
      * @param orientation
      * @param index 0 is first header, 1 is next and so on, up until headerCount(orientation)
+     * @param role role to get data for
      * This function is meant to be convenient for drawing and similar.
      */
-    QList<QPair<QString,int> > headers(Qt::Orientation orientation, int index) const;
+    QList<QPair<QVariant,int> > headers(Qt::Orientation orientation, int index, int role = Qt::DisplayRole) const;
 
     /**
      * @return the header section correcsponding to section in the datacube.

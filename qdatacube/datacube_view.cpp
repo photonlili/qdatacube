@@ -199,7 +199,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   for (int hh = 0; hh < horizontal_header_count; ++hh) {
     header_rect.moveLeft(viewport()->rect().left() + vertical_header_width);
     summary_rect.moveLeft(header_rect.left());
-    QList<QPair<QString, int> > headers = d->datacube->headers(Qt::Horizontal, hh);
+    QList<QPair<QVariant, int> > headers = d->datacube->headers(Qt::Horizontal, hh);
     int current_cell_equivalent = 0;
     for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= rightmost_column; ++header_index) {
       painter.setBrush((d->header_selection_area.contains(-hh-1, header_index)) ? palette().highlight() : palette().button());
@@ -217,7 +217,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
       }
       header_rect.setSize(QSize(cell_size.width()*header_span, cell_size.height()));
       painter.drawRect(header_rect);
-      painter.drawText(header_rect.adjusted(0, 0, 0, 2), Qt::AlignCenter, headers[header_index].first);
+      painter.drawText(header_rect.adjusted(0, 0, 0, 2), Qt::AlignCenter, headers[header_index].first.toString());
       header_rect.translate(header_rect.width(), 0);
       if (d->show_totals && bottommost_row >= hh + ndatarows) {
         summary_rect.setSize(header_rect.size());
@@ -252,7 +252,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   for (int vh = 0; vh < vertical_header_count; ++vh) {
     header_rect.moveTop(options.rect.top());
     summary_rect.moveTop(header_rect.top());
-    QList<QPair<QString, int> > headers = d->datacube->headers(Qt::Vertical, vh);
+    QList<QPair<QVariant, int> > headers = d->datacube->headers(Qt::Vertical, vh);
     int current_cell_equivalent = 0;
     for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= bottommost_row; ++header_index) {
       painter.setBrush((d->header_selection_area.contains(header_index, -vh-1)) ? palette().highlight() : palette().button());
@@ -270,7 +270,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
       }
       header_rect.setSize(QSize(cell_size.width(), cell_size.height()*header_span));
       painter.drawRect(header_rect);
-      painter.drawText(header_rect.adjusted(0, 0, 0, 2), Qt::AlignCenter, headers[header_index].first);
+      painter.drawText(header_rect.adjusted(0, 0, 0, 2), Qt::AlignCenter, headers[header_index].first.toString());
       header_rect.translate(0, header_rect.height());
       if (d->show_totals && rightmost_column >= vh + ndatacolumns) {
         summary_rect.setSize(header_rect.size());
@@ -396,7 +396,7 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
       // Hit horizontal headers
       const int level = d->datacube->header_count(Qt::Horizontal) - (d->horizontal_header_height - pos.y()) / d->cell_size.height() - 1;
       Q_ASSERT(level>=-1);
-      typedef QPair<QString, int>  headers_t;
+      typedef QPair<QVariant, int>  headers_t;
       int c = 0;
       int section = 0;
       if (level>=0) {
@@ -417,7 +417,7 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
     }
   } else {
     if (pos.x() < d->vertical_header_width) {
-      typedef QPair<QString, int>  headers_t;
+      typedef QPair<QVariant, int>  headers_t;
       int r = 0;
       int section = 0;
       int level = d->datacube->header_count(Qt::Vertical) - (d->vertical_header_width - pos.x()) / d->cell_size.width() - 1;

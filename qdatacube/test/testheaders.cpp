@@ -53,12 +53,12 @@ void testheaders::add_global_filter_bottoms(std::tr1::shared_ptr< abstract_aggre
   QWidget* top = new QWidget(layout->widget());
   layout->addWidget(top);
   QBoxLayout* lay = new QVBoxLayout(top);
-  int categoryno = 0;
-  Q_FOREACH(QString cat, aggregator->categories()) {
-    QPushButton* button = new QPushButton(cat, top);
+  for(int cat = 0; cat < aggregator->categoryCount() ; cat++) {
+      QString catText = aggregator->categoryHeaderData(cat).toString();
+    QPushButton* button = new QPushButton(catText, top);
     column_aggregator_t* cf = static_cast<column_aggregator_t*>(aggregator.get());
     button->setProperty("section", cf->section());
-    button->setProperty("categoryno", categoryno++);
+    button->setProperty("categoryno", cat);
     lay->addWidget(button);
     connect(button, SIGNAL(clicked(bool)), SLOT(slot_global_filter_button_pressed()));
   }

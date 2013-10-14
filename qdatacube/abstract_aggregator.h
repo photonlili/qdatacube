@@ -12,6 +12,7 @@
 #include "qdatacube_export.h"
 #include <QString>
 #include <QObject>
+#include <QVariant>
 
 class QAbstractItemModel;
 
@@ -33,9 +34,16 @@ class QDATACUBE_EXPORT abstract_aggregator_t : public QObject {
     virtual int operator()(int row) = 0;
 
     /**
-     * @returns list of categories for this aggregator
+     * @return the number of categories in this aggregator
      */
-    virtual const QList<QString>& categories() = 0;
+    virtual int categoryCount() const = 0;
+
+    /**
+     * @param  category to query
+     * @param role header data role to query
+     * @return the headerdata for a category and a role.
+     */
+    virtual QVariant categoryHeaderData(int category, int role = Qt::DisplayRole) const = 0;
 
     /**
      * @returns an name for this aggregator. Default implementation returns "unnamed";

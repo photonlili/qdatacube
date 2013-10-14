@@ -23,13 +23,16 @@ class QDATACUBE_EXPORT column_aggregator_t : public abstract_aggregator_t {
   public:
     column_aggregator_t(QAbstractItemModel* model,  int section);
     ~column_aggregator_t();
-    virtual const QList< QString >& categories();
     virtual int operator()(int row);
     virtual QString name() const;
     /**
      * Return section
      */
     int section() const;
+
+    virtual int categoryCount() const;
+
+    virtual QVariant categoryHeaderData(int category, int role = Qt::DisplayRole) const;
 
     /**
      * trim (new) categories from the right to max max_chars characters
