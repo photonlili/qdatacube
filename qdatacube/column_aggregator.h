@@ -23,7 +23,7 @@ class QDATACUBE_EXPORT column_aggregator_t : public abstract_aggregator_t {
   public:
     column_aggregator_t(QAbstractItemModel* model,  int section);
     ~column_aggregator_t();
-    virtual int operator()(int row);
+    virtual int operator()(int row) const;
     virtual QString name() const;
     /**
      * Return section

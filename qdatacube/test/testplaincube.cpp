@@ -857,7 +857,7 @@ class TenBucketsNonAggregator : public abstract_aggregator_t {
             return QVariant();
         }
 
-        virtual int operator()(int row) {
+        virtual int operator()(int row) const{
             Q_UNUSED(row);
             return 0;
         }

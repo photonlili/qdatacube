@@ -32,7 +32,7 @@ class QDATACUBE_EXPORT abstract_aggregator_t : public QObject {
      * @returns the category number for row, 0 <= return value < categories().size()
      *
      */
-    virtual int operator()(int row) = 0;
+    virtual int operator()(int row) const = 0;
 
     /**
      * @return the number of categories in this aggregator

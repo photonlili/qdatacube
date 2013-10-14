@@ -77,7 +77,7 @@ column_aggregator_t::column_aggregator_t(QAbstractItemModel* model, int section)
   connect(underlying_model(), SIGNAL(rowsRemoved(const QModelIndex&,int, int)), SLOT(remove_rows_from_categories(const QModelIndex&,int,int)));
 }
 
-int column_aggregator_t::operator()(int row) {
+int column_aggregator_t::operator()(int row) const {
   Q_ASSERT(underlying_model()->rowCount() > row);
   QString data = underlying_model()->data(underlying_model()->index(row, d->section)).toString();
   if (d->trim_right) {
