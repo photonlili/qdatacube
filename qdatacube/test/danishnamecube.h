@@ -39,6 +39,16 @@ class SexAggregator : public qdatacube::column_aggregator_t {
                 }
                 return QColor(Qt::yellow);
             }
+            if(role == Qt::ForegroundRole) {
+                QString displayrolestring = displayrole.toString();
+                if(displayrolestring == "male") {
+                    return QColor(Qt::blue);
+                } else if(displayrolestring == "female") {
+                    return QColor(Qt::red);
+                }
+                return QColor(Qt::gray);
+
+            }
             return QVariant();
         }
 };
