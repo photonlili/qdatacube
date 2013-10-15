@@ -73,7 +73,7 @@ void testheaders::slot_global_filter_button_pressed() {
   } else {
     int section = s->property("section").toInt();
     int categoryno = s->property("categoryno").toInt();
-    m_datacube->add_global_filter(new filter_by_aggregate_t(new column_aggregator_t(m_underlying_model, section), categoryno));
+    m_datacube->add_global_filter(new filter_by_aggregate_t(std::tr1::shared_ptr<qdatacube::abstract_aggregator_t>(new column_aggregator_t(m_underlying_model, section)), categoryno));
   }
 }
 
