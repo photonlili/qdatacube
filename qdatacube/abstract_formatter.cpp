@@ -9,11 +9,14 @@ namespace qdatacube {
 class AbstractFormatterPrivate {
     public:
         AbstractFormatterPrivate(QAbstractItemModel* underlying_model, datacube_view_t* view) : m_underlying_model(underlying_model), m_view(view), m_cell_size(10,10) {
-
+            m_name = "unnamed";
+            m_shortName = "N/A";
         }
         QAbstractItemModel* m_underlying_model;
         datacube_view_t* m_view;
         QSize m_cell_size;
+        QString m_name;
+        QString m_shortName;
 };
 abstract_formatter_t::abstract_formatter_t(QAbstractItemModel* underlying_model, datacube_view_t* view)
  : QObject(view), d(new AbstractFormatterPrivate(underlying_model,view))
@@ -59,14 +62,26 @@ void abstract_formatter_t::update(abstract_formatter_t::UpdateType element) {
     // do nothing
 }
 
+QString abstract_formatter_t::name() const {
+    return d->m_name;
+}
 
+void abstract_formatter_t::setName(const QString& newName) {
+    d->m_name = newName;
+}
+
+void abstract_formatter_t::setShortName(const QString& newShortName) {
+    d->m_shortName = newShortName;
+}
+
+QString abstract_formatter_t::short_name() const {
+    return d->m_shortName;
+}
 
 abstract_formatter_t::~abstract_formatter_t()
 {
 
 }
-
-
 
 
 }

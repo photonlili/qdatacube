@@ -45,12 +45,12 @@ class QDATACUBE_EXPORT abstract_formatter_t : public QObject
     /**
      * @return short (3 letters or so) name of summary
      */
-    virtual QString short_name() const = 0;
+    QString short_name() const;
 
     /**
      * @return name for summary
      */
-    virtual QString name() const = 0;
+    QString name() const;
 
     /**
      * @return suggested cell size for this format.
@@ -95,6 +95,16 @@ class QDATACUBE_EXPORT abstract_formatter_t : public QObject
      * Calling this will cause cell_size_changed() to be emitted
      */
     void set_cell_size(QSize size);
+
+    /**
+     * Sets the short name to \param newShortName
+     */
+    void setShortName(const QString& newShortName);
+
+    /**
+     * sets the name to \param newName
+     */
+    void setName(const QString& newName);
 
     /**
      * Does a update of \param element

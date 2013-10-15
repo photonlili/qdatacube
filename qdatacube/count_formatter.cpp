@@ -9,15 +9,8 @@ count_formatter_t::count_formatter_t(QAbstractItemModel* underlying_model, qdata
   : abstract_formatter_t(underlying_model, view)
 {
     update(qdatacube::abstract_formatter_t::CellSize);
-}
-
-QString count_formatter_t::name() const {
-  return tr("Count");
-}
-
-QString count_formatter_t::short_name() const {
-  return tr("#");
-
+    setName(tr("Count"));
+    setShortName("#");
 }
 
 QString count_formatter_t::format(QList< int > rows) const {
