@@ -23,15 +23,13 @@ class QDATACUBE_EXPORT column_sum_formatter_t : public abstract_formatter_t
     virtual QString format(QList< int > rows) const;
     virtual QString name() const;
     virtual QString short_name() const;
-    protected:
-    virtual bool eventFilter(QObject* object, QEvent* event);
+  protected:
+    virtual void update(UpdateType element);
   private:
     const int m_column;
     const int m_precision;
     const double m_scale;
     QString m_suffix;
-    void recalculateCellSize();
-
 };
 } // end of namespace
 #endif // COLUMN_FORMATTER_H

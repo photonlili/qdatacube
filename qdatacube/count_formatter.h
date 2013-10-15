@@ -16,9 +16,7 @@ class QDATACUBE_EXPORT count_formatter_t : public abstract_formatter_t {
     virtual QString short_name() const;
     virtual QString format(QList< int > rows) const;
   protected:
-    virtual bool eventFilter(QObject* filter, QEvent* event);
-  private:
-      void recalculateCellSize();
+      virtual void update(qdatacube::abstract_formatter_t::UpdateType updateType);
 };
 }
 #endif // COUNT_FORMATTER_H

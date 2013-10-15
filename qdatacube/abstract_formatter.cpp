@@ -1,6 +1,7 @@
 #include "abstract_formatter.h"
 #include "datacube_view.h"
 #include <stdexcept>
+#include <QEvent>
 
 namespace qdatacube {
 
@@ -19,6 +20,9 @@ abstract_formatter_t::abstract_formatter_t(QAbstractItemModel* underlying_model,
 {
     if (!underlying_model) {
         throw std::runtime_error("underlying_model must be non-null");
+    }
+    if(view) {
+        view->installEventFilter(this);
     }
 }
 
@@ -42,6 +46,20 @@ datacube_view_t* abstract_formatter_t::datacubeView() const {
 QAbstractItemModel* abstract_formatter_t::underlyingModel() const {
     return d->m_underlying_model;
 }
+
+bool abstract_formatter_t::eventFilter(QObject* filter , QEvent* event ) {
+    if(filter == datacubeView() && event->type() == QEvent::FontChange) {
+        update(qdatacube::abstract_formatter_t::CellSize);
+    }
+    return QObject::eventFilter(filter, event);
+}
+
+void abstract_formatter_t::update(abstract_formatter_t::UpdateType element) {
+    Q_UNUSED(element);
+    // do nothing
+}
+
+
 
 abstract_formatter_t::~abstract_formatter_t()
 {

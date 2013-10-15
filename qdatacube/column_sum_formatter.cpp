@@ -16,9 +16,7 @@ column_sum_formatter_t::column_sum_formatter_t(QAbstractItemModel* underlying_mo
   if (column >= underlying_model->columnCount()|| column<0) {
     throw std::runtime_error(QString("Column %1 must be in the underlying model, ie., be between 0 and %2").arg(column).arg(underlying_model->columnCount()).toStdString());
   }
-  view->installEventFilter(this);
-  recalculateCellSize();
-
+  update(qdatacube::abstract_formatter_t::CellSize);
 }
 
 QString column_sum_formatter_t::format(QList< int > rows) const
@@ -30,8 +28,7 @@ QString column_sum_formatter_t::format(QList< int > rows) const
   return QString::number(accumulator*m_scale,'f',m_precision) + m_suffix;
 }
 
-QString column_sum_formatter_t::name() const
-{
+QString column_sum_formatter_t::name() const {
   return QString("Sum over %1").arg(underlyingModel()->headerData(m_column, Qt::Horizontal).toString());
 }
 
@@ -40,23 +37,19 @@ QString column_sum_formatter_t::short_name() const
   return "SUM";
 }
 
-void column_sum_formatter_t::recalculateCellSize() {
-  // Set the cell size, by summing up all the data in the model, and using that as input
-  double accumulator = 0;
-  for (int element = 0, nelements = underlyingModel()->rowCount(); element < nelements; ++element) {
-    accumulator += underlyingModel()->index(element, m_column).data().toDouble();
-  }
-  QString big_cell_contents = QString::number(accumulator*m_scale, 'f', m_precision) + m_suffix;
-  set_cell_size(QSize(datacubeView()->fontMetrics().width(big_cell_contents), datacubeView()->fontMetrics().lineSpacing()));
-}
-
-bool column_sum_formatter_t::eventFilter(QObject* object, QEvent* event) {
-    if(object == datacubeView() && event->type() == QEvent::FontChange) {
-        recalculateCellSize();
+void column_sum_formatter_t::update(abstract_formatter_t::UpdateType element) {
+    if(element == qdatacube::abstract_formatter_t::CellSize) {
+        if(datacubeView()) {
+            // Set the cell size, by summing up all the data in the model, and using that as input
+            double accumulator = 0;
+            for (int element = 0, nelements = underlyingModel()->rowCount(); element < nelements; ++element) {
+                accumulator += underlyingModel()->index(element, m_column).data().toDouble();
+            }
+            QString big_cell_contents = QString::number(accumulator*m_scale, 'f', m_precision) + m_suffix;
+            set_cell_size(QSize(datacubeView()->fontMetrics().width(big_cell_contents), datacubeView()->fontMetrics().lineSpacing()));
+        }
     }
-    return QObject::eventFilter(object, event);
 }
-
 
 
 } // end of namespace

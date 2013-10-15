@@ -24,6 +24,10 @@ class QDATACUBE_EXPORT abstract_formatter_t : public QObject
 {
   Q_OBJECT
   public:
+      enum UpdateType {
+          CellSize = 0,
+          UserType = 255
+      };
     /**
      * @param underlying_model The model this summarize operates over
      * @param view the datacube view to use for fonts, palette etc.
@@ -67,6 +71,11 @@ class QDATACUBE_EXPORT abstract_formatter_t : public QObject
      * dtor
      */
     virtual ~abstract_formatter_t();
+    /**
+     * \override
+     * for now, to catch font change events on the main widget.
+     */
+    virtual bool eventFilter(QObject* filter, QEvent* event );
   Q_SIGNALS:
     /**
      * Emitted when the size of the cell of the formatter is changed
@@ -86,6 +95,13 @@ class QDATACUBE_EXPORT abstract_formatter_t : public QObject
      * Calling this will cause cell_size_changed() to be emitted
      */
     void set_cell_size(QSize size);
+
+    /**
+     * Does a update of \param element
+     * Default implementation does nothing.
+     */
+    virtual void update(abstract_formatter_t::UpdateType element);
+
 
     private:
         QScopedPointer<AbstractFormatterPrivate> d;
