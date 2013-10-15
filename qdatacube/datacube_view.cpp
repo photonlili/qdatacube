@@ -215,13 +215,13 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   for (int hh = 0; hh < horizontal_header_count; ++hh) {
     header_rect.moveLeft(viewport()->rect().left() + vertical_header_width);
     summary_rect.moveLeft(header_rect.left());
-    QList<QPair<QVariant, int> > headers = d->datacube->headers(Qt::Horizontal, hh);
-    QList<QPair<QVariant, int> > backgroundroles = d->datacube->headers(Qt::Horizontal, hh, Qt::BackgroundRole);
-    QList<QPair<QVariant, int> > foregroundroles = d->datacube->headers(Qt::Horizontal, hh, Qt::ForegroundRole);
+    QList<datacube_t::HeaderDescription > headers = d->datacube->headers(Qt::Horizontal, hh);
+    std::tr1::shared_ptr<abstract_aggregator_t> aggregator = d->datacube->column_aggregators().at(hh);
     int current_cell_equivalent = 0;
     for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= rightmost_column; ++header_index) {
+        datacube_t::HeaderDescription header = headers.at(header_index);
         PainterSaver saver(&painter);
-        QVariant maybebackground = backgroundroles.at(header_index).first;
+        QVariant maybebackground = aggregator->categoryHeaderData(header.categoryIndex,Qt::BackgroundRole);;
         if(maybebackground.canConvert<QColor>()) {
             painter.setBrush(maybebackground.value<QColor>());
         } else if(maybebackground.canConvert<QBrush>()) {
@@ -229,7 +229,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
         } else {
             painter.setBrush((d->header_selection_area.contains(header_index, -hh-1)) ? palette().highlight() : palette().button());
         }
-      int header_span = headers[header_index].second;
+      int header_span = header.span;
       current_cell_equivalent += header_span;
       if (current_cell_equivalent < leftmost_column) {
         continue;
@@ -244,13 +244,13 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
       header_rect.setSize(QSize(cell_size.width()*header_span, cell_size.height()));
       painter.drawRect(header_rect);
         painter.save();
-        QVariant maybeforeground = foregroundroles.at(header_index).first;
+        QVariant maybeforeground = aggregator->categoryHeaderData(header.categoryIndex, Qt::ForegroundRole);
         if(maybeforeground.canConvert<QColor>()) {
             painter.setPen(maybeforeground.value<QColor>());
         } else if(maybebackground.canConvert<QPen>()) {
             painter.setPen(maybeforeground.value<QPen>());
         }
-        painter.drawText(header_rect.adjusted(0, 0, 0, 2), Qt::AlignCenter, headers[header_index].first.toString());
+        painter.drawText(header_rect.adjusted(0, 0, 0, 2), Qt::AlignCenter, aggregator->categoryHeaderData(header.categoryIndex).toString());
         painter.restore();
       header_rect.translate(header_rect.width(), 0);
       if (d->show_totals && bottommost_row >= hh + ndatarows) {
@@ -262,7 +262,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
           text_rect.setHeight(formatter->cell_size().height());
           const QString value = formatter->format(elements);
             painter.save();
-            QVariant maybeforeground = foregroundroles.at(header_index).first;
+            QVariant maybeforeground = aggregator->categoryHeaderData(header.categoryIndex, Qt::ForegroundRole);
             if(maybeforeground.canConvert<QColor>()) {
                 painter.setPen(maybeforeground.value<QColor>());
             } else if(maybebackground.canConvert<QPen>()) {
@@ -294,13 +294,13 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   for (int vh = 0; vh < vertical_header_count; ++vh) {
     header_rect.moveTop(options.rect.top());
     summary_rect.moveTop(header_rect.top());
-    QList<QPair<QVariant, int> > headers = d->datacube->headers(Qt::Vertical, vh);
-    QList<QPair<QVariant, int> > backgroundroles = d->datacube->headers(Qt::Vertical, vh, Qt::BackgroundRole);
-    QList<QPair<QVariant, int> > foregroundroles = d->datacube->headers(Qt::Vertical, vh, Qt::ForegroundRole);
+    QList<datacube_t::HeaderDescription > headers = d->datacube->headers(Qt::Vertical, vh);
+    std::tr1::shared_ptr<abstract_aggregator_t> aggregator = d->datacube->row_aggregators().at(vh);
     int current_cell_equivalent = 0;
     for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= bottommost_row; ++header_index) {
+        datacube_t::HeaderDescription header = headers.at(header_index);
         PainterSaver saver(&painter);
-        QVariant maybebackground = backgroundroles.at(header_index).first;
+        QVariant maybebackground = aggregator->categoryHeaderData(header.categoryIndex,Qt::BackgroundRole);
         if(maybebackground.canConvert<QColor>()) {
             painter.setBrush(maybebackground.value<QColor>());
         } else if(maybebackground.canConvert<QBrush>()) {
@@ -308,7 +308,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
         } else {
             painter.setBrush((d->header_selection_area.contains(header_index, -vh-1)) ? palette().highlight() : palette().button());
         }
-      int header_span = headers[header_index].second;
+      int header_span = header.span;
       current_cell_equivalent += header_span;
       if (current_cell_equivalent < topmost_row) {
         continue; // Outside viewport
@@ -323,13 +323,13 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
       header_rect.setSize(QSize(cell_size.width(), cell_size.height()*header_span));
       painter.drawRect(header_rect);
         painter.save();
-        QVariant maybeforeground = foregroundroles.at(header_index).first;
+        QVariant maybeforeground = aggregator->categoryHeaderData(header.categoryIndex, Qt::ForegroundRole);
         if(maybeforeground.canConvert<QColor>()) {
             painter.setPen(maybeforeground.value<QColor>());
         } else if(maybebackground.canConvert<QPen>()) {
             painter.setPen(maybeforeground.value<QPen>());
         }
-        painter.drawText(header_rect.adjusted(0, 0, 0, 2), Qt::AlignCenter, headers[header_index].first.toString());
+        painter.drawText(header_rect.adjusted(0, 0, 0, 2), Qt::AlignCenter, aggregator->categoryHeaderData(header.categoryIndex).toString());
       painter.restore();
       header_rect.translate(0, header_rect.height());
       if (d->show_totals && rightmost_column >= vh + ndatacolumns) {
@@ -342,7 +342,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
           text_rect.setHeight(formatter->cell_size().height());
           const QString value = formatter->format(elements);
             painter.save();
-            QVariant maybeforeground = foregroundroles.at(header_index).first;
+            QVariant maybeforeground = aggregator->categoryHeaderData(header.categoryIndex, Qt::ForegroundRole);
             if(maybeforeground.canConvert<QColor>()) {
                 painter.setPen(maybeforeground.value<QColor>());
             } else if(maybebackground.canConvert<QPen>()) {
@@ -464,14 +464,13 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
       // Hit horizontal headers
       const int level = d->datacube->header_count(Qt::Horizontal) - (d->horizontal_header_height - pos.y()) / d->cell_size.height() - 1;
       Q_ASSERT(level>=-1);
-      typedef QPair<QVariant, int>  headers_t;
       int c = 0;
       int section = 0;
       if (level>=0) {
-        Q_FOREACH(headers_t header, d->datacube->headers(Qt::Horizontal, level)) {
-          if (c + header.second <= column) {
+        Q_FOREACH(datacube_t::HeaderDescription header, d->datacube->headers(Qt::Horizontal, level)) {
+          if (c + header.span <= column) {
             ++section;
-            c += header.second;
+            c += header.span;
           } else {
             break;
           }
@@ -485,15 +484,14 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
     }
   } else {
     if (pos.x() < d->vertical_header_width) {
-      typedef QPair<QVariant, int>  headers_t;
       int r = 0;
       int section = 0;
       int level = d->datacube->header_count(Qt::Vertical) - (d->vertical_header_width - pos.x()) / d->cell_size.width() - 1;
       if (level>=0) {
-        Q_FOREACH(headers_t header, d->datacube->headers(Qt::Vertical, level)) {
-          if (r + header.second <= row) {
+        Q_FOREACH(datacube_t::HeaderDescription header, d->datacube->headers(Qt::Vertical, level)) {
+          if (r + header.span <= row) {
             ++section;
-            r += header.second;
+            r += header.span;
           } else {
             break;
           }

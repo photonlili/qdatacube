@@ -410,8 +410,8 @@ QList< int > datacube_t::elements(int row, int column) const {
 
 }
 
-QList< QPair<QVariant,int> > datacube_t::headers(Qt::Orientation orientation, int index, int role) const {
-  QList< QPair<QVariant,int> > rv;
+QList< datacube_t::HeaderDescription > datacube_t::headers(Qt::Orientation orientation, int index) const {
+  QList< HeaderDescription > rv;
   QVector<shared_ptr<abstract_aggregator_t> >& aggregators = (orientation == Qt::Horizontal) ? d->col_aggregators : d->row_aggregators;
   const QVector<unsigned>& counts = (orientation == Qt::Horizontal) ? d->col_counts : d->row_counts;
   shared_ptr<abstract_aggregator_t> aggregator = aggregators.at(index);
@@ -428,7 +428,7 @@ QList< QPair<QVariant,int> > datacube_t::headers(Qt::Orientation orientation, in
       }
     }
     if (count > 0 ) {
-      rv << QPair<QVariant,int>(aggregator->categoryHeaderData((c/stride)%ncats,role), count);
+      rv << HeaderDescription((c/stride)%ncats, count);
     }
   }
   return rv;

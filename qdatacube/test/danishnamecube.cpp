@@ -17,6 +17,11 @@
 
 using namespace qdatacube;
 
+QDebug operator<<( QDebug d, qdatacube::datacube_t::HeaderDescription desc) {
+    d << desc.categoryIndex << desc.span;
+    return d;
+}
+
 int danishnamecube_t::printdatacube(const qdatacube::datacube_t* datacube) {
   qDebug() << datacube->column_count() << ", " << datacube->row_count();
   qDebug() << datacube->header_count(Qt::Horizontal) << ", " << datacube->header_count(Qt::Vertical);
