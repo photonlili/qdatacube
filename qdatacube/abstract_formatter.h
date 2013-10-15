@@ -19,6 +19,7 @@ class datacube_view_t;
  *
  * The property must be representable as a double, at least for now
  */
+class AbstractFormatterPrivate;
 class QDATACUBE_EXPORT abstract_formatter_t : public QObject
 {
   Q_OBJECT
@@ -51,6 +52,21 @@ class QDATACUBE_EXPORT abstract_formatter_t : public QObject
      * @return suggested cell size for this format.
      */
     QSize cell_size() const;
+
+    /**
+     * @return the model underneath this formatter.
+     */
+    QAbstractItemModel* underlyingModel() const;
+
+    /**
+     * @return the datacube view that this formatter is formatting for.
+     */
+    datacube_view_t* datacubeView() const;
+
+    /**
+     * dtor
+     */
+    virtual ~abstract_formatter_t();
   Q_SIGNALS:
     /**
      * Emitted when the size of the cell of the formatter is changed
@@ -71,11 +87,8 @@ class QDATACUBE_EXPORT abstract_formatter_t : public QObject
      */
     void set_cell_size(QSize size);
 
-    QAbstractItemModel* m_underlying_model;
-
-    QSize m_cell_size;
-
-    datacube_view_t* m_datacube_view;
+    private:
+        QScopedPointer<AbstractFormatterPrivate> d;
 
 };
 } // end of namespace

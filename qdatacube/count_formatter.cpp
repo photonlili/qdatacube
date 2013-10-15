@@ -28,17 +28,17 @@ QString count_formatter_t::format(QList< int > rows) const {
 }
 
 bool count_formatter_t::eventFilter(QObject* filter, QEvent* event) {
-    if(filter == m_datacube_view && event->type() == QEvent::FontChange) {
+    if(filter == datacubeView() && event->type() == QEvent::FontChange) {
         recalculateCellSize();
     }
     return QObject::eventFilter(filter, event);
 }
 
 void count_formatter_t::recalculateCellSize() {
-    if(m_datacube_view) {
-    QString big_cell_contents = QString::number(m_underlying_model->rowCount());
-        set_cell_size(QSize(m_datacube_view->fontMetrics().width(big_cell_contents),
-                            m_datacube_view->fontMetrics().ascent()+1));
+    if(datacubeView()) {
+    QString big_cell_contents = QString::number(underlyingModel()->rowCount());
+        set_cell_size(QSize(datacubeView()->fontMetrics().width(big_cell_contents),
+                            datacubeView()->fontMetrics().ascent()+1));
     }
 }
 }
