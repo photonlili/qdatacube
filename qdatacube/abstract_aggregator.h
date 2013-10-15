@@ -49,7 +49,7 @@ class QDATACUBE_EXPORT abstract_aggregator_t : public QObject {
     /**
      * @returns an name for this aggregator. Default implementation returns "unnamed";
      */
-    virtual QString name() const;
+    QString name() const;
 
     /**
     * @return underlying model
@@ -72,8 +72,15 @@ class QDATACUBE_EXPORT abstract_aggregator_t : public QObject {
      * @param index index of new category
      */
     void category_removed(int index) const;
-  private:
-      QScopedPointer<AbstractAggregatorPrivate> d;
+
+    protected:
+        /**
+         * Sets the name of this aggregator to \param newName
+         */
+        void setName(const QString& newName);
+
+    private:
+        QScopedPointer<AbstractAggregatorPrivate> d;
 };
 
 }

@@ -12,9 +12,9 @@
 
 namespace qdatacube {
 
-class column_aggregator_t::secret_t {
+class ColumnAggregatorPrivate {
   public:
-    secret_t(int section) : categories(), section(section), trim_right(false), max_chars(3), possible_removed_counts(0) {
+    ColumnAggregatorPrivate(int section) : categories(), section(section), trim_right(false), max_chars(3), possible_removed_counts(0) {
     }
     QStringList categories;
     typedef QHash<QString, int> cat_map_t;
@@ -30,7 +30,7 @@ void column_aggregator_t::set_trim_new_categories_from_right(int max_chars) {
   d->max_chars = max_chars;
   // Rebuild categories
   QStringList cats;
-  secret_t::cat_map_t map;
+  ColumnAggregatorPrivate::cat_map_t map;
   Q_FOREACH(QString cat, d->categories) {
     cat = cat.right(max_chars);
     if (cats.isEmpty() || cats.last() != cat) {
@@ -56,7 +56,7 @@ QVariant column_aggregator_t::categoryHeaderData(int category, int role) const {
     return QVariant();
 }
 
-column_aggregator_t::column_aggregator_t(QAbstractItemModel* model, int section): abstract_aggregator_t(model), d(new secret_t(section)) {
+column_aggregator_t::column_aggregator_t(QAbstractItemModel* model, int section): abstract_aggregator_t(model), d(new ColumnAggregatorPrivate(section)) {
   QSet<QString> categories;
   for (int i=0, iend = underlying_model()->rowCount(); i<iend; ++i) {
     QString cat = underlying_model()->data(underlying_model()->index(i, d->section)).toString();
@@ -75,6 +75,8 @@ column_aggregator_t::column_aggregator_t(QAbstractItemModel* model, int section)
   connect(underlying_model(), SIGNAL(rowsInserted(const QModelIndex&,int, int)), SLOT(add_rows_to_categories(const QModelIndex&,int,int)));
   connect(underlying_model(), SIGNAL(modelReset()), SLOT(reset_categories()));
   connect(underlying_model(), SIGNAL(rowsRemoved(const QModelIndex&,int, int)), SLOT(remove_rows_from_categories(const QModelIndex&,int,int)));
+
+  setName(underlying_model()->headerData(d->section, Qt::Horizontal).toString());
 }
 
 int column_aggregator_t::operator()(int row) const {
@@ -94,11 +96,6 @@ column_aggregator_t::~column_aggregator_t() {
 
 int column_aggregator_t::section() const {
   return d->section;
-}
-
-QString column_aggregator_t::name() const
-{
-  return underlying_model()->headerData(d->section, Qt::Horizontal).toString();
 }
 
 void column_aggregator_t::add_rows_to_categories(const QModelIndex& parent, int start, int end) {
@@ -139,7 +136,7 @@ void column_aggregator_t::add_new_category(QString data)
 {
   int index = d->cat_map.size();
   if (!d->cat_map.contains(data)) {
-    for (secret_t::cat_map_t::iterator it = d->cat_map.begin(), iend = d->cat_map.end(); it != iend; ++it) {
+    for (ColumnAggregatorPrivate::cat_map_t::iterator it = d->cat_map.begin(), iend = d->cat_map.end(); it != iend; ++it) {
       if (it.key() > data) {
         index = qMin(index,it.value());
         ++it.value();

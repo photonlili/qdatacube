@@ -18,13 +18,13 @@
 class QModelIndex;
 namespace qdatacube {
 
+class ColumnAggregatorPrivate;
 class QDATACUBE_EXPORT column_aggregator_t : public abstract_aggregator_t {
   Q_OBJECT
   public:
     column_aggregator_t(QAbstractItemModel* model,  int section);
     ~column_aggregator_t();
     virtual int operator()(int row) const;
-    virtual QString name() const;
     /**
      * Return section
      */
@@ -45,8 +45,7 @@ class QDATACUBE_EXPORT column_aggregator_t : public abstract_aggregator_t {
      */
     void reset_categories();
   private:
-    class secret_t;
-    QScopedPointer<secret_t> d;
+    QScopedPointer<ColumnAggregatorPrivate> d;
     void add_new_category(QString data);
     void remove_category(QString category);
   private Q_SLOTS:
