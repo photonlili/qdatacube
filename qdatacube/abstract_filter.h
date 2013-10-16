@@ -12,7 +12,7 @@ class AbstractFilterPrivate;
 class QDATACUBE_EXPORT abstract_filter_t : public QObject {
   Q_OBJECT
   public:
-    explicit abstract_filter_t(QAbstractItemModel* underlying_model, QObject* parent = 0);
+    explicit abstract_filter_t(QAbstractItemModel* underlying_model);
 
     /**
      * @return true if row is to be included

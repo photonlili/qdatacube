@@ -13,7 +13,7 @@ class FilterByAggregatePrivate;
 class QDATACUBE_EXPORT  filter_by_aggregate_t : public abstract_filter_t {
   Q_OBJECT
   public:
-    filter_by_aggregate_t(std::tr1::shared_ptr<abstract_aggregator_t> aggregator, int category_index, QObject* parent = 0);
+    filter_by_aggregate_t(std::tr1::shared_ptr<abstract_aggregator_t> aggregator, int category_index);
 
     virtual bool operator()(int row) const;
 

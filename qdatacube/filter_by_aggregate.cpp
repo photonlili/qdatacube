@@ -10,8 +10,8 @@ class FilterByAggregatePrivate {
         int m_categoryIndex;
 };
 
-filter_by_aggregate_t::filter_by_aggregate_t(std::tr1::shared_ptr< abstract_aggregator_t > aggregator, int category_index, QObject* parent)
- : abstract_filter_t(aggregator->underlying_model(), parent), d(new FilterByAggregatePrivate(aggregator, category_index))
+filter_by_aggregate_t::filter_by_aggregate_t(std::tr1::shared_ptr< abstract_aggregator_t > aggregator, int category_index)
+ : abstract_filter_t(aggregator->underlying_model()), d(new FilterByAggregatePrivate(aggregator, category_index))
 {
   Q_ASSERT(aggregator);
   Q_ASSERT(category_index>=0);

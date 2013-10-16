@@ -10,8 +10,8 @@ class AbstractFilterPrivate {
         QString m_name;
         QString m_shortName;
 };
-abstract_filter_t::abstract_filter_t(QAbstractItemModel* underlying_model, QObject* parent)
-  : QObject(parent), d(new AbstractFilterPrivate(underlying_model))
+abstract_filter_t::abstract_filter_t(QAbstractItemModel* underlying_model)
+  : d(new AbstractFilterPrivate(underlying_model))
 {
   Q_ASSERT(underlying_model);
 }
