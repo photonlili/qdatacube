@@ -40,17 +40,6 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     /**
      * Construct simple 2-dimensional datacube with the 2 aggregators
      * @param underlying_model the model whose rows are the data elements in the datacube
-     * @param row_aggregator initial aggregator. Ownership is claimed, and aggregator will be deleted
-     * @param column_aggregator initial aggregator. Ownership is claimed, and aggregator will be deleted
-     */
-    datacube_t(const QAbstractItemModel* underlying_model,
-               abstract_aggregator_t* row_aggregator,
-               abstract_aggregator_t* column_aggregator,
-               QObject* parent = 0);
-
-    /**
-     * Construct simple 2-dimensional datacube with the 2 aggregators
-     * @param underlying_model the model whose rows are the data elements in the datacube
      * @param row_aggregator initial aggregator.
      * @param column_aggregator initial aggregator.
      */
@@ -171,12 +160,6 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     void add_global_filter(std::tr1::shared_ptr<abstract_filter_t> filter);
 
     /**
-     * Add global filter. Convenience overload. Filter is claimed by this datacube and will be deleted at some point
-     * equivalent to add_global_filter(std::tr1::shared_ptr<abstract_filter_t*>(filter));
-     */
-    void add_global_filter(abstract_filter_t* filter);
-
-    /**
      * Remove all global filters
      */
     void reset_global_filter();
@@ -199,12 +182,6 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * @param aggregator aggregator to use. Each non-empty category will give a new row or column
      */
     void split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr<abstract_aggregator_t> aggregator);
-
-    /**
-     * Split header with aggregator.
-     * convenience overload, same as split(orientation, headerno, std::tr1::shared_ptr<abstract_aggregator_t>(aggregator));
-     */
-    void split(Qt::Orientation orientation, int headerno, abstract_aggregator_t* aggregator);
 
     /**
      * Collapse header, removing it from datacube. Requries headercount(orientation)>=2

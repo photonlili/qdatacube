@@ -332,7 +332,7 @@ void testplaincube::test_global_filter() {
   QVERIFY(fourty_cat != -1);
 
   // Set age filter to include 40-years old only (Expect one result, "Einar Madsen"
-  datacube.add_global_filter(new filter_by_aggregate_t(age_aggregator, fourty_cat));
+  datacube.add_global_filter(std::tr1::shared_ptr<abstract_filter_t>(new filter_by_aggregate_t(age_aggregator, fourty_cat)));
   QCOMPARE(datacube.row_count(),1);
   QCOMPARE(datacube.column_count(),1);
   QList<int> rows = datacube.elements(0,0);
@@ -343,7 +343,7 @@ void testplaincube::test_global_filter() {
   // Set age filter to include 41-years old only (Expect one result, "Rigmor Jensen", weighting 76
   int fourtyone_cat = findCategoryIndexForString(age_aggregator, "41");
   datacube.reset_global_filter();
-  std::tr1::shared_ptr<abstract_filter_t> global_filter(new filter_by_aggregate_t(age_aggregator, fourtyone_cat));
+  std::tr1::shared_ptr<abstract_filter_t> global_filter(std::tr1::shared_ptr<abstract_filter_t>( new filter_by_aggregate_t(age_aggregator, fourtyone_cat)));
   datacube.add_global_filter(global_filter);
   QCOMPARE(datacube.row_count(),1);
   QCOMPARE(datacube.column_count(),1);
@@ -356,7 +356,7 @@ void testplaincube::test_global_filter() {
   // Get all with that weight (besides Rigmor Jensen, this includes Lulu Petersen)
   int seventysix = findCategoryIndexForString(weight_aggregator, "76");
   datacube.remove_global_filter(global_filter);
-  datacube.add_global_filter(new filter_by_aggregate_t(weight_aggregator, seventysix));
+  datacube.add_global_filter(std::tr1::shared_ptr<abstract_filter_t>(new filter_by_aggregate_t(weight_aggregator, seventysix)));
   QCOMPARE(datacube.row_count(),2);
   QCOMPARE(datacube.column_count(),2);
   rows = datacube.elements(1,0);
@@ -874,19 +874,19 @@ void testplaincube::test_many_buckets()
 {
     try {
         {
-            datacube_t datacube(m_underlying_model, new TenBucketsNonAggregator(m_underlying_model), new TenBucketsNonAggregator(m_underlying_model));
+            datacube_t datacube(m_underlying_model, std::tr1::shared_ptr<abstract_aggregator_t>(new TenBucketsNonAggregator(m_underlying_model)), std::tr1::shared_ptr<abstract_aggregator_t>(new TenBucketsNonAggregator(m_underlying_model)));
             for(int i = 0 ; i <7 ; i++) {
-                datacube.split(Qt::Horizontal,0,new TenBucketsNonAggregator(m_underlying_model));
+                datacube.split(Qt::Horizontal,0, std::tr1::shared_ptr<abstract_aggregator_t>(new TenBucketsNonAggregator(m_underlying_model)));
                 QCOMPARE(datacube.header_count(Qt::Horizontal),i+2);
-                datacube.split(Qt::Vertical,0,new TenBucketsNonAggregator(m_underlying_model));
+                datacube.split(Qt::Vertical,0,std::tr1::shared_ptr<abstract_aggregator_t>(new TenBucketsNonAggregator(m_underlying_model)));
                 QCOMPARE(datacube.header_count(Qt::Vertical),i+2);
            }
            //due to overflow-guards, these shouldn't actually succeed.
            int horizontal_header_count = datacube.header_count(Qt::Horizontal);
-           datacube.split(Qt::Horizontal,0,new TenBucketsNonAggregator(m_underlying_model));
+           datacube.split(Qt::Horizontal,0, std::tr1::shared_ptr<abstract_aggregator_t>(new TenBucketsNonAggregator(m_underlying_model)));
            QCOMPARE(horizontal_header_count,datacube.header_count(Qt::Horizontal));
            int vertical_header_count = datacube.header_count(Qt::Vertical);
-           datacube.split(Qt::Vertical,0,new TenBucketsNonAggregator(m_underlying_model));
+           datacube.split(Qt::Vertical,0, std::tr1::shared_ptr<abstract_aggregator_t>(new TenBucketsNonAggregator(m_underlying_model)));
            QCOMPARE(vertical_header_count,datacube.header_count(Qt::Vertical));
         }
     } catch (std::bad_alloc& ex) {

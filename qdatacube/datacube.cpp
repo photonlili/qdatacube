@@ -236,28 +236,6 @@ datacube_t::datacube_t(const QAbstractItemModel* model,
 
 }
 
-datacube_t::datacube_t(const QAbstractItemModel* model,
-                       abstract_aggregator_t* row_aggregator,
-                       abstract_aggregator_t* column_aggregator,
-                       QObject* parent):
-    QObject(parent),
-    d(new secret_t(model, shared_ptr<abstract_aggregator_t>(row_aggregator), shared_ptr<abstract_aggregator_t>(column_aggregator)))
-{
-  connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), SLOT(update_data(QModelIndex,QModelIndex)));
-  connect(model, SIGNAL(rowsAboutToBeRemoved(QModelIndex,int,int)), SLOT(remove_data(QModelIndex,int,int)));
-  connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), SLOT(insert_data(QModelIndex,int,int)));
-  connect(column_aggregator, SIGNAL(category_added(int)), SLOT(slot_aggregator_category_added(int)));
-  connect(row_aggregator, SIGNAL(category_added(int)), SLOT(slot_aggregator_category_added(int)));
-  connect(column_aggregator, SIGNAL(category_removed(int)), SLOT(slot_aggregator_category_removed(int)));
-  connect(row_aggregator, SIGNAL(category_removed(int)), SLOT(slot_aggregator_category_removed(int)));;
-  for (int element = 0, nelements = model->rowCount(); element < nelements; ++element) {
-    add(element);
-  }
-  #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
-  check();
-#endif
-}
-
 datacube_t::datacube_t(const QAbstractItemModel* model, QObject* parent)
   : QObject(parent),
     d(new secret_t(model))
@@ -365,10 +343,6 @@ void datacube_t::check() const {
         }
   }
     qDebug() << "check done" << failcols << failrows;
-}
-
-void datacube_t::add_global_filter(qdatacube::abstract_filter_t* filter) {
-  add_global_filter(std::tr1::shared_ptr<abstract_filter_t>(filter));
 }
 
 void datacube_t::reset_global_filter() {
@@ -712,12 +686,6 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< abstract_aggre
 #endif
 
 }
-
-
-void datacube_t::split(Qt::Orientation orientation, int headerno, abstract_aggregator_t* aggregator) {
-  split(orientation, headerno, std::tr1::shared_ptr<abstract_aggregator_t>(aggregator));
-}
-
 
 void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
