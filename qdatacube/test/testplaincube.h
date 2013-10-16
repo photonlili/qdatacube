@@ -135,6 +135,11 @@ class testplaincube : public danishnamecube_t {
      * test many buckets
      */
     void test_many_buckets();
+
+    /**
+     * test column aggregator names
+     */
+    void testColumnAggregatornames();
 };
 
 #endif // TESTPLAINCUBE_H

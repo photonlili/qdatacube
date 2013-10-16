@@ -42,6 +42,13 @@ void testplaincube::test_empty_cube() {
 
 }
 
+void testplaincube::testColumnAggregatornames() {
+    QCOMPARE(sex_aggregator->name(),QLatin1String("sex"));
+    QCOMPARE(kommune_aggregator->name(),QLatin1String("kommune"));
+
+}
+
+
 int findCategoryIndexForString(std::tr1::shared_ptr<abstract_aggregator_t> aggregator, QString string) {
     int cat = -1;
     for(int i = 0 ; i < aggregator->categoryCount(); i++) {

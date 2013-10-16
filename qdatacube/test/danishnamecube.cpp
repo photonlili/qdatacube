@@ -62,24 +62,24 @@ void danishnamecube_t::load_model_data(QString filename) {
     }
     m_underlying_model->appendRow(cell_items);
   }
-  QStringList labels;
-  labels << "firstname" << "lastname" << "sex" << "age" << "weight" << "kommune";
-  m_underlying_model->setHorizontalHeaderLabels(labels);
   qDebug() << "Read " << m_underlying_model->rowCount() << " rows" << "with" << m_underlying_model->columnCount() << "columns";
 
 }
 
 danishnamecube_t::danishnamecube_t(QObject* parent):
     QObject(parent),
-    m_underlying_model(new QStandardItemModel(0, N_COLUMNS, this)),
-    first_name_aggregator(new column_aggregator_t(m_underlying_model, FIRST_NAME)),
-    last_name_aggregator(new column_aggregator_t(m_underlying_model, LAST_NAME)),
-    sex_aggregator(new SexAggregator(m_underlying_model, SEX)),
-    age_aggregator(new column_aggregator_t(m_underlying_model, AGE)),
-    weight_aggregator(new column_aggregator_t(m_underlying_model, WEIGHT)),
-    kommune_aggregator(new column_aggregator_t(m_underlying_model, KOMMUNE))
+    m_underlying_model(new QStandardItemModel(0, N_COLUMNS, this))
 {
-  new ModelTest(m_underlying_model);
+    QStringList labels;
+    labels << "firstname" << "lastname" << "sex" << "age" << "weight" << "kommune";
+    m_underlying_model->setHorizontalHeaderLabels(labels);
+    first_name_aggregator.reset(new column_aggregator_t(m_underlying_model, FIRST_NAME));
+    last_name_aggregator.reset(new column_aggregator_t(m_underlying_model, LAST_NAME));
+    sex_aggregator.reset(new SexAggregator(m_underlying_model, SEX));
+    age_aggregator.reset(new column_aggregator_t(m_underlying_model, AGE));
+    weight_aggregator.reset(new column_aggregator_t(m_underlying_model, WEIGHT));
+    kommune_aggregator.reset(new column_aggregator_t(m_underlying_model, KOMMUNE));
+    new ModelTest(m_underlying_model);
 }
 
 QStandardItemModel* danishnamecube_t::copy_model() {
