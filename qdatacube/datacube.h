@@ -34,347 +34,277 @@ class datacube_colrow_t;
  * element: row number in underlying model
  * bucket(no): "raw" section, that is, including autocollapsed (empty) rows and columns
  */
-class QDATACUBE_EXPORT datacube_t : public QObject {
-  Q_OBJECT
-  public:
-    /**
-     * Construct simple 2-dimensional datacube with the 2 aggregators
-     * @param underlying_model the model whose rows are the data elements in the datacube
-     * @param row_aggregator initial aggregator.
-     * @param column_aggregator initial aggregator.
-     */
-    datacube_t(const QAbstractItemModel* model,
-            std::tr1::shared_ptr<AbstractAggregator> row_aggregator,
-            std::tr1::shared_ptr<AbstractAggregator> column_aggregator,
-            QObject* parent = 0);
+class DatacubePrivate;
+class QDATACUBE_EXPORT Datacube : public QObject {
+    Q_OBJECT
+    public:
+        /**
+         * Construct simple 2-dimensional datacube with the 2 aggregators
+         * @param underlying_model the model whose rows are the data elements in the datacube
+         * @param row_aggregator initial aggregator.
+         * @param column_aggregator initial aggregator.
+         */
+        Datacube(const QAbstractItemModel* model,
+                std::tr1::shared_ptr<AbstractAggregator> row_aggregator,
+                std::tr1::shared_ptr<AbstractAggregator> column_aggregator,
+                QObject* parent = 0);
 
-    /**
-     * Construct datacube with no aggregators at all.
-     */
-    explicit datacube_t(const QAbstractItemModel* model, QObject* parent = 0);
+        /**
+         * Construct datacube with no aggregators at all.
+         */
+        explicit Datacube(const QAbstractItemModel* model, QObject* parent = 0);
 
-    /**
-     * Destructor
-     */
-    ~datacube_t();
+        /**
+         * Destructor
+         */
+        ~Datacube();
 
-    /**
-     * Return the number of headers in the given direction. The sum of the
-     * headers in both directions would give the total dimension of the (hyper)cube.
-     * In other words, this is the number of dimensions projected to the orientation.
-     */
-    int header_count(Qt::Orientation orientation) const;
+        /**
+         * Return the number of headers in the given direction. The sum of the
+         * headers in both directions would give the total dimension of the (hyper)cube.
+         * In other words, this is the number of dimensions projected to the orientation.
+         */
+        int headerCount(Qt::Orientation orientation) const;
 
-    /**
-     * Return the number of rows in the cube
-     */
-    int row_count() const;
+        /**
+         * Return the number of rows in the cube
+         */
+        int rowCount() const;
 
-    /**
-     * Return the number of columns in the cube
-     */
-    int column_count() const;
+        /**
+         * Return the number of columns in the cube
+         */
+        int columnCount() const;
 
-    /**
-     * small struct to represent a description of a header, ready to query the aggregator for details
-     * and to know how wide a header is.
-     */
-    struct HeaderDescription {
-        HeaderDescription(int cat, int span) : categoryIndex(cat), span(span) {
-        }
-        int categoryIndex;
-        int span;
-    };
-    /**
-     * @return pair of (category index for header, number of columns spanned)
-     * @param orientation
-     * @param index 0 is first header, 1 is next and so on, up until headerCount(orientation)
-     * This function is meant to be convenient for drawing and similar.
-     */
-    QList<HeaderDescription> headers(Qt::Orientation orientation, int index) const;
+        /**
+         * small struct to represent a description of a header, ready to query the aggregator for details
+         * and to know how wide a header is.
+         */
+        struct HeaderDescription {
+            HeaderDescription(int cat, int span) : categoryIndex(cat), span(span) {
+            }
+            int categoryIndex;
+            int span;
+        };
+        /**
+         * @return pair of (category index for header, number of columns spanned)
+         * @param orientation
+         * @param index 0 is first header, 1 is next and so on, up until headerCount(orientation)
+         * This function is meant to be convenient for drawing and similar.
+         */
+        QList<HeaderDescription> headers(Qt::Orientation orientation, int index) const;
 
-    /**
-     * @return the header section correcsponding to section in the datacube.
-     * E.g., if a cube had 2 levels of headers, with the first header dividing
-     * the cube in 2 equal parts, any section in the first part would return 0,
-     * and the other part 1 for to_header_section(orientation, 0, section);
-     * This is sort-of the reverse for to_section.
-     */
-    int to_header_section(Qt::Orientation orientation, int headerno, int section) const;
+        /**
+         * @return the header section correcsponding to section in the datacube.
+         * E.g., if a cube had 2 levels of headers, with the first header dividing
+         * the cube in 2 equal parts, any section in the first part would return 0,
+         * and the other part 1 for to_header_section(orientation, 0, section);
+         * This is sort-of the reverse for to_section.
+         */
+        int toHeaderSection(Qt::Orientation orientation, int headerno, int section) const;
 
-    /**
-     * @return the range of section corresponding to a given header section
-     * The range is given as a pair, (leftmost section, rightmost section)
-     * The reverse is to_header_section
-     */
-    QPair<int,int> to_section(Qt::Orientation orientation, int headerno, int header_section) const;
+        /**
+         * @return the range of section corresponding to a given header section
+         * The range is given as a pair, (leftmost section, rightmost section)
+         * The reverse is to_header_section
+         */
+        QPair<int,int> toSection(Qt::Orientation orientation, int headerno, int header_section) const;
 
-    /**
-     * @returns The number of elements for the given row, column.
-     * equivalent to elements(row,column).size()
-     */
-    int element_count(int row, int column) const;
+        /**
+         * @returns The number of elements for the given row, column.
+         * equivalent to elements(row,column).size()
+         */
+        int elementCount(int row, int column) const;
 
-    /**
-     * @returns The elements in the given row, column
-     */
-    QList<int> elements(int row, int column) const;
+        /**
+         * @returns The elements in the given row, column
+         */
+        QList<int> elements(int row, int column) const;
 
-    /**
-     * @return number of elements corresponding to header section
-     * equivalent (but much faster) as elements(direction, headerno, section);
-     * @param orientation Qt::Vertical for rows, Qt::Horizontal for columns
-     * @param headerno index of header, 0 for top or leftmost
-     * @param section section of header. Note that this is not the same as the row or column for the datacube,
-     *    except for the bottommost/rightmost header.
-     */
-    int element_count(Qt::Orientation orientation, int headerno, int header_section) const;
+        /**
+         * @return number of elements corresponding to header section
+         * equivalent (but much faster) as elements(direction, headerno, section);
+         * @param orientation Qt::Vertical for rows, Qt::Horizontal for columns
+         * @param headerno index of header, 0 for top or leftmost
+         * @param section section of header. Note that this is not the same as the row or column for the datacube,
+         *    except for the bottommost/rightmost header.
+         */
+        int elementCount(Qt::Orientation orientation, int headerno, int header_section) const;
 
-    /**
-     * @return elements corresponding to header section
-     * @param orientation Qt::Vertical for rows, Qt::Horizontal for columns
-     * @param headerno index of header, 0 for top or leftmost
-     * @param section section of header. Note that this is not the same as the row or column for the datacube,
-     *    except for the bottommost/rightmost header.
-     */
-    QList< int > elements(Qt::Orientation orientation, int headerno, int header_section) const;
+        /**
+         * @return elements corresponding to header section
+         * @param orientation Qt::Vertical for rows, Qt::Horizontal for columns
+         * @param headerno index of header, 0 for top or leftmost
+         * @param section section of header. Note that this is not the same as the row or column for the datacube,
+         *    except for the bottommost/rightmost header.
+         */
+        QList< int > elements(Qt::Orientation orientation, int headerno, int header_section) const;
 
-    /**
-     * @return the total number of (non-filtered) elements
-     */
-    int element_count() const;
+        /**
+         * @return the total number of (non-filtered) elements
+         */
+        int elementCount() const;
 
-    /**
-     * @return all non-filtered elements
-     */
-    QList<int> elements() const;
+        /**
+         * @return all non-filtered elements
+         */
+        QList<int> elements() const;
 
-    /**
-     * @returns the category index
-     */
-    int category_index(Qt::Orientation orientation, int header_index, int section) const;
+        /**
+         * @returns the category index
+         */
+        int categoryIndex(Qt::Orientation orientation, int header_index, int section) const;
 
-    /**
-     * Add global filter.
-     */
-    void add_global_filter(std::tr1::shared_ptr<AbstractFilter> filter);
+        /**
+         * Add global filter.
+         */
+        void addGlobalFilter(std::tr1::shared_ptr<AbstractFilter> filter);
 
-    /**
-     * Remove all global filters
-     */
-    void reset_global_filter();
+        /**
+         * Remove all global filters
+         */
+        void resetGlobalFilter();
 
-    /**
-     * Remove global filter from list
-     */
-    void remove_global_filter(std::tr1::shared_ptr<AbstractFilter> filter);
+        /**
+         * Remove global filter from list
+         * \return true if filter was found and removed, and false if not found
+         */
+        bool removeGlobalFilter(std::tr1::shared_ptr<AbstractFilter> filter);
 
-    /**
-     * Remove global filter from list
-     */
-    bool remove_global_filter(qdatacube::AbstractFilter* filter);
+        /**
+         * Split header with aggregator.
+         * @param orientation split by column or row
+         * @param headerno which header to split. 0 means this is the new topmost split,
+         *                 header_count(orientation) is the bottommost.
+         * @param aggregator aggregator to use. Each non-empty category will give a new row or column
+         */
+        void split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr<AbstractAggregator> aggregator);
 
-    /**
-     * Split header with aggregator.
-     * @param orientation split by column or row
-     * @param headerno which header to split. 0 means this is the new topmost split,
-     *                 header_count(orientation) is the bottommost.
-     * @param aggregator aggregator to use. Each non-empty category will give a new row or column
-     */
-    void split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr<AbstractAggregator> aggregator);
+        /**
+         * Collapse header, removing it from datacube. Requries headercount(orientation)>=2
+         * @param orientation collapse row or column
+         * @param headerno which header to remove. Must be less that header_count(orientation)
+         */
+        void collapse(Qt::Orientation orientation, int headerno);
 
-    /**
-     * Collapse header, removing it from datacube. Requries headercount(orientation)>=2
-     * @param orientation collapse row or column
-     * @param headerno which header to remove. Must be less that header_count(orientation)
-     */
-    void collapse(Qt::Orientation orientation, int headerno);
+        /**
+         * @returns the section (i.e, row for Qt::Vertical and column for Qt::Horizontal) for
+         * @param orientation
+         * and
+         * @param element
+         */
+        int sectionForElement(int element, Qt::Orientation orientation) const;
 
-    /**
-     * @returns the section (i.e, row for Qt::Vertical and column for Qt::Horizontal) for
-     * @param orientation
-     * and
-     * @param element
-     */
-    int section_for_element(int element, Qt::Orientation orientation) const;
+        /**
+         * @return the current section for the element (which might be wrong if you are listening to e.g. rows_about_to_be_removed)
+         * TODO: Find a better name for this.
+         */
+        int internalSection(int element, Qt::Orientation orientation) const;
 
-    /**
-     * @return the current section for the element (which might be wrong if you are listening to e.g. rows_about_to_be_removed)
-     * TODO: Find a better name for this.
-     */
-    int section_for_element_internal(int element, Qt::Orientation orientation) const;
+        typedef QList<std::tr1::shared_ptr<AbstractFilter> > GlobalFilters;
+        typedef QList<std::tr1::shared_ptr<AbstractAggregator> > Aggregators;
 
-    typedef QList<std::tr1::shared_ptr<AbstractFilter> > global_filters_t;
-    typedef QList<std::tr1::shared_ptr<AbstractAggregator> > aggregators_t;
+        /**
+         * @return Return all global filters in effect with their categories
+         */
+        GlobalFilters globalFilters() const;
 
-    /**
-     * @return Return all global filters in effect with their categories
-     */
-    QList< std::tr1::shared_ptr< AbstractFilter > > global_filters() const;
+        /**
+         * @return list of column aggregators, in order
+         */
+        Aggregators columnAggregators() const;
 
-    /**
-     * @return list of column aggregators, in order
-     */
-    aggregators_t column_aggregators() const;
+        /**
+         * @return list of row aggregators, in order
+         */
+        Aggregators rowAggregators() const;
 
-    /**
-     * @return list of row aggregators, in order
-     */
-    aggregators_t row_aggregators() const;
+        /**
+         * @return the underlying model
+         */
+        const QAbstractItemModel* underlyingModel() const;
 
-    /**
-     * @return the underlying model
-     */
-    const QAbstractItemModel* underlying_model() const;
+        /**
+         * Debug function: Dump internal state
+         */
+        void dump(bool cells, bool rowcounts, bool col_counts) const;
 
-    /**
-     * Debug function: Dump internal state
-     */
-    void dump(bool cells, bool rowcounts, bool col_counts) const;
+        /**
+         * Run some internal checks. Useful for debugging
+         */
+        void check() const;
 
-    /**
-     * Run some internal checks. Useful for debugging
-     */
-    void check() const;
+    Q_SIGNALS:
+        /**
+         * rows are about to be removed
+         */
+        void rowsAboutToBeRemoved(int index, int count);
 
-  Q_SIGNALS:
-    /**
-     * rows are about to be removed
-     */
-    void rows_about_to_be_removed(int index, int count);
+        /**
+         * columns are about to be removed
+         */
+        void columnsAboutToBeRemoved(int index, int count);
 
-    /**
-     * columns are about to be removed
-     */
-    void columns_about_to_be_removed(int index, int count);
+        /**
+         * rows have been removed
+         */
+        void rowsRemoved(int index, int count);
 
-    /**
-     * rows have been removed
-     */
-    void rows_removed(int index, int count);
+        /**
+         * columns have been removed
+         */
+        void columnsRemoved(int index, int count);
 
-    /**
-     * columns have been removed
-     */
-    void columns_removed(int index, int count);
+        /**
+         * rows are about to be removed
+         */
+        void rowsAboutToBeInserted(int index, int count);
 
-    /**
-     * rows are about to be removed
-     */
-    void rows_about_to_be_inserted(int index, int count);
+        /**
+         * columns are about to be added
+         */
+        void columnsAboutToBeInserted(int index, int count);
 
-    /**
-     * columns are about to be added
-     */
-    void columns_about_to_be_inserted(int index, int count);
+        /**
+         * rows have been added
+         */
+        void rowsInserted(int index, int count);
 
-    /**
-     * rows have been added
-     */
-    void rows_inserted(int index, int count);
+        /**
+         * columns have been added
+         */
+        void columnsInserted(int index, int count);
 
-    /**
-     * columns have been added
-     */
-    void columns_inserted(int index, int count);
+        /**
+         * header data has changed
+         * data_changed will still be emitted
+         */
+        void headersChanged(Qt::Orientation, int first, int last);
 
-    /**
-     * header data has changed
-     * data_changed will still be emitted
-     */
-    void headers_changed(Qt::Orientation, int first, int last);
+        /**
+         * The value in cell has changed
+         */
+        void dataChanged(int row,int column);
 
-    /**
-     * The value in cell has changed
-     */
-    void data_changed(int row,int column);
+        /**
+         * Datacube is about to be completely changed. All cell and headers can change
+         */
+        void aboutToBeReset();
 
-    /**
-     * Datacube is about to be completely changed. All cell and headers can change
-     */
-    void about_to_be_reset();
+        /**
+         * Datacube has completely changed. All cell and headers can change
+         */
+        void reset();
 
-    /**
-     * Datacube has completely changed. All cell and headers can change
-     */
-    void reset();
+        /**
+         * Global filtering changed
+         */
+        void globalFilterChanged();
 
-    /**
-     * Global filtering changed
-     */
-    void global_filter_changed();
-
-  private Q_SLOTS:
-    void update_data(QModelIndex topleft, QModelIndex bottomRight);
-    void remove_data(QModelIndex parent, int start, int end);
-    void insert_data(QModelIndex parent, int start, int end);
-    void slot_columns_changed(int column, int count);
-    void slot_rows_changed(int row, int count);
-    void slot_aggregator_category_added(int index);
-    void slot_aggregator_category_removed(int);
-    void remove_selection_model(QObject* selection_model);
-
-  private:
-    void remove(int index);
-    void add(int index);
-    void split_row(int headerno, std::tr1::shared_ptr< AbstractAggregator > aggregator);
-    void split_column(int headerno, std::tr1::shared_ptr< AbstractAggregator > aggregator);
-    void aggregator_category_added(std::tr1::shared_ptr< qdatacube::AbstractAggregator > aggregator, int headerno, int index, Qt::Orientation orientation);
-    void aggregator_category_removed(std::tr1::shared_ptr< qdatacube::AbstractAggregator > aggregator, int headerno, int index, Qt::Orientation orientation);
-
-    /**
-     * @returns the number of buckets (i.e. sections including empty sections) in datacube for
-     * @param orientation
-     */
-    int number_of_buckets(Qt::Orientation orientation) const;
-
-    /**
-     * @return elements for bucket row, bucket column
-     */
-    QList<int> elements_in_bucket(int row, int column) const;
-
-    /**
-     * @return the bucket for row
-     */
-    int bucket_for_row(int row) const;
-
-    /**
-    * @return the bucket for column
-    */
-    int bucket_for_column(int column) const;
-
-    /**
-     * @return section for bucket row
-     */
-    int section_for_bucket_row(int bucket_row) const;
-
-    /**
-     * @return section for bucket row
-     */
-    int section_for_bucket_column(int bucket_column) const;
-
-    /**
-     * find cell_t with bucket for element
-     * @param element element to look for
-     * @param result the cell with the element, or an invalid cell
-     * The strange interface is to avoid exporting cell_t
-     */
-    void bucket_for_element(int element, qdatacube::Cell& result) const;
-
-    /**
-     * Add a selection model for bucket change notification
-     */
-    void add_selection_model(datacube_selection_t* selection);
-
-    /**
-     * @returns true if included by the current set of global filters
-     */
-    bool filtered_in(int element) const;
-
-    class secret_t;
-    QScopedPointer<secret_t> d;
-
-    friend class datacube_selection_t;
+    private:
+        QScopedPointer<DatacubePrivate> d;
+        friend class DatacubePrivate;
+        friend class datacube_selection_t;
 
 };
 }

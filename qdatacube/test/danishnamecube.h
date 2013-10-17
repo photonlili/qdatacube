@@ -14,7 +14,7 @@
 class QStandardItemModel;
 class QAbstractItemModel;
 namespace qdatacube {
-class datacube_t;
+class Datacube;
 class AbstractAggregator;
 }
 
@@ -58,7 +58,7 @@ class danishnamecube_t : public QObject {
   Q_OBJECT
   protected:
     danishnamecube_t(QObject* parent = 0);
-    static int printdatacube(const qdatacube::datacube_t* datacube);
+    static int printdatacube(const qdatacube::Datacube* datacube);
     void load_model_data(QString filename);
     /**
      * Return a deep copy of the underlying model (to test manipulation functions)

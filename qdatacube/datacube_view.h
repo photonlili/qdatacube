@@ -15,7 +15,7 @@ namespace qdatacube {
 
 class AbstractFormatter;
 class datacube_selection_t;
-class datacube_t;
+class Datacube;
 class datacube_selection_model_t;
 class datacube_view_private_t;
 
@@ -29,12 +29,12 @@ class QDATACUBE_EXPORT datacube_view_t : public QAbstractScrollArea  {
      * Set the datacube to be view
      * If the underlying model has changed, this will clear all the formatters
      */
-    void set_datacube(datacube_t* datacube);
+    void set_datacube(Datacube* datacube);
 
     /**
      * @return current datacube
      */
-    datacube_t* datacube() const;
+    Datacube* datacube() const;
 
     /**
      * @return current datacube_selection

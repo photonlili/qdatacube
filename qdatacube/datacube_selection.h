@@ -10,7 +10,7 @@ namespace qdatacube {
 class datacube_view_t;
 
 
-class datacube_t;
+class Datacube;
 
 
 /**
@@ -25,7 +25,7 @@ class datacube_t;
 class QDATACUBE_EXPORT datacube_selection_t : public QObject {
   Q_OBJECT
   public:
-    datacube_selection_t(qdatacube::datacube_t* datacube, datacube_view_t* view);
+    datacube_selection_t(qdatacube::Datacube* datacube, datacube_view_t* view);
     virtual ~datacube_selection_t();
 
     enum selection_status_t {
@@ -87,7 +87,8 @@ class QDATACUBE_EXPORT datacube_selection_t : public QObject {
     void datacube_inserts_elements(int start, int end);
 
     class secret_t;
-    friend class datacube_t;
+    friend class Datacube;
+    friend class DatacubePrivate;
     QScopedPointer<secret_t> d;
 };
 

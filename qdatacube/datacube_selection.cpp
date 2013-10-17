@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <QSet>
 #include "cell.h"
+#include "datacube_p.h"
 #include <QAbstractProxyModel>
 #include <QDate>
 
@@ -15,7 +16,7 @@ namespace qdatacube {
 
 struct datacube_selection_t::secret_t {
   secret_t();
-  datacube_t* datacube;
+  Datacube* datacube;
   QVector<int> cells;
   QSet<int> selected_elements;
   QItemSelectionModel* synchronized_selection_model;
@@ -57,7 +58,7 @@ QList< int > datacube_selection_t::secret_t::elements_from_selection(QItemSelect
       model = proxy->sourceModel();
     }
     // Check that we did indeed get back to the underlying model
-    if (model == datacube->underlying_model()) {
+    if (model == datacube->underlyingModel()) {
       // Finally, convert to elements = rows in underlying model
       Q_FOREACH(const QModelIndex& index, indexes) {
         rv << index.row();
@@ -75,7 +76,7 @@ QItemSelection datacube_selection_t::secret_t::map_to_synchronized(QList< int > 
   if (synchronized_selection_model) {
     // Get the reversed list of proxies to source model
     const QAbstractItemModel* model = synchronized_selection_model->model();
-    const QAbstractItemModel* underlying_model = datacube->underlying_model();
+    const QAbstractItemModel* underlying_model = datacube->underlyingModel();
     QList<const QAbstractProxyModel*> proxies;
     while (model != underlying_model) {
       if (const QAbstractProxyModel* proxy = qobject_cast<const QAbstractProxyModel*>(model)) {
@@ -183,14 +184,14 @@ void datacube_selection_t::add_elements(QList< int > elements) {
   Cell cell;
   Q_FOREACH(int element, elements) {
     if (!d->selected_elements.contains(element)) {
-      d->datacube->bucket_for_element(element, cell);
+      d->datacube->d->bucket_for_element(element, cell);
       d->selected_elements << element;
       actually_selected_elements << element;
       if (!cell.invalid()) {
         int newvalue = ++d->cell(cell.row(), cell.column());
-        if (newvalue == 1 || newvalue == d->datacube->elements_in_bucket(cell.row(), cell.column()).size()) {
-          const int row_section = d->datacube->section_for_bucket_row(cell.row());
-          const int column_section = d->datacube->section_for_bucket_column(cell.column());
+        if (newvalue == 1 || newvalue == d->datacube->d->elements_in_bucket(cell.row(), cell.column()).size()) {
+          const int row_section = d->datacube->d->section_for_bucket_row(cell.row());
+          const int column_section = d->datacube->d->section_for_bucket_column(cell.column());
           emit selection_status_changed(row_section,column_section);
         }
       }
@@ -204,14 +205,14 @@ void datacube_selection_t::remove_elements(QList< int > elements) {
   Cell cell;
   Q_FOREACH(int element, elements) {
     if (d->selected_elements.remove(element)) {
-      d->datacube->bucket_for_element(element, cell);
+      d->datacube->d->bucket_for_element(element, cell);
       actually_deselected_elements << element;
       if (!cell.invalid()) {
         int newvalue = --d->cell(cell.row(), cell.column());
         Q_ASSERT(newvalue>=0);
-        if (newvalue == 0 || newvalue == d->datacube->elements_in_bucket(cell.row(), cell.column()).size()-1) {
-          const int row_section = d->datacube->section_for_bucket_row(cell.row());
-          const int column_section = d->datacube->section_for_bucket_column(cell.column());
+        if (newvalue == 0 || newvalue == d->datacube->d->elements_in_bucket(cell.row(), cell.column()).size()-1) {
+          const int row_section = d->datacube->d->section_for_bucket_row(cell.row());
+          const int column_section = d->datacube->d->section_for_bucket_column(cell.column());
           emit selection_status_changed(row_section,column_section);
         }
       }
@@ -222,18 +223,18 @@ void datacube_selection_t::remove_elements(QList< int > elements) {
 }
 
 
-datacube_selection_t::datacube_selection_t (qdatacube::datacube_t* datacube, qdatacube::datacube_view_t* view) :
+datacube_selection_t::datacube_selection_t (qdatacube::Datacube* datacube, qdatacube::datacube_view_t* view) :
     QObject(view),
     d(new secret_t) {
   d->datacube = datacube;
-  datacube->add_selection_model(this);
+  datacube->d->add_selection_model(this);
   connect(d->datacube, SIGNAL(reset()), SLOT(reset()));
   reset();
 }
 
 void datacube_selection_t::reset() {
-  d->nrows = d->datacube->number_of_buckets(Qt::Vertical);
-  d->ncolumns = d->datacube->number_of_buckets(Qt::Horizontal);
+  d->nrows = d->datacube->d->number_of_buckets(Qt::Vertical);
+  d->ncolumns = d->datacube->d->number_of_buckets(Qt::Horizontal);
   d->cells.resize(d->ncolumns*d->nrows);
   std::fill(d->cells.begin(), d->cells.end(), 0);
   QList<int> old_selected_elements = d->selected_elements.toList();
@@ -243,10 +244,10 @@ void datacube_selection_t::reset() {
 }
 
 void datacube_selection_t::add_cell(int row, int column) {
-  int bucket_row = d->datacube->bucket_for_row(row);
-  int bucket_column = d->datacube->bucket_for_column(column);
+  int bucket_row = d->datacube->d->bucket_for_row(row);
+  int bucket_column = d->datacube->d->bucket_for_column(column);
   int& cell = d->cell(bucket_row, bucket_column);
-  QList<int> raw_elements = d->datacube->elements_in_bucket(bucket_row, bucket_column);
+  QList<int> raw_elements = d->datacube->d->elements_in_bucket(bucket_row, bucket_column);
   QList<int> elements;
   Q_FOREACH(int raw_element, raw_elements) {
     if (!d->selected_elements.contains(raw_element)) {
@@ -267,7 +268,7 @@ void datacube_selection_t::datacube_adds_element_to_bucket(int row, int column, 
   if (d->selected_elements.contains(element)) {
     int& cell = d->cell(row, column);
     ++cell;
-    Q_ASSERT(cell <= d->datacube->elements_in_bucket(row, column).size());
+    Q_ASSERT(cell <= d->datacube->d->elements_in_bucket(row, column).size());
   }
 }
 
@@ -280,11 +281,11 @@ void datacube_selection_t::datacube_removes_element_from_bucket(int row, int col
 }
 
 datacube_selection_t::selection_status_t datacube_selection_t::selection_status(int row, int column) const {
-  const int bucket_row = d->datacube->bucket_for_row(row);
-  const int bucket_column = d->datacube->bucket_for_column(column);
+  const int bucket_row = d->datacube->d->bucket_for_row(row);
+  const int bucket_column = d->datacube->d->bucket_for_column(column);
   const int selected_count = d->cell(bucket_row, bucket_column);
   if (selected_count > 0) {
-    const int count = d->datacube->elements_in_bucket(bucket_row, bucket_column).size();
+    const int count = d->datacube->d->elements_in_bucket(bucket_row, bucket_column).size();
     if (selected_count == count) {
       return SELECTED;
     } else {

@@ -33,7 +33,7 @@ using namespace qdatacube;
 testheaders::testheaders(QObject* parent) : danishnamecube_t(parent), m_underlying_table_view(0L) {
   load_model_data("plaincubedata.txt");
 
-  m_datacube = new datacube_t(m_underlying_model, first_name_aggregator, last_name_aggregator);
+  m_datacube = new Datacube(m_underlying_model, first_name_aggregator, last_name_aggregator);
   m_row_used_aggregator_actions << create_aggregator_action(first_name_aggregator);
   m_col_used_aggregator_actions << create_aggregator_action(last_name_aggregator);
   m_unused_aggregator_actions << create_aggregator_action(sex_aggregator) << create_aggregator_action(age_aggregator) << create_aggregator_action(weight_aggregator) << create_aggregator_action(kommune_aggregator);
@@ -69,11 +69,11 @@ void testheaders::add_global_filter_bottoms(std::tr1::shared_ptr< AbstractAggreg
 void testheaders::slot_global_filter_button_pressed() {
   QObject* s = sender();
   if (s->property("clear").toBool()) {
-    m_datacube->reset_global_filter();
+    m_datacube->resetGlobalFilter();
   } else {
     int section = s->property("section").toInt();
     int categoryno = s->property("categoryno").toInt();
-    m_datacube->add_global_filter(std::tr1::shared_ptr<AbstractFilter>(new filter_by_aggregate_t(std::tr1::shared_ptr<qdatacube::AbstractAggregator>(new ColumnAggregator(m_underlying_model, section)), categoryno)));
+    m_datacube->addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new filter_by_aggregate_t(std::tr1::shared_ptr<qdatacube::AbstractAggregator>(new ColumnAggregator(m_underlying_model, section)), categoryno)));
   }
 }
 
@@ -123,7 +123,7 @@ void testheaders::createtableview() {
   top->addDockWidget(Qt::BottomDockWidgetArea, second_dc);
   datacube_view_t* second_view = new datacube_view_t(second_dc);
   second_view->add_formatter(new CountFormatter(m_underlying_model, second_view));
-  datacube_t* second_datacube = new datacube_t(m_underlying_model, kommune_aggregator, age_aggregator);
+  Datacube* second_datacube = new Datacube(m_underlying_model, kommune_aggregator, age_aggregator);
   second_view->set_datacube(second_datacube);
   second_view->datacube_selection()->synchronize_with(m_underlying_table_view->selectionModel());
   second_dc->setWidget(second_view);
@@ -155,8 +155,8 @@ void testheaders::slot_set_data() {
 void testheaders::slot_set_filter() {
   static int count = 0;
   std::tr1::shared_ptr<AbstractAggregator> aggregator(new ColumnAggregator(m_underlying_model, SEX));
-  m_datacube->reset_global_filter();
-  m_datacube->add_global_filter(std::tr1::shared_ptr<AbstractFilter>(new filter_by_aggregate_t(aggregator, (count++%2))));
+  m_datacube->resetGlobalFilter();
+  m_datacube->addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new filter_by_aggregate_t(aggregator, (count++%2))));
   QTimer::singleShot(2000, this, SLOT(slot_set_filter()));
 }
 
@@ -267,7 +267,7 @@ void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno
       } else if (kommune_aggregator.get() == raw_pointer) {
         aggregator = kommune_aggregator;
       }
-      if (headerno+1 < m_datacube->header_count(Qt::Vertical)) {
+      if (headerno+1 < m_datacube->headerCount(Qt::Vertical)) {
         m_row_used_aggregator_actions << action;
       } else {
         m_row_used_aggregator_actions.insert(headerno+1, action);

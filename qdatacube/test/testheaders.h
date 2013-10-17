@@ -39,7 +39,7 @@ class testheaders : public danishnamecube_t {
     void slot_vertical_context_menu(const QPoint& pos, int headerno, int category);
     void summarize_weight();
   private:
-    qdatacube::datacube_t* m_datacube;
+    qdatacube::Datacube* m_datacube;
     qdatacube::datacube_view_t* m_view;
     void add_global_filter_bottoms(std::tr1::shared_ptr< qdatacube::AbstractAggregator > filter, QLayout* layout);
     QAction* create_aggregator_action(std::tr1::shared_ptr< qdatacube::AbstractAggregator > aggregator);

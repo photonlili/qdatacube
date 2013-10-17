@@ -38,7 +38,7 @@ namespace qdatacube {
 class datacube_view_private_t : public QSharedData {
   public:
     datacube_view_private_t();
-    datacube_t* datacube;
+    Datacube* datacube;
     datacube_selection_t* selection;
     QList<AbstractFormatter*> formatters;
     int horizontal_header_height;
@@ -77,22 +77,22 @@ Cell datacube_view_private_t::cell_for_position(QPoint pos, int vertical_scrollb
   if(!datacube) {
     return Cell();
   }
-  const int ncolumn_headers = datacube->header_count(Qt::Horizontal);
-  const int nrow_headers = datacube->header_count(Qt::Vertical);
+  const int ncolumn_headers = datacube->headerCount(Qt::Horizontal);
+  const int nrow_headers = datacube->headerCount(Qt::Vertical);
   const int column = (pos.x() / cell_size.width()) - nrow_headers;
   const int row = (pos.y() / cell_size.height()) - ncolumn_headers;
-  const int nrows = datacube_size.height() + (show_totals ? datacube->header_count(Qt::Horizontal) : 0);
-  const int ncolumns = datacube_size.width() + (show_totals ? datacube->header_count(Qt::Vertical) : 0);
+  const int nrows = datacube_size.height() + (show_totals ? datacube->headerCount(Qt::Horizontal) : 0);
+  const int ncolumns = datacube_size.width() + (show_totals ? datacube->headerCount(Qt::Vertical) : 0);
   if (0 <= row && 0 <= column && nrows && column < ncolumns && (row <= datacube_size.height() || column < datacube_size.width())) {
     return Cell(row + vertical_scrollbar_value, column + horizontal_scrollbar_value);
-  } else if (row < 0 && -row <= datacube->header_count(Qt::Horizontal)) {
+  } else if (row < 0 && -row <= datacube->headerCount(Qt::Horizontal)) {
     if (column>=0 && column < ncolumns) {
       // row headers
       return Cell(row, column + horizontal_scrollbar_value);
-    } else if (column < 0 && -column <= datacube->header_count(Qt::Vertical)) {
+    } else if (column < 0 && -column <= datacube->headerCount(Qt::Vertical)) {
       return Cell(row, column);
     }
-  } else if (column < 0 && -column <= datacube->header_count(Qt::Vertical) && row>=0 && row < nrows) {
+  } else if (column < 0 && -column <= datacube->headerCount(Qt::Vertical) && row>=0 && row < nrows) {
     return Cell(row + vertical_scrollbar_value, column);
   }
   return Cell();
@@ -104,10 +104,10 @@ datacube_view_t::datacube_view_t(QWidget* parent):
     d(new datacube_view_private_t) {
 }
 
-void datacube_view_t::set_datacube(datacube_t* datacube) {
+void datacube_view_t::set_datacube(Datacube* datacube) {
   if (d->datacube) {
     d->datacube->disconnect(this);
-    if (datacube && datacube->underlying_model() != d->datacube->underlying_model()) {
+    if (datacube && datacube->underlyingModel() != d->datacube->underlyingModel()) {
       qDeleteAll(d->formatters);
       d->formatters.clear();
     }
@@ -119,12 +119,12 @@ void datacube_view_t::set_datacube(datacube_t* datacube) {
   connect(d->selection, SIGNAL(selection_status_changed(int, int)), viewport(), SLOT(update()));
   connect(datacube, SIGNAL(destroyed(QObject*)), SLOT(datacube_deleted()));
   connect(datacube, SIGNAL(reset()), SLOT(relayout()));
-  connect(datacube, SIGNAL(data_changed(int, int)), viewport(), SLOT(update()));
-  connect(datacube, SIGNAL(columns_inserted(int, int)), SLOT(relayout()));
-  connect(datacube, SIGNAL(rows_inserted(int, int)), SLOT(relayout()));
-  connect(datacube, SIGNAL(columns_removed(int, int)), SLOT(relayout()));
-  connect(datacube, SIGNAL(rows_removed(int, int)), SLOT(relayout()));
-  connect(datacube, SIGNAL(global_filter_changed()), SLOT(relayout()));
+  connect(datacube, SIGNAL(dataChanged(int, int)), viewport(), SLOT(update()));
+  connect(datacube, SIGNAL(columnsInserted(int, int)), SLOT(relayout()));
+  connect(datacube, SIGNAL(rowsInserted(int, int)), SLOT(relayout()));
+  connect(datacube, SIGNAL(columnsRemoved(int, int)), SLOT(relayout()));
+  connect(datacube, SIGNAL(rowsRemoved(int, int)), SLOT(relayout()));
+  connect(datacube, SIGNAL(globalFilterChanged()), SLOT(relayout()));
   relayout();
 }
 
@@ -132,7 +132,7 @@ void datacube_view_t::relayout() {
   if (!d->datacube) {
     return; // defer layout to datacube is set
   }
-  d->datacube_size = QSize(d->datacube->column_count(), d->datacube->row_count());
+  d->datacube_size = QSize(d->datacube->columnCount(), d->datacube->rowCount());
   QSize cell_size(fontMetrics().width("9999"), 0);
   Q_FOREACH(AbstractFormatter* formatter, d->formatters) {
     QSize formatter_cell_size = formatter->cellSize();
@@ -143,14 +143,14 @@ void datacube_view_t::relayout() {
     cell_size.setHeight(10);
   }
   d->cell_size = cell_size;
-  d->vertical_header_width = qMax(1, d->datacube->header_count(Qt::Vertical)) * d->cell_size.width();
-  d->horizontal_header_height = qMax(1, d->datacube->header_count(Qt::Horizontal)) * d->cell_size.height();
+  d->vertical_header_width = qMax(1, d->datacube->headerCount(Qt::Vertical)) * d->cell_size.width();
+  d->horizontal_header_height = qMax(1, d->datacube->headerCount(Qt::Horizontal)) * d->cell_size.height();
   QSize visible_size = viewport()->size();
   // Calculate the number of rows and columns at least partly visible
   const int rows_visible = (visible_size.height() - d->horizontal_header_height + 1) / (d->cell_size.height());
   const int columns_visible = (visible_size.width() - d->vertical_header_width + 1) / (d->cell_size.width());
-  const int nrows = d->datacube_size.height() + (d->show_totals ? d->datacube->header_count(Qt::Horizontal) : 0);
-  const int ncolumns = d->datacube_size.width() + (d->show_totals ? d->datacube->header_count(Qt::Vertical) : 0);
+  const int nrows = d->datacube_size.height() + (d->show_totals ? d->datacube->headerCount(Qt::Horizontal) : 0);
+  const int ncolumns = d->datacube_size.width() + (d->show_totals ? d->datacube->headerCount(Qt::Vertical) : 0);
   d->visible_cells = QSize(qMin(columns_visible, ncolumns), qMin(rows_visible, nrows));
   // Set range of scrollbars
   verticalScrollBar()->setRange(0, qMax(0, nrows - rows_visible));
@@ -197,7 +197,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   QRect cornerRect(options.rect.topLeft(), QSize(d->vertical_header_width,d->horizontal_header_height));
   painter.drawRect(cornerRect);
   painter.setPen(palette().buttonText().color());
-  if (std::tr1::shared_ptr<AbstractFilter> global_filter = datacube()->global_filters().value(0)) {
+  if (std::tr1::shared_ptr<AbstractFilter> global_filter = datacube()->globalFilters().value(0)) {
     QString global_category = global_filter->shortName();
     painter.drawText(cornerRect.adjusted(1, 1, -1, -1), Qt::AlignCenter, global_category);
   }
@@ -208,18 +208,18 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   const int rightmost_column = leftmost_column + d->visible_cells.width();
   const int topmost_row = verticalScrollBar()->value();
   const int bottommost_row = topmost_row + d->visible_cells.height();
-  const int horizontal_header_count = d->datacube->header_count(Qt::Horizontal);
-  const int ndatarows = d->datacube->row_count();
+  const int horizontal_header_count = d->datacube->headerCount(Qt::Horizontal);
+  const int ndatarows = d->datacube->rowCount();
   QRect summary_rect(header_rect);
   summary_rect.translate(0, d->cell_size.height()*(ndatarows- topmost_row+horizontal_header_count));
   for (int hh = 0; hh < horizontal_header_count; ++hh) {
     header_rect.moveLeft(viewport()->rect().left() + vertical_header_width);
     summary_rect.moveLeft(header_rect.left());
-    QList<datacube_t::HeaderDescription > headers = d->datacube->headers(Qt::Horizontal, hh);
-    std::tr1::shared_ptr<AbstractAggregator> aggregator = d->datacube->column_aggregators().at(hh);
+    QList<Datacube::HeaderDescription > headers = d->datacube->headers(Qt::Horizontal, hh);
+    std::tr1::shared_ptr<AbstractAggregator> aggregator = d->datacube->columnAggregators().at(hh);
     int current_cell_equivalent = 0;
     for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= rightmost_column; ++header_index) {
-        datacube_t::HeaderDescription header = headers.at(header_index);
+        Datacube::HeaderDescription header = headers.at(header_index);
         PainterSaver saver(&painter);
         QVariant maybebackground = aggregator->categoryHeaderData(header.categoryIndex,Qt::BackgroundRole);;
         if(maybebackground.canConvert<QColor>()) {
@@ -285,8 +285,8 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   }
 
   // Draw vertical header
-  const int ndatacolumns = d->datacube->column_count();
-  const int vertical_header_count = d->datacube->header_count(Qt::Vertical);
+  const int ndatacolumns = d->datacube->columnCount();
+  const int vertical_header_count = d->datacube->headerCount(Qt::Vertical);
   header_rect.moveLeft(viewport()->rect().left());
   summary_rect.moveLeft(header_rect.left() + d->cell_size.width()*(ndatacolumns-leftmost_column+vertical_header_count));
   options.rect.moveTop(viewport()->rect().top() + horizontal_header_height);
@@ -294,11 +294,11 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   for (int vh = 0; vh < vertical_header_count; ++vh) {
     header_rect.moveTop(options.rect.top());
     summary_rect.moveTop(header_rect.top());
-    QList<datacube_t::HeaderDescription > headers = d->datacube->headers(Qt::Vertical, vh);
-    std::tr1::shared_ptr<AbstractAggregator> aggregator = d->datacube->row_aggregators().at(vh);
+    QList<Datacube::HeaderDescription > headers = d->datacube->headers(Qt::Vertical, vh);
+    std::tr1::shared_ptr<AbstractAggregator> aggregator = d->datacube->rowAggregators().at(vh);
     int current_cell_equivalent = 0;
     for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= bottommost_row; ++header_index) {
-        datacube_t::HeaderDescription header = headers.at(header_index);
+        Datacube::HeaderDescription header = headers.at(header_index);
         PainterSaver saver(&painter);
         QVariant maybebackground = aggregator->categoryHeaderData(header.categoryIndex,Qt::BackgroundRole);
         if(maybebackground.canConvert<QColor>()) {
@@ -393,9 +393,9 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
                                    (highligh_color.green() + background_color.green())/2,
                                    (highligh_color.blue() + background_color.blue())/2);
   options.rect.moveTop(viewport()->rect().top() + horizontal_header_height);
-  for (int r = verticalScrollBar()->value(), nr = qMin(d->datacube->row_count(), bottommost_row+1); r < nr; ++r) {
+  for (int r = verticalScrollBar()->value(), nr = qMin(d->datacube->rowCount(), bottommost_row+1); r < nr; ++r) {
     options.rect.moveLeft(viewport()->rect().left() + vertical_header_width);
-    for (int c =horizontalScrollBar()->value(), nc = qMin(d->datacube->column_count(), rightmost_column+1       ); c < nc; ++c) {
+    for (int c =horizontalScrollBar()->value(), nc = qMin(d->datacube->columnCount(), rightmost_column+1       ); c < nc; ++c) {
       datacube_selection_t::selection_status_t selection_status = d->selection->selection_status(r, c);
       bool highlighted = false;
       switch (selection_status) {
@@ -448,11 +448,11 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
     return;
   }
   QPoint pos = event->pos();
-  if (pos.x() >= d->vertical_header_width + d->cell_size.width()*d->datacube->column_count()) {
+  if (pos.x() >= d->vertical_header_width + d->cell_size.width()*d->datacube->columnCount()) {
     event->setAccepted(false);
     return; // Right of datacube
   }
-  if (pos.y() >= d->horizontal_header_height + d->cell_size.height()*d->datacube->row_count()) {
+  if (pos.y() >= d->horizontal_header_height + d->cell_size.height()*d->datacube->rowCount()) {
     event->setAccepted(false);
     return;
   }
@@ -462,12 +462,12 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
   if (pos.y() < d->horizontal_header_height) {
     if (pos.x() >= d->vertical_header_width) {
       // Hit horizontal headers
-      const int level = d->datacube->header_count(Qt::Horizontal) - (d->horizontal_header_height - pos.y()) / d->cell_size.height() - 1;
+      const int level = d->datacube->headerCount(Qt::Horizontal) - (d->horizontal_header_height - pos.y()) / d->cell_size.height() - 1;
       Q_ASSERT(level>=-1);
       int c = 0;
       int section = 0;
       if (level>=0) {
-        Q_FOREACH(datacube_t::HeaderDescription header, d->datacube->headers(Qt::Horizontal, level)) {
+        Q_FOREACH(Datacube::HeaderDescription header, d->datacube->headers(Qt::Horizontal, level)) {
           if (c + header.span <= column) {
             ++section;
             c += header.span;
@@ -486,9 +486,9 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
     if (pos.x() < d->vertical_header_width) {
       int r = 0;
       int section = 0;
-      int level = d->datacube->header_count(Qt::Vertical) - (d->vertical_header_width - pos.x()) / d->cell_size.width() - 1;
+      int level = d->datacube->headerCount(Qt::Vertical) - (d->vertical_header_width - pos.x()) / d->cell_size.width() - 1;
       if (level>=0) {
-        Q_FOREACH(datacube_t::HeaderDescription header, d->datacube->headers(Qt::Vertical, level)) {
+        Q_FOREACH(Datacube::HeaderDescription header, d->datacube->headers(Qt::Vertical, level)) {
           if (r + header.span <= row) {
             ++section;
             r += header.span;
@@ -510,7 +510,7 @@ void datacube_view_t::contextMenuEvent(QContextMenuEvent* event) {
 
 }
 
-datacube_t* datacube_view_t::datacube() const {
+Datacube* datacube_view_t::datacube() const {
   return d->datacube;
 }
 
@@ -543,8 +543,8 @@ void datacube_view_t::mousePressEvent(QMouseEvent* event) {
     d->last_mouse_press_scrollbar_state = d->mouse_press_scrollbar_state;
   }
 
-  const int vertical_header_count = d->datacube->header_count(Qt::Vertical);
-  const int horizontal_header_count = d->datacube->header_count(Qt::Horizontal);
+  const int vertical_header_count = d->datacube->headerCount(Qt::Vertical);
+  const int horizontal_header_count = d->datacube->headerCount(Qt::Horizontal);
 
   if (press.invalid()) {
     d->selection_area = QRect();
@@ -554,16 +554,16 @@ void datacube_view_t::mousePressEvent(QMouseEvent* event) {
       d->header_selection_area = QRect();
     } else if ((press.column()<0 && -press.column() <= vertical_header_count) || press.column() >= d->datacube_size.width()) {
       const int headerno = press.column() < 0 ? vertical_header_count+press.column() : (press.column() - d->datacube_size.width());
-      const int header_section = d->datacube->to_header_section(Qt::Vertical, headerno, press.row());
-      QPair<int,int> row_range = d->datacube->to_section(Qt::Vertical, headerno, header_section);
+      const int header_section = d->datacube->toHeaderSection(Qt::Vertical, headerno, press.row());
+      QPair<int,int> row_range = d->datacube->toSection(Qt::Vertical, headerno, header_section);
       d->selection_area = QRect(row_range.first, 0, row_range.second - row_range.first + 1, d->datacube_size.width());
       d->header_selection_area = QRect(header_section, -headerno-1, 1,1);
     }
   } else if (press.column()>=0 && press.column() < d->datacube_size.width()) {
     if ((press.row()<0 && -press.row() <= horizontal_header_count) || press.row() >= d->datacube_size.height()) {
       const int headerno = press.row() < 0 ? horizontal_header_count+press.row() : (press.row() - d->datacube_size.height());
-      const int header_section = d->datacube->to_header_section(Qt::Horizontal, headerno, press.column());
-      QPair<int,int> column_range = d->datacube->to_section(Qt::Horizontal, headerno, header_section);
+      const int header_section = d->datacube->toHeaderSection(Qt::Horizontal, headerno, press.column());
+      QPair<int,int> column_range = d->datacube->toSection(Qt::Horizontal, headerno, header_section);
       d->selection_area = QRect(0, column_range.first, d->datacube_size.height(), column_range.second - column_range.first + 1);
       d->header_selection_area = QRect(-headerno-1, header_section, 1,1);
 
@@ -581,8 +581,8 @@ void datacube_view_t::mouseMoveEvent(QMouseEvent* event) {
   Cell current = d->cell_for_position(constrained_pos,verticalScrollBar()->value(), horizontalScrollBar()->value());
   QRect new_selection_area;
   if (!press.invalid() && !current.invalid()) {
-    const int vertical_header_count = d->datacube->header_count(Qt::Vertical);
-    const int horizontal_header_count = d->datacube->header_count(Qt::Horizontal);
+    const int vertical_header_count = d->datacube->headerCount(Qt::Vertical);
+    const int horizontal_header_count = d->datacube->headerCount(Qt::Horizontal);
     if (0<=press.row() && press.row() < d->datacube_size.height()) {
       if (0<=press.column() && press.column() < d->datacube_size.width()) {
         const int upper_row = qMin(press.row(), current.row());
@@ -593,13 +593,13 @@ void datacube_view_t::mouseMoveEvent(QMouseEvent* event) {
         d->header_selection_area = QRect();
       } else if (((vertical_header_count <= press.column() && press.column()) <= 0) || press.column() >= d->datacube_size.width()) {
         const int headerno = press.column() < 0 ? vertical_header_count+press.column() : (press.column() - d->datacube_size.width());
-        int upper_header_section = d->datacube->to_header_section(Qt::Vertical, headerno, press.row());
-        int lower_header_section = d->datacube->to_header_section(Qt::Vertical, headerno, qMax(0, qMin(current.row(), d->datacube_size.height()-1)));
+        int upper_header_section = d->datacube->toHeaderSection(Qt::Vertical, headerno, press.row());
+        int lower_header_section = d->datacube->toHeaderSection(Qt::Vertical, headerno, qMax(0, qMin(current.row(), d->datacube_size.height()-1)));
         if (upper_header_section > lower_header_section) {
           std::swap(upper_header_section, lower_header_section);
         }
-        const int upper_row = d->datacube->to_section(Qt::Vertical, headerno, upper_header_section).first;
-        const int lower_row = d->datacube->to_section(Qt::Vertical, headerno, lower_header_section).second;
+        const int upper_row = d->datacube->toSection(Qt::Vertical, headerno, upper_header_section).first;
+        const int lower_row = d->datacube->toSection(Qt::Vertical, headerno, lower_header_section).second;
         const int left_column = 0;
         const int width = d->datacube_size.width();
         new_selection_area = QRect(upper_row, left_column, lower_row-upper_row+1, width);
@@ -608,13 +608,13 @@ void datacube_view_t::mouseMoveEvent(QMouseEvent* event) {
     } else if (press.column()>=0 && press.column() < d->datacube_size.width()) {
       if ((press.row()<0 && -press.row() <= horizontal_header_count) || press.row() >= d->datacube_size.height()) {
         const int headerno = press.row() < 0 ? horizontal_header_count+press.row() : (press.row() - d->datacube_size.height());
-        int leftmost_header_section = d->datacube->to_header_section(Qt::Horizontal, headerno, press.column());
-        int rightmost_header_section = d->datacube->to_header_section(Qt::Horizontal, headerno, qMax(0, qMin(current.column(), d->datacube_size.width()-1)));
+        int leftmost_header_section = d->datacube->toHeaderSection(Qt::Horizontal, headerno, press.column());
+        int rightmost_header_section = d->datacube->toHeaderSection(Qt::Horizontal, headerno, qMax(0, qMin(current.column(), d->datacube_size.width()-1)));
         if (leftmost_header_section > rightmost_header_section) {
           std::swap(leftmost_header_section, rightmost_header_section);
         }
-        const int leftmost_column = d->datacube->to_section(Qt::Horizontal, headerno, leftmost_header_section).first;
-        const int rightmost_column = d->datacube->to_section(Qt::Horizontal, headerno, rightmost_header_section).second;
+        const int leftmost_column = d->datacube->toSection(Qt::Horizontal, headerno, leftmost_header_section).first;
+        const int rightmost_column = d->datacube->toSection(Qt::Horizontal, headerno, rightmost_header_section).second;
         const int upper_row = 0;
         const int height = d->datacube_size.height();
         new_selection_area = QRect(upper_row, leftmost_column, height, rightmost_column-leftmost_column+1);

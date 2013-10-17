@@ -17,30 +17,30 @@
 
 using namespace qdatacube;
 
-QDebug operator<<( QDebug d, qdatacube::datacube_t::HeaderDescription desc) {
+QDebug operator<<( QDebug d, qdatacube::Datacube::HeaderDescription desc) {
     d << desc.categoryIndex << desc.span;
     return d;
 }
 
-int danishnamecube_t::printdatacube(const qdatacube::datacube_t* datacube) {
-  qDebug() << datacube->column_count() << ", " << datacube->row_count();
-  qDebug() << datacube->header_count(Qt::Horizontal) << ", " << datacube->header_count(Qt::Vertical);
+int danishnamecube_t::printdatacube(const qdatacube::Datacube* datacube) {
+  qDebug() << datacube->columnCount() << ", " << datacube->rowCount();
+  qDebug() << datacube->headerCount(Qt::Horizontal) << ", " << datacube->headerCount(Qt::Vertical);
   qDebug() << "column headers";
-  for (int i=0; i< datacube->header_count(Qt::Horizontal); ++i) {
+  for (int i=0; i< datacube->headerCount(Qt::Horizontal); ++i) {
     qDebug() << datacube->headers(Qt::Horizontal, i);
   }
   qDebug() << "row headers";
-  for (int i=0; i< datacube->header_count(Qt::Vertical); ++i) {
+  for (int i=0; i< datacube->headerCount(Qt::Vertical); ++i) {
     qDebug() << datacube->headers(Qt::Vertical, i);
   }
   int total = 0;
-  for (int r = 0; r< datacube->row_count(); ++r) {
+  for (int r = 0; r< datacube->rowCount(); ++r) {
     QString row_display;
     QTextStream row_display_stream(&row_display);
-    for (int c = 0; c< datacube->column_count(); ++c) {
-      int count = datacube->element_count(r,c);
+    for (int c = 0; c< datacube->columnCount(); ++c) {
+      int count = datacube->elementCount(r,c);
       total += count;
-      row_display_stream << datacube->element_count(r,c) << "\t";
+      row_display_stream << datacube->elementCount(r,c) << "\t";
     }
     qDebug() << row_display;
   }
