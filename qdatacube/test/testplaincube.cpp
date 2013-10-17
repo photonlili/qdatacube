@@ -49,7 +49,7 @@ void testplaincube::testColumnAggregatornames() {
 }
 
 
-int findCategoryIndexForString(std::tr1::shared_ptr<AbstractAggregator> aggregator, QString string) {
+int findCategoryIndexForString(AbstractAggregator::Ptr aggregator, QString string) {
     int cat = -1;
     for(int i = 0 ; i < aggregator->categoryCount(); i++) {
         if(aggregator->categoryHeaderData(i).toString() == string) {
@@ -123,8 +123,8 @@ void testplaincube::dotest_splittwice(Qt::Orientation direction)
 {
   // direction and parallel: direction to test
   // normal: the other direction
-  std::tr1::shared_ptr<AbstractAggregator> row_aggregator;
-  std::tr1::shared_ptr<AbstractAggregator> column_aggregator;
+  AbstractAggregator::Ptr row_aggregator;
+  AbstractAggregator::Ptr column_aggregator;
   Qt::Orientation normal;
   if (direction == Qt::Horizontal) {
     column_aggregator = kommune_aggregator;
@@ -149,21 +149,21 @@ void testplaincube::dotest_splittwice(Qt::Orientation direction)
   QList<Datacube::HeaderDescription > parellel_headers1 = datacube.headers(direction, 1);
   QList<Datacube::HeaderDescription > parellel_headers2 = datacube.headers(direction, 2);
   QStringList parallel0_headers;
-  std::tr1::shared_ptr<AbstractAggregator> aggregator0 = (direction == Qt::Horizontal) ? datacube.columnAggregators().at(0) : datacube.rowAggregators().at(0);
+  AbstractAggregator::Ptr aggregator0 = (direction == Qt::Horizontal) ? datacube.columnAggregators().at(0) : datacube.rowAggregators().at(0);
   Q_FOREACH(Datacube::HeaderDescription hp, datacube.headers(direction,0)) {
     for (int i=0; i<hp.span; ++i) {
       parallel0_headers << aggregator0->categoryHeaderData(hp.categoryIndex).toString();
     }
   }
   QStringList parellel1_headers;
-  std::tr1::shared_ptr<AbstractAggregator> aggregator1 = (direction == Qt::Horizontal) ? datacube.columnAggregators().at(1) : datacube.rowAggregators().at(1);
+  AbstractAggregator::Ptr aggregator1 = (direction == Qt::Horizontal) ? datacube.columnAggregators().at(1) : datacube.rowAggregators().at(1);
   Q_FOREACH(Datacube::HeaderDescription hp, datacube.headers(direction,1)) {
     for (int i=0; i<hp.span; ++i) {
       parellel1_headers << aggregator1->categoryHeaderData(hp.categoryIndex).toString();
     }
   }
   QStringList parellel2_headers;
-  std::tr1::shared_ptr<AbstractAggregator> aggregator2 = (direction == Qt::Horizontal) ? datacube.columnAggregators().at(2) : datacube.rowAggregators().at(2);
+  AbstractAggregator::Ptr aggregator2 = (direction == Qt::Horizontal) ? datacube.columnAggregators().at(2) : datacube.rowAggregators().at(2);
   Q_FOREACH(Datacube::HeaderDescription hp, datacube.headers(direction,2)) {
     for (int i=0; i<hp.span; ++i) {
       parellel2_headers << aggregator2->categoryHeaderData(hp.categoryIndex).toString();
@@ -205,9 +205,9 @@ void testplaincube::test_collapse1() {
   QCOMPARE(datacube.headerCount(Qt::Vertical),1);
   int total = 0;
   QList<Datacube::HeaderDescription > col_headers = datacube.headers(Qt::Horizontal, 0);
-  std::tr1::shared_ptr<AbstractAggregator> col_aggregator = datacube.columnAggregators().at(0);
+  AbstractAggregator::Ptr col_aggregator = datacube.columnAggregators().at(0);
   QList<Datacube::HeaderDescription > row_headers = datacube.headers(Qt::Vertical, 0);
-  std::tr1::shared_ptr<AbstractAggregator> row_aggregator = datacube.rowAggregators().at(0);
+  AbstractAggregator::Ptr row_aggregator = datacube.rowAggregators().at(0);
   for (int row = 0; row < datacube.rowCount(); ++row) {
     for (int column = 0; column < datacube.columnCount(); ++column) {
       Q_FOREACH(int cell, datacube.elements(row, column)) {
@@ -229,9 +229,9 @@ void testplaincube::test_collapse2() {
   QCOMPARE(datacube.headerCount(Qt::Vertical),1);
   int total = 0;
   QList<Datacube::HeaderDescription > col_headers = datacube.headers(Qt::Horizontal, 0);
-  std::tr1::shared_ptr<AbstractAggregator> col_aggregator = datacube.columnAggregators().at(0);
+  AbstractAggregator::Ptr col_aggregator = datacube.columnAggregators().at(0);
   QList<Datacube::HeaderDescription > row_headers = datacube.headers(Qt::Vertical, 0);
-  std::tr1::shared_ptr<AbstractAggregator> row_aggregator = datacube.rowAggregators().at(0);
+  AbstractAggregator::Ptr row_aggregator = datacube.rowAggregators().at(0);
   for (int row = 0; row < datacube.rowCount(); ++row) {
     for (int column = 0; column < datacube.columnCount(); ++column) {
       Q_FOREACH(int cell, datacube.elements(row, column)) {
@@ -265,11 +265,11 @@ void testplaincube::do_testcollapse3(Qt::Orientation orientation) {
   QCOMPARE(datacube.headerCount(normal),1);
   int total = 0;
   QList<Datacube::HeaderDescription > parallel_headers = datacube.headers(orientation, 1);
-  std::tr1::shared_ptr<AbstractAggregator> parallel_aggregator = (horizontal ? datacube.columnAggregators() : datacube.rowAggregators()).at(1);
+  AbstractAggregator::Ptr parallel_aggregator = (horizontal ? datacube.columnAggregators() : datacube.rowAggregators()).at(1);
   QList<Datacube::HeaderDescription > normal_headers = datacube.headers(normal, 0);
-  std::tr1::shared_ptr<AbstractAggregator> normal_aggregator = (!horizontal ? datacube.columnAggregators() : datacube.rowAggregators()).at(0);
+  AbstractAggregator::Ptr normal_aggregator = (!horizontal ? datacube.columnAggregators() : datacube.rowAggregators()).at(0);
   QStringList parallel_0_headers;
-  std::tr1::shared_ptr<AbstractAggregator> parallel_0_aggregator = (horizontal ? datacube.columnAggregators() : datacube.rowAggregators()).at(0);
+  AbstractAggregator::Ptr parallel_0_aggregator = (horizontal ? datacube.columnAggregators() : datacube.rowAggregators()).at(0);
   Q_FOREACH(Datacube::HeaderDescription hp, datacube.headers(orientation,0)) {
     for (int i=0; i<hp.span; ++i) {
       parallel_0_headers << parallel_0_aggregator->categoryHeaderData(hp.categoryIndex).toString();
@@ -292,7 +292,7 @@ void testplaincube::do_testcollapse3(Qt::Orientation orientation) {
 
 void testplaincube::test_columnaggregator()
 {
-  std::tr1::shared_ptr<ColumnAggregator> first_name_aggregator(new ColumnAggregator(m_underlying_model, testplaincube::FIRST_NAME));
+  QSharedPointer<ColumnAggregator> first_name_aggregator(new ColumnAggregator(m_underlying_model, testplaincube::FIRST_NAME));
   QCOMPARE(first_name_aggregator->categoryCount(), 14);
   QCOMPARE(first_name_aggregator->categoryHeaderData(0).toString(),QString::fromLocal8Bit("Andersine"));
   QCOMPARE(first_name_aggregator->categoryHeaderData(7).toString(),QString::fromLocal8Bit("Kim"));
@@ -332,7 +332,7 @@ void testplaincube::test_global_filter() {
   QVERIFY(fourty_cat != -1);
 
   // Set age filter to include 40-years old only (Expect one result, "Einar Madsen"
-  datacube.addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new FilterByAggregate(age_aggregator, fourty_cat)));
+  datacube.addGlobalFilter(AbstractFilter::Ptr(new FilterByAggregate(age_aggregator, fourty_cat)));
   QCOMPARE(datacube.rowCount(),1);
   QCOMPARE(datacube.columnCount(),1);
   QList<int> rows = datacube.elements(0,0);
@@ -343,7 +343,7 @@ void testplaincube::test_global_filter() {
   // Set age filter to include 41-years old only (Expect one result, "Rigmor Jensen", weighting 76
   int fourtyone_cat = findCategoryIndexForString(age_aggregator, "41");
   datacube.resetGlobalFilter();
-  std::tr1::shared_ptr<AbstractFilter> global_filter(std::tr1::shared_ptr<AbstractFilter>( new FilterByAggregate(age_aggregator, fourtyone_cat)));
+  AbstractFilter::Ptr global_filter(AbstractFilter::Ptr( new FilterByAggregate(age_aggregator, fourtyone_cat)));
   datacube.addGlobalFilter(global_filter);
   QCOMPARE(datacube.rowCount(),1);
   QCOMPARE(datacube.columnCount(),1);
@@ -356,7 +356,7 @@ void testplaincube::test_global_filter() {
   // Get all with that weight (besides Rigmor Jensen, this includes Lulu Petersen)
   int seventysix = findCategoryIndexForString(weight_aggregator, "76");
   datacube.removeGlobalFilter(global_filter);
-  datacube.addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new FilterByAggregate(weight_aggregator, seventysix)));
+  datacube.addGlobalFilter(AbstractFilter::Ptr(new FilterByAggregate(weight_aggregator, seventysix)));
   QCOMPARE(datacube.rowCount(),2);
   QCOMPARE(datacube.columnCount(),2);
   rows = datacube.elements(1,0);
@@ -427,10 +427,10 @@ void testplaincube::test_reverse_index()
 
 void testplaincube::test_add_category() {
   QStandardItemModel* tmp_model = copy_model();
-  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new ColumnAggregator(tmp_model, SEX));
-  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
-  std::tr1::shared_ptr<AbstractAggregator> first_name_aggregator(new ColumnAggregator(tmp_model, FIRST_NAME));
-  std::tr1::shared_ptr<AbstractAggregator> last_name_aggregator(new ColumnAggregator(tmp_model, LAST_NAME));
+  AbstractAggregator::Ptr sex_aggregator(new ColumnAggregator(tmp_model, SEX));
+  AbstractAggregator::Ptr kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
+  AbstractAggregator::Ptr first_name_aggregator(new ColumnAggregator(tmp_model, FIRST_NAME));
+  AbstractAggregator::Ptr last_name_aggregator(new ColumnAggregator(tmp_model, LAST_NAME));
   Datacube datacube(tmp_model, last_name_aggregator, first_name_aggregator);
   datacube.split(Qt::Horizontal, 0, sex_aggregator);
   datacube.split(Qt::Horizontal, 2, kommune_aggregator);
@@ -463,21 +463,21 @@ void testplaincube::test_add_category() {
   QVERIFY(findCategoryIndexForString(first_name_aggregator, "Agnete") != -1);
   QCOMPARE(tmp_model->rowCount(), 101);
   QStringList column0_headers;
-  std::tr1::shared_ptr<AbstractAggregator> column0_aggregator = datacube.columnAggregators().at(0);
+  AbstractAggregator::Ptr column0_aggregator = datacube.columnAggregators().at(0);
   Q_FOREACH(Datacube::HeaderDescription hp, datacube.headers(Qt::Horizontal,0)) {
     for (int i=0; i<hp.span; ++i) {
       column0_headers << column0_aggregator->categoryHeaderData(hp.categoryIndex).toString();
     }
   }
   QStringList column1_headers;
-  std::tr1::shared_ptr<AbstractAggregator> column1_aggregator = datacube.columnAggregators().at(1);
+  AbstractAggregator::Ptr column1_aggregator = datacube.columnAggregators().at(1);
   Q_FOREACH(Datacube::HeaderDescription hp, datacube.headers(Qt::Horizontal,1)) {
     for (int i=0; i<hp.span; ++i) {
       column1_headers << column1_aggregator->categoryHeaderData(hp.categoryIndex).toString();
     }
   }
   QStringList column2_headers;
-  std::tr1::shared_ptr<AbstractAggregator> column2_aggregator = datacube.columnAggregators().at(2);
+  AbstractAggregator::Ptr column2_aggregator = datacube.columnAggregators().at(2);
   Q_FOREACH(Datacube::HeaderDescription hp, datacube.headers(Qt::Horizontal,2)) {
     QCOMPARE(hp.span, 1);
     for (int i=0; i<hp.span; ++i) {
@@ -503,10 +503,10 @@ void testplaincube::test_add_category() {
 void testplaincube::test_add_category_simple()
 {
   QStandardItemModel* tmp_model = copy_model();
-  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new ColumnAggregator(tmp_model, SEX));
-  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
-  std::tr1::shared_ptr<AbstractAggregator> first_name_aggregator(new ColumnAggregator(tmp_model, FIRST_NAME));
-  std::tr1::shared_ptr<AbstractAggregator> last_name_aggregator(new ColumnAggregator(tmp_model, LAST_NAME));
+  AbstractAggregator::Ptr sex_aggregator(new ColumnAggregator(tmp_model, SEX));
+  AbstractAggregator::Ptr kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
+  AbstractAggregator::Ptr first_name_aggregator(new ColumnAggregator(tmp_model, FIRST_NAME));
+  AbstractAggregator::Ptr last_name_aggregator(new ColumnAggregator(tmp_model, LAST_NAME));
   Datacube datacube(tmp_model, kommune_aggregator, sex_aggregator);
   QList<QStandardItem*> row;
   for (int c=0; c<tmp_model->columnCount(); ++c) {
@@ -536,7 +536,7 @@ void testplaincube::test_add_category_simple()
   tmp_model->appendRow(row);
   QCOMPARE(tmp_model->rowCount(), 101);
   QStringList column0_headers;
-  std::tr1::shared_ptr<AbstractAggregator> column0_aggregator = datacube.columnAggregators().at(0);
+  AbstractAggregator::Ptr column0_aggregator = datacube.columnAggregators().at(0);
   Q_FOREACH(Datacube::HeaderDescription hp, datacube.headers(Qt::Horizontal,0)) {
     for (int i=0; i<hp.span; ++i) {
       column0_headers << column0_aggregator->categoryHeaderData(hp.categoryIndex).toString();
@@ -559,20 +559,20 @@ void testplaincube::test_add_category_simple()
 
 void testplaincube::test_delete_rows() {
   QStandardItemModel* tmp_model = copy_model();
-  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new ColumnAggregator(tmp_model, SEX));
-  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
+  AbstractAggregator::Ptr sex_aggregator(new ColumnAggregator(tmp_model, SEX));
+  AbstractAggregator::Ptr kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
   Datacube datacube(tmp_model, kommune_aggregator, sex_aggregator);
   tmp_model->removeRows(30, 10);
   QCOMPARE(m_underlying_model->rowCount()-10, tmp_model->rowCount());
   int total = 0;
-  std::tr1::shared_ptr<AbstractAggregator> column0_aggregator = datacube.columnAggregators().at(0);
+  AbstractAggregator::Ptr column0_aggregator = datacube.columnAggregators().at(0);
   QStringList column0_headers;
   Q_FOREACH(Datacube::HeaderDescription hp, datacube.headers(Qt::Horizontal,0)) {
     for (int i=0; i<hp.span; ++i) {
       column0_headers << column0_aggregator->categoryHeaderData(hp.categoryIndex).toString();
     }
   }
-  std::tr1::shared_ptr<AbstractAggregator> row0_aggregator = datacube.rowAggregators().at(0);
+  AbstractAggregator::Ptr row0_aggregator = datacube.rowAggregators().at(0);
   QStringList row0_headers;
   Q_FOREACH(Datacube::HeaderDescription hp, datacube.headers(Qt::Vertical,0)) {
     for (int i=0; i<hp.span; ++i) {
@@ -595,8 +595,8 @@ void testplaincube::test_delete_rows() {
 
 void testplaincube::test_add_rows() {
   QStandardItemModel* tmp_model = copy_model();
-  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new ColumnAggregator(tmp_model, SEX));
-  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
+  AbstractAggregator::Ptr sex_aggregator(new ColumnAggregator(tmp_model, SEX));
+  AbstractAggregator::Ptr kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
   Datacube datacube(tmp_model, kommune_aggregator, sex_aggregator);
   for (int i=0; i<10; ++i) {
     int source_row = i*7+2;
@@ -610,13 +610,13 @@ void testplaincube::test_add_rows() {
   QCOMPARE(m_underlying_model->rowCount()+10, tmp_model->rowCount());
   int total = 0;
   QStringList column0_headers;
-  std::tr1::shared_ptr<AbstractAggregator> column0_aggregator = datacube.columnAggregators().at(0);
+  AbstractAggregator::Ptr column0_aggregator = datacube.columnAggregators().at(0);
   Q_FOREACH(Datacube::HeaderDescription hp, datacube.headers(Qt::Horizontal,0)) {
     for (int i=0; i<hp.span; ++i) {
       column0_headers << column0_aggregator->categoryHeaderData(hp.categoryIndex).toString();
     }
   }
-  std::tr1::shared_ptr<AbstractAggregator> row0_aggregator = datacube.rowAggregators().at(0);
+  AbstractAggregator::Ptr row0_aggregator = datacube.rowAggregators().at(0);
   QStringList row0_headers;
   Q_FOREACH(Datacube::HeaderDescription hp, datacube.headers(Qt::Vertical,0)) {
     for (int i=0; i<hp.span; ++i) {
@@ -639,10 +639,10 @@ void testplaincube::test_add_rows() {
 void testplaincube::test_remove_category()
 {
   QStandardItemModel* tmp_model = copy_model();
-  std::tr1::shared_ptr<ColumnAggregator> age_aggregator(new ColumnAggregator(tmp_model, AGE));
-  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
-  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new ColumnAggregator(tmp_model, SEX));
-  std::tr1::shared_ptr<AbstractAggregator> last_name_aggregator(new ColumnAggregator(tmp_model, LAST_NAME));
+  QSharedPointer<ColumnAggregator> age_aggregator(new ColumnAggregator(tmp_model, AGE));
+  AbstractAggregator::Ptr kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
+  AbstractAggregator::Ptr sex_aggregator(new ColumnAggregator(tmp_model, SEX));
+  AbstractAggregator::Ptr last_name_aggregator(new ColumnAggregator(tmp_model, LAST_NAME));
   Datacube datacube(tmp_model, kommune_aggregator, age_aggregator);
   datacube.split(Qt::Horizontal, 1, last_name_aggregator);
   datacube.split(Qt::Horizontal, 0, sex_aggregator);
@@ -874,19 +874,19 @@ void testplaincube::test_many_buckets()
 {
     try {
         {
-            Datacube datacube(m_underlying_model, std::tr1::shared_ptr<AbstractAggregator>(new TenBucketsNonAggregator(m_underlying_model)), std::tr1::shared_ptr<AbstractAggregator>(new TenBucketsNonAggregator(m_underlying_model)));
+            Datacube datacube(m_underlying_model, AbstractAggregator::Ptr(new TenBucketsNonAggregator(m_underlying_model)), AbstractAggregator::Ptr(new TenBucketsNonAggregator(m_underlying_model)));
             for(int i = 0 ; i <7 ; i++) {
-                datacube.split(Qt::Horizontal,0, std::tr1::shared_ptr<AbstractAggregator>(new TenBucketsNonAggregator(m_underlying_model)));
+                datacube.split(Qt::Horizontal,0, AbstractAggregator::Ptr(new TenBucketsNonAggregator(m_underlying_model)));
                 QCOMPARE(datacube.headerCount(Qt::Horizontal),i+2);
-                datacube.split(Qt::Vertical,0,std::tr1::shared_ptr<AbstractAggregator>(new TenBucketsNonAggregator(m_underlying_model)));
+                datacube.split(Qt::Vertical,0,AbstractAggregator::Ptr(new TenBucketsNonAggregator(m_underlying_model)));
                 QCOMPARE(datacube.headerCount(Qt::Vertical),i+2);
            }
            //due to overflow-guards, these shouldn't actually succeed.
            int horizontal_header_count = datacube.headerCount(Qt::Horizontal);
-           datacube.split(Qt::Horizontal,0, std::tr1::shared_ptr<AbstractAggregator>(new TenBucketsNonAggregator(m_underlying_model)));
+           datacube.split(Qt::Horizontal,0, AbstractAggregator::Ptr(new TenBucketsNonAggregator(m_underlying_model)));
            QCOMPARE(horizontal_header_count,datacube.headerCount(Qt::Horizontal));
            int vertical_header_count = datacube.headerCount(Qt::Vertical);
-           datacube.split(Qt::Vertical,0, std::tr1::shared_ptr<AbstractAggregator>(new TenBucketsNonAggregator(m_underlying_model)));
+           datacube.split(Qt::Vertical,0, AbstractAggregator::Ptr(new TenBucketsNonAggregator(m_underlying_model)));
            QCOMPARE(vertical_header_count,datacube.headerCount(Qt::Vertical));
         }
     } catch (std::bad_alloc& ex) {

@@ -9,7 +9,7 @@
 #define DANISHNAMECUBE_H
 
 #include <QObject>
-#include <tr1/memory>
+#include <QSharedPointer>
 
 class QStandardItemModel;
 class QAbstractItemModel;
@@ -65,12 +65,12 @@ class danishnamecube_t : public QObject {
      */
     QStandardItemModel* copy_model();
     QStandardItemModel* m_underlying_model;
-    std::tr1::shared_ptr<qdatacube::AbstractAggregator> first_name_aggregator;
-    std::tr1::shared_ptr<qdatacube::AbstractAggregator> last_name_aggregator;
-    std::tr1::shared_ptr<qdatacube::AbstractAggregator> sex_aggregator;
-    std::tr1::shared_ptr<qdatacube::AbstractAggregator> age_aggregator;
-    std::tr1::shared_ptr<qdatacube::AbstractAggregator> weight_aggregator;
-    std::tr1::shared_ptr<qdatacube::AbstractAggregator> kommune_aggregator;
+    qdatacube::AbstractAggregator::Ptr first_name_aggregator;
+    qdatacube::AbstractAggregator::Ptr last_name_aggregator;
+    qdatacube::AbstractAggregator::Ptr sex_aggregator;
+    qdatacube::AbstractAggregator::Ptr age_aggregator;
+    qdatacube::AbstractAggregator::Ptr weight_aggregator;
+    qdatacube::AbstractAggregator::Ptr kommune_aggregator;
     enum columns_t {
       FIRST_NAME,
       LAST_NAME,

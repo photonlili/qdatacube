@@ -42,21 +42,21 @@ testheaders::testheaders(QObject* parent) : danishnamecube_t(parent), m_underlyi
 
 }
 
-QAction* testheaders::create_aggregator_action(std::tr1::shared_ptr< AbstractAggregator > aggregator)
+QAction* testheaders::create_aggregator_action(AbstractAggregator::Ptr aggregator)
 {
   QAction* rv = new QAction(aggregator->name(), this);
-  rv->setData(QVariant::fromValue(static_cast<void*>(aggregator.get())));
+  rv->setData(QVariant::fromValue(static_cast<void*>(aggregator.data())));
   return rv;
 }
 
-void testheaders::add_global_filter_bottoms(std::tr1::shared_ptr< AbstractAggregator > aggregator, QLayout* layout) {
+void testheaders::add_global_filter_bottoms(AbstractAggregator::Ptr aggregator, QLayout* layout) {
   QWidget* top = new QWidget(layout->widget());
   layout->addWidget(top);
   QBoxLayout* lay = new QVBoxLayout(top);
   for(int cat = 0; cat < aggregator->categoryCount() ; cat++) {
       QString catText = aggregator->categoryHeaderData(cat).toString();
     QPushButton* button = new QPushButton(catText, top);
-    ColumnAggregator* cf = static_cast<ColumnAggregator*>(aggregator.get());
+    ColumnAggregator* cf = static_cast<ColumnAggregator*>(aggregator.data());
     button->setProperty("section", cf->section());
     button->setProperty("categoryno", cat);
     lay->addWidget(button);
@@ -73,7 +73,7 @@ void testheaders::slot_global_filter_button_pressed() {
   } else {
     int section = s->property("section").toInt();
     int categoryno = s->property("categoryno").toInt();
-    m_datacube->addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new FilterByAggregate(std::tr1::shared_ptr<qdatacube::AbstractAggregator>(new ColumnAggregator(m_underlying_model, section)), categoryno)));
+    m_datacube->addGlobalFilter(AbstractFilter::Ptr(new FilterByAggregate(qdatacube::AbstractAggregator::Ptr(new ColumnAggregator(m_underlying_model, section)), categoryno)));
   }
 }
 
@@ -154,9 +154,9 @@ void testheaders::slot_set_data() {
 
 void testheaders::slot_set_filter() {
   static int count = 0;
-  std::tr1::shared_ptr<AbstractAggregator> aggregator(new ColumnAggregator(m_underlying_model, SEX));
+  AbstractAggregator::Ptr aggregator(new ColumnAggregator(m_underlying_model, SEX));
   m_datacube->resetGlobalFilter();
-  m_datacube->addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new FilterByAggregate(aggregator, (count++%2))));
+  m_datacube->addGlobalFilter(AbstractFilter::Ptr(new FilterByAggregate(aggregator, (count++%2))));
   QTimer::singleShot(2000, this, SLOT(slot_set_filter()));
 }
 
@@ -218,18 +218,18 @@ void testheaders::slot_horizontal_context_menu(QPoint /*pos*/, int headerno, int
   if (action) {
     if (action != m_collapse_action) {
       AbstractAggregator* raw_pointer = static_cast<AbstractAggregator*>(action->data().value<void*>());
-      std::tr1::shared_ptr<AbstractAggregator> aggregator;
-      if (first_name_aggregator.get() == raw_pointer) {
+      AbstractAggregator::Ptr aggregator;
+      if (first_name_aggregator == raw_pointer) {
         aggregator = first_name_aggregator;
-      } else if (last_name_aggregator.get() == raw_pointer) {
+      } else if (last_name_aggregator == raw_pointer) {
         aggregator = last_name_aggregator;
-      } else if (sex_aggregator.get() == raw_pointer) {
+      } else if (sex_aggregator == raw_pointer) {
         aggregator = sex_aggregator;
-      } else if (age_aggregator.get() == raw_pointer) {
+      } else if (age_aggregator == raw_pointer) {
         aggregator = age_aggregator;
-      } else if (weight_aggregator.get() == raw_pointer) {
+      } else if (weight_aggregator == raw_pointer) {
         aggregator = weight_aggregator;
-      } else if (kommune_aggregator.get() == raw_pointer) {
+      } else if (kommune_aggregator == raw_pointer) {
         aggregator = kommune_aggregator;
       }
       m_datacube->split(Qt::Horizontal, qMax(headerno,0), aggregator);
@@ -253,18 +253,18 @@ void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno
   if (action) {
     if (action != m_collapse_action) {
       AbstractAggregator* raw_pointer = static_cast<AbstractAggregator*>(action->data().value<void*>());
-      std::tr1::shared_ptr<AbstractAggregator> aggregator;
-      if (first_name_aggregator.get() == raw_pointer) {
+      AbstractAggregator::Ptr aggregator;
+      if (first_name_aggregator == raw_pointer) {
         aggregator = first_name_aggregator;
-      } else if (last_name_aggregator.get() == raw_pointer) {
+      } else if (last_name_aggregator == raw_pointer) {
         aggregator = last_name_aggregator;
-      } else if (sex_aggregator.get() == raw_pointer) {
+      } else if (sex_aggregator == raw_pointer) {
         aggregator = sex_aggregator;
-      } else if (age_aggregator.get() == raw_pointer) {
+      } else if (age_aggregator == raw_pointer) {
         aggregator = age_aggregator;
-      } else if (weight_aggregator.get() == raw_pointer) {
+      } else if (weight_aggregator == raw_pointer) {
         aggregator = weight_aggregator;
-      } else if (kommune_aggregator.get() == raw_pointer) {
+      } else if (kommune_aggregator == raw_pointer) {
         aggregator = kommune_aggregator;
       }
       if (headerno+1 < m_datacube->headerCount(Qt::Vertical)) {

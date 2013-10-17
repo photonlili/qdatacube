@@ -14,6 +14,8 @@
 #include <QObject>
 #include <QVariant>
 
+template<class T >
+class QSharedPointer;
 class QAbstractItemModel;
 
 namespace qdatacube {
@@ -25,6 +27,7 @@ class AbstractAggregatorPrivate;
 class QDATACUBE_EXPORT AbstractAggregator : public QObject {
     Q_OBJECT
     public:
+        typedef QSharedPointer<AbstractAggregator> Ptr ;
         explicit AbstractAggregator(QAbstractItemModel* model);
 
         /**

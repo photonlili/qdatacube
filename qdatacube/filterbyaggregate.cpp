@@ -1,23 +1,24 @@
 #include "filterbyaggregate.h"
 #include "abstractaggregator.h"
+#include <QSharedPointer>
 
 namespace qdatacube {
 
 class FilterByAggregatePrivate {
     public:
-        FilterByAggregatePrivate(std::tr1::shared_ptr<AbstractAggregator> aggregator, int category_index) : m_aggregator(aggregator), m_categoryIndex(category_index) {}
-        std::tr1::shared_ptr<AbstractAggregator> m_aggregator;
+        FilterByAggregatePrivate(AbstractAggregator::Ptr aggregator, int category_index) : m_aggregator(aggregator), m_categoryIndex(category_index) {}
+        AbstractAggregator::Ptr m_aggregator;
         int m_categoryIndex;
 };
 
-FilterByAggregate::FilterByAggregate(std::tr1::shared_ptr< AbstractAggregator > aggregator, int category_index)
+FilterByAggregate::FilterByAggregate(AbstractAggregator::Ptr aggregator, int category_index)
  : AbstractFilter(aggregator->underlyingModel()), d(new FilterByAggregatePrivate(aggregator, category_index))
 {
   Q_ASSERT(aggregator);
   Q_ASSERT(category_index>=0);
   Q_ASSERT(category_index<aggregator->categoryCount());
-  connect(aggregator.get(), SIGNAL(categoryAdded(int)), SLOT(slot_aggregator_category_inserted(int)));
-  connect(aggregator.get(), SIGNAL(categoryRemoved(int)), SLOT(slot_aggregator_category_removed(int)));
+  connect(aggregator.data(), SIGNAL(categoryAdded(int)), SLOT(slot_aggregator_category_inserted(int)));
+  connect(aggregator.data(), SIGNAL(categoryRemoved(int)), SLOT(slot_aggregator_category_removed(int)));
   setShortName(d->m_aggregator->categoryHeaderData(d->m_categoryIndex).toString());
   setName(d->m_aggregator->name() + "=" + d->m_aggregator->categoryHeaderData(d->m_categoryIndex).toString());
 }
@@ -40,7 +41,7 @@ void FilterByAggregate::slot_aggregator_category_removed(int index) {
   }
 }
 
-std::tr1::shared_ptr< AbstractAggregator > FilterByAggregate::aggregator() const {
+AbstractAggregator::Ptr FilterByAggregate::aggregator() const {
     return d->m_aggregator;
 }
 

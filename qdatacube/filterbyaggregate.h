@@ -3,21 +3,19 @@
 
 #include "abstractfilter.h"
 #include "qdatacube_export.h"
-#include <tr1/memory>
+#include "abstractaggregator.h"
 
 namespace qdatacube {
-
-class AbstractAggregator;
 
 class FilterByAggregatePrivate;
 class QDATACUBE_EXPORT  FilterByAggregate : public AbstractFilter {
     Q_OBJECT
     public:
-        FilterByAggregate(std::tr1::shared_ptr<AbstractAggregator> aggregator, int category_index);
+        FilterByAggregate(AbstractAggregator::Ptr aggregator, int category_index);
 
         virtual bool operator()(int row) const;
 
-        std::tr1::shared_ptr<AbstractAggregator> aggregator() const;
+        AbstractAggregator::Ptr aggregator() const;
 
         int categoryIndex() const;
         virtual ~FilterByAggregate();

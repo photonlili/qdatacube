@@ -73,12 +73,12 @@ danishnamecube_t::danishnamecube_t(QObject* parent):
     QStringList labels;
     labels << "firstname" << "lastname" << "sex" << "age" << "weight" << "kommune";
     m_underlying_model->setHorizontalHeaderLabels(labels);
-    first_name_aggregator.reset(new ColumnAggregator(m_underlying_model, FIRST_NAME));
-    last_name_aggregator.reset(new ColumnAggregator(m_underlying_model, LAST_NAME));
-    sex_aggregator.reset(new SexAggregator(m_underlying_model, SEX));
-    age_aggregator.reset(new ColumnAggregator(m_underlying_model, AGE));
-    weight_aggregator.reset(new ColumnAggregator(m_underlying_model, WEIGHT));
-    kommune_aggregator.reset(new ColumnAggregator(m_underlying_model, KOMMUNE));
+    first_name_aggregator = AbstractAggregator::Ptr(new ColumnAggregator(m_underlying_model, FIRST_NAME));
+    last_name_aggregator = AbstractAggregator::Ptr(new ColumnAggregator(m_underlying_model, LAST_NAME));
+    sex_aggregator = AbstractAggregator::Ptr(new SexAggregator(m_underlying_model, SEX));
+    age_aggregator = AbstractAggregator::Ptr(new ColumnAggregator(m_underlying_model, AGE));
+    weight_aggregator = AbstractAggregator::Ptr(new ColumnAggregator(m_underlying_model, WEIGHT));
+    kommune_aggregator = AbstractAggregator::Ptr(new ColumnAggregator(m_underlying_model, KOMMUNE));
     new ModelTest(m_underlying_model);
 }
 

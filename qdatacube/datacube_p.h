@@ -2,7 +2,7 @@
 #define QDATACUBE_DATACUBE_P_H
 
 #include <QObject>
-#include <tr1/memory>
+#include <QSharedPointer>
 
 #include "cell.h"
 #include "datacube.h"
@@ -20,8 +20,8 @@ class DatacubePrivate : public QObject {
     Q_OBJECT
     public:
         DatacubePrivate(Datacube* datacube, const QAbstractItemModel* model,
-                std::tr1::shared_ptr<AbstractAggregator> row_aggregator,
-                std::tr1::shared_ptr<AbstractAggregator> column_aggregator);
+                AbstractAggregator::Ptr row_aggregator,
+                AbstractAggregator::Ptr column_aggregator);
         DatacubePrivate(Datacube* datacube, const QAbstractItemModel* model);
         Datacube* q;
         int compute_row_section_for_index(int index) {
@@ -60,10 +60,10 @@ class DatacubePrivate : public QObject {
 
         void remove(int index);
         void add(int index);
-        void split_row(int headerno, std::tr1::shared_ptr< AbstractAggregator > aggregator);
-        void split_column(int headerno, std::tr1::shared_ptr< AbstractAggregator > aggregator);
-        void aggregator_category_added(std::tr1::shared_ptr< qdatacube::AbstractAggregator > aggregator, int headerno, int index, Qt::Orientation orientation);
-        void aggregator_category_removed(std::tr1::shared_ptr< qdatacube::AbstractAggregator > aggregator, int headerno, int index, Qt::Orientation orientation);
+        void split_row(int headerno, AbstractAggregator::Ptr aggregator);
+        void split_column(int headerno, AbstractAggregator::Ptr aggregator);
+        void aggregator_category_added(AbstractAggregator::Ptr aggregator, int headerno, int index, Qt::Orientation orientation);
+        void aggregator_category_removed(AbstractAggregator::Ptr aggregator, int headerno, int index, Qt::Orientation orientation);
 
         /**
         * @returns the number of buckets (i.e. sections including empty sections) in datacube for

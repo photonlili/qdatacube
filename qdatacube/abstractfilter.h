@@ -4,6 +4,8 @@
 #include <QObject>
 #include "qdatacube_export.h"
 
+template<class T >
+class QSharedPointer;
 class QAbstractItemModel;
 
 namespace qdatacube {
@@ -12,6 +14,7 @@ class AbstractFilterPrivate;
 class QDATACUBE_EXPORT AbstractFilter : public QObject {
     Q_OBJECT
     public:
+        typedef QSharedPointer<AbstractFilter> Ptr;
         explicit AbstractFilter(QAbstractItemModel* underlying_model);
 
         /**

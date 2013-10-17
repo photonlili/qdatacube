@@ -9,10 +9,11 @@
 #define Q_DATACUBE_DATACUBE_H
 
 #include "qdatacube_export.h"
+#include "abstractaggregator.h"
+#include "abstractfilter.h"
 
 #include <QObject>
 #include <QPair>
-#include <tr1/memory>
 #include <QAbstractItemModel>
 
 class QAbstractItemModel;
@@ -47,8 +48,8 @@ class QDATACUBE_EXPORT Datacube : public QObject {
          * @param column_aggregator initial aggregator.
          */
         Datacube(const QAbstractItemModel* model,
-                std::tr1::shared_ptr<AbstractAggregator> row_aggregator,
-                std::tr1::shared_ptr<AbstractAggregator> column_aggregator,
+                AbstractAggregator::Ptr row_aggregator,
+                AbstractAggregator::Ptr column_aggregator,
                 QObject* parent = 0);
 
         /**
@@ -160,7 +161,7 @@ class QDATACUBE_EXPORT Datacube : public QObject {
         /**
          * Add global filter.
          */
-        void addGlobalFilter(std::tr1::shared_ptr<AbstractFilter> filter);
+        void addGlobalFilter(AbstractFilter::Ptr filter);
 
         /**
          * Remove all global filters
@@ -171,7 +172,7 @@ class QDATACUBE_EXPORT Datacube : public QObject {
          * Remove global filter from list
          * \return true if filter was found and removed, and false if not found
          */
-        bool removeGlobalFilter(std::tr1::shared_ptr<AbstractFilter> filter);
+        bool removeGlobalFilter(AbstractFilter::Ptr filter);
 
         /**
          * Split header with aggregator.
@@ -180,7 +181,7 @@ class QDATACUBE_EXPORT Datacube : public QObject {
          *                 header_count(orientation) is the bottommost.
          * @param aggregator aggregator to use. Each non-empty category will give a new row or column
          */
-        void split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr<AbstractAggregator> aggregator);
+        void split(Qt::Orientation orientation, int headerno, AbstractAggregator::Ptr aggregator);
 
         /**
          * Collapse header, removing it from datacube. Requries headercount(orientation)>=2
@@ -203,8 +204,8 @@ class QDATACUBE_EXPORT Datacube : public QObject {
          */
         int internalSection(int element, Qt::Orientation orientation) const;
 
-        typedef QList<std::tr1::shared_ptr<AbstractFilter> > GlobalFilters;
-        typedef QList<std::tr1::shared_ptr<AbstractAggregator> > Aggregators;
+        typedef QList< AbstractFilter::Ptr > GlobalFilters;
+        typedef QList< AbstractAggregator::Ptr > Aggregators;
 
         /**
          * @return Return all global filters in effect with their categories

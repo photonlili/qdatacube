@@ -19,6 +19,8 @@
 
 #include "datacubeview_p.h"
 
+#include <QSharedPointer>
+
 
 /**
  * Small RAII struct to help save/restore painter state
@@ -172,7 +174,7 @@ void DatacubeViewPrivate::paint_datacube(QPaintEvent* event) const {
   QRect cornerRect(options.rect.topLeft(), QSize(vertical_header_width,horizontal_header_height));
   painter.drawRect(cornerRect);
   painter.setPen(q->palette().buttonText().color());
-  if (std::tr1::shared_ptr<AbstractFilter> global_filter = datacube->globalFilters().value(0)) {
+  if (AbstractFilter::Ptr global_filter = datacube->globalFilters().value(0)) {
     QString global_category = global_filter->shortName();
     painter.drawText(cornerRect.adjusted(1, 1, -1, -1), Qt::AlignCenter, global_category);
   }
@@ -191,7 +193,7 @@ void DatacubeViewPrivate::paint_datacube(QPaintEvent* event) const {
     header_rect.moveLeft(q->viewport()->rect().left() + vertical_header_width);
     summary_rect.moveLeft(header_rect.left());
     QList<Datacube::HeaderDescription > headers = datacube->headers(Qt::Horizontal, hh);
-    std::tr1::shared_ptr<AbstractAggregator> aggregator = datacube->columnAggregators().at(hh);
+    AbstractAggregator::Ptr aggregator = datacube->columnAggregators().at(hh);
     int current_cell_equivalent = 0;
     for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= rightmost_column; ++header_index) {
         Datacube::HeaderDescription header = headers.at(header_index);
@@ -270,7 +272,7 @@ void DatacubeViewPrivate::paint_datacube(QPaintEvent* event) const {
     header_rect.moveTop(options.rect.top());
     summary_rect.moveTop(header_rect.top());
     QList<Datacube::HeaderDescription > headers = datacube->headers(Qt::Vertical, vh);
-    std::tr1::shared_ptr<AbstractAggregator> aggregator = datacube->rowAggregators().at(vh);
+    AbstractAggregator::Ptr aggregator = datacube->rowAggregators().at(vh);
     int current_cell_equivalent = 0;
     for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= bottommost_row; ++header_index) {
         Datacube::HeaderDescription header = headers.at(header_index);
