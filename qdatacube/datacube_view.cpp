@@ -58,7 +58,7 @@ class datacube_view_private_t : public QSharedData {
      *  Return cell corresponding to position. Note that position is zero-based, and if no cells at position an
      * invalid cell_t is returned (i.e., cell_for_position(outside_pos).invalid() == true );
      **/
-    cell_t cell_for_position(QPoint pos, int vertical_scrollbar_value, int horizontal_scrollbar_value) const;
+    Cell cell_for_position(QPoint pos, int vertical_scrollbar_value, int horizontal_scrollbar_value) const;
 };
 
 datacube_view_private_t::datacube_view_private_t()
@@ -73,9 +73,9 @@ datacube_view_private_t::datacube_view_private_t()
 
 }
 
-cell_t datacube_view_private_t::cell_for_position(QPoint pos, int vertical_scrollbar_value, int horizontal_scrollbar_value) const {
+Cell datacube_view_private_t::cell_for_position(QPoint pos, int vertical_scrollbar_value, int horizontal_scrollbar_value) const {
   if(!datacube) {
-    return cell_t();
+    return Cell();
   }
   const int ncolumn_headers = datacube->header_count(Qt::Horizontal);
   const int nrow_headers = datacube->header_count(Qt::Vertical);
@@ -84,18 +84,18 @@ cell_t datacube_view_private_t::cell_for_position(QPoint pos, int vertical_scrol
   const int nrows = datacube_size.height() + (show_totals ? datacube->header_count(Qt::Horizontal) : 0);
   const int ncolumns = datacube_size.width() + (show_totals ? datacube->header_count(Qt::Vertical) : 0);
   if (0 <= row && 0 <= column && nrows && column < ncolumns && (row <= datacube_size.height() || column < datacube_size.width())) {
-    return cell_t(row + vertical_scrollbar_value, column + horizontal_scrollbar_value);
+    return Cell(row + vertical_scrollbar_value, column + horizontal_scrollbar_value);
   } else if (row < 0 && -row <= datacube->header_count(Qt::Horizontal)) {
     if (column>=0 && column < ncolumns) {
       // row headers
-      return cell_t(row, column + horizontal_scrollbar_value);
+      return Cell(row, column + horizontal_scrollbar_value);
     } else if (column < 0 && -column <= datacube->header_count(Qt::Vertical)) {
-      return cell_t(row, column);
+      return Cell(row, column);
     }
   } else if (column < 0 && -column <= datacube->header_count(Qt::Vertical) && row>=0 && row < nrows) {
-    return cell_t(row + vertical_scrollbar_value, column);
+    return Cell(row + vertical_scrollbar_value, column);
   }
-  return cell_t();
+  return Cell();
 }
 
 
@@ -524,7 +524,7 @@ void datacube_view_t::mousePressEvent(QMouseEvent* event) {
   d->mouse_press_point = pos;
   d->mouse_press_scrollbar_state.setX(horizontalScrollBar()->value());
   d->mouse_press_scrollbar_state.setY(verticalScrollBar()->value());
-  cell_t press = d->cell_for_position(pos, verticalScrollBar()->value(), horizontalScrollBar()->value());
+  Cell press = d->cell_for_position(pos, verticalScrollBar()->value(), horizontalScrollBar()->value());
   if (!(event->modifiers() & Qt::CTRL)) {
     d->selection->clear();
   }
@@ -575,10 +575,10 @@ void datacube_view_t::mousePressEvent(QMouseEvent* event) {
 
 void datacube_view_t::mouseMoveEvent(QMouseEvent* event) {
   QAbstractScrollArea::mouseMoveEvent(event);
-  cell_t press = d->cell_for_position(d->mouse_press_point, d->mouse_press_scrollbar_state.y(), d->mouse_press_scrollbar_state.x());
+  Cell press = d->cell_for_position(d->mouse_press_point, d->mouse_press_scrollbar_state.y(), d->mouse_press_scrollbar_state.x());
   QPoint constrained_pos = QPoint(qMax(1, qMin(event->pos().x(), d->vertical_header_width + d->datacube_size.width() * d->cell_size.width() + (d->show_totals ? d->vertical_header_width : 0) -1)),
                                   qMax(1, qMin(event->pos().y(), d->horizontal_header_height + d->datacube_size.height() * d->cell_size.height() + (d->show_totals ? d->horizontal_header_height : 0) - 1)));
-  cell_t current = d->cell_for_position(constrained_pos,verticalScrollBar()->value(), horizontalScrollBar()->value());
+  Cell current = d->cell_for_position(constrained_pos,verticalScrollBar()->value(), horizontalScrollBar()->value());
   QRect new_selection_area;
   if (!press.invalid() && !current.invalid()) {
     const int vertical_header_count = d->datacube->header_count(Qt::Vertical);
@@ -647,9 +647,9 @@ void datacube_view_t::mouseReleaseEvent(QMouseEvent* event) {
       }
     }
   } else {
-    cell_t release = d->cell_for_position(event->pos(), verticalScrollBar()->value(), horizontalScrollBar()->value());
+    Cell release = d->cell_for_position(event->pos(), verticalScrollBar()->value(), horizontalScrollBar()->value());
     if (release.column()>=d->datacube_size.width() && release.row() >= d->datacube_size.height()) {
-      cell_t press = d->cell_for_position(d->last_mouse_press_point, d->last_mouse_press_scrollbar_state.y(), d->last_mouse_press_scrollbar_state.x());
+      Cell press = d->cell_for_position(d->last_mouse_press_point, d->last_mouse_press_scrollbar_state.y(), d->last_mouse_press_scrollbar_state.x());
       if (press.column()>=d->datacube_size.width() && press.row() >= d->datacube_size.height()) {
         // Lower right corner "total summary" was pressed. Select all
         d->selection->add_elements(d->datacube->elements());

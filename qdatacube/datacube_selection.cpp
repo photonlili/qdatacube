@@ -180,7 +180,7 @@ int& datacube_selection_t::secret_t::cell(int row, int column) {
 
 void datacube_selection_t::add_elements(QList< int > elements) {
   QList<int> actually_selected_elements;
-  cell_t cell;
+  Cell cell;
   Q_FOREACH(int element, elements) {
     if (!d->selected_elements.contains(element)) {
       d->datacube->bucket_for_element(element, cell);
@@ -201,7 +201,7 @@ void datacube_selection_t::add_elements(QList< int > elements) {
 
 void datacube_selection_t::remove_elements(QList< int > elements) {
   QList<int> actually_deselected_elements;
-  cell_t cell;
+  Cell cell;
   Q_FOREACH(int element, elements) {
     if (d->selected_elements.remove(element)) {
       d->datacube->bucket_for_element(element, cell);

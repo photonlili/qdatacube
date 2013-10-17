@@ -65,7 +65,7 @@ class datacube_t::secret_t {
     QVector<unsigned> col_counts;
     typedef QHash<long, QList<int> > cells_t;
     global_filters_t global_filters;
-    typedef QHash<int, cell_t> reverse_index_t;
+    typedef QHash<int, Cell> reverse_index_t;
     reverse_index_t reverse_index;
     QList<datacube_selection_t*> selection_models;
     const QList<int> empty_list;
@@ -437,7 +437,7 @@ void datacube_t::add(int index) {
 
   // Actually add
   d->cellAppend(row_section, column_section,index);
-  d->reverse_index.insert(index, cell_t(row_section, column_section));
+  d->reverse_index.insert(index, Cell(row_section, column_section));
 
   // Notify various listerners
   Q_FOREACH(datacube_selection_t* selection, d->selection_models) {
@@ -455,7 +455,7 @@ void datacube_t::add(int index) {
 }
 
 void datacube_t::remove(int index) {
-  cell_t cell = d->reverse_index.value(index);
+  Cell cell = d->reverse_index.value(index);
   if (cell.invalid()) {
     // Our datacube does not cover that container. Just ignore it.
     return;
@@ -496,7 +496,7 @@ void datacube_t::update_data(QModelIndex topleft, QModelIndex bottomRight) {
     const bool filtered_out = !filtered_in(element);
     int new_row_section = d->compute_section_for_index(Qt::Vertical, element);
     int new_column_section = d->compute_section_for_index(Qt::Horizontal, element);
-    cell_t old_cell = d->reverse_index.value(element);
+    Cell old_cell = d->reverse_index.value(element);
     const bool rowchanged = old_cell.row() != new_row_section;
     const bool colchanged = old_cell.column() != new_column_section;
     if (rowchanged || colchanged | filtered_out) {
@@ -550,7 +550,7 @@ void datacube_t::secret_t::renumber_cells(int start, int adjustment) {
   reverse_index_t new_index;
   for (cells_t::iterator it = cells.begin(), iend = cells.end(); it != iend; ++it) {
     for (QList<int>::iterator jit = it->begin(), jend = it->end(); jit != jend; ++jit) {
-      cell_t cell = reverse_index.value(*jit);
+      Cell cell = reverse_index.value(*jit);
       if (*jit >= start) {
         *jit += adjustment;
       }
@@ -629,7 +629,7 @@ void datacube_t::split_row(int headerno, std::tr1::shared_ptr< AbstractAggregato
             const long target_index = target_row + long(c)*target_row_count;
             d->cells[target_index] << element;
             ++d->row_counts[target_row];
-            d->reverse_index.insert(element, cell_t(target_row, c));
+            d->reverse_index.insert(element, Cell(target_row, c));
         }
   }
   d->row_aggregators.insert(headerno, aggregator);
@@ -675,7 +675,7 @@ void datacube_t::split_column(int headerno, std::tr1::shared_ptr< AbstractAggreg
             const long target_column = major*target_stride + minor + (*aggregator).operator()(element) * cat_stride;
             const long target_index = r + long(target_column)*d->row_counts.size();
             d->cells[target_index] << element;
-            d->reverse_index.insert(element, cell_t(r, target_column));
+            d->reverse_index.insert(element, Cell(r, target_column));
             ++d->col_counts[target_column];
         }
   }
@@ -723,7 +723,7 @@ void datacube_t::collapse(Qt::Orientation orientation, int headerno) {
           cell.append(oldcell);
           count += oldcell.size();
           Q_FOREACH(int element, oldcell) {
-            d->reverse_index.insert(element, horizontal ? cell_t(n,p) : cell_t(p, n));
+            d->reverse_index.insert(element, horizontal ? Cell(n,p) : Cell(p, n));
           }
         }
         d->cellAppend(horizontal ? CellPoint(n, p) : CellPoint(p, n),cell);
@@ -750,7 +750,7 @@ int datacube_t::section_for_element_internal(int element, Qt::Orientation orient
 
 }
 
-void datacube_t::bucket_for_element(int element, cell_t& result) const {
+void datacube_t::bucket_for_element(int element, Cell& result) const {
   result = d->reverse_index.value(element);
 }
 
@@ -857,7 +857,7 @@ void qdatacube::datacube_t::aggregator_category_added(std::tr1::shared_ptr< qdat
                 orientation == Qt::Horizontal ? old_cells.value(normal_index+ old_p*normal_count) : old_cells.value(normal_index*old_parallel_counts.size()+old_p));
             new_parallel_counts[p] = old_parallel_counts[old_p];
             Q_FOREACH(int element, orientation == Qt::Horizontal ? d->cell(normal_index, p) : d->cell(p, normal_index) ) {
-              d->reverse_index.insert(element, orientation == Qt::Horizontal ? cell_t(normal_index,p) : cell_t(p, normal_index));
+              d->reverse_index.insert(element, orientation == Qt::Horizontal ? Cell(normal_index,p) : Cell(p, normal_index));
             }
           }
         }
@@ -896,7 +896,7 @@ void qdatacube::datacube_t::aggregator_category_removed(std::tr1::shared_ptr< qd
              orientation == Qt::Horizontal ? old_cells.value(normal_index+ old_p*normal_count) : old_cells.value(normal_index*old_parallel_counts.size()+old_p));
           new_parallel_counts[p] = old_parallel_counts[old_p];
           Q_FOREACH(int element, orientation == Qt::Horizontal ? d->cell(normal_index, p) : d->cell(p, normal_index)) {
-            d->reverse_index.insert(element, orientation == Qt::Horizontal ? cell_t(normal_index,p) : cell_t(p, normal_index));
+            d->reverse_index.insert(element, orientation == Qt::Horizontal ? Cell(normal_index,p) : Cell(p, normal_index));
           }
         }
       }

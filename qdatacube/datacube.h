@@ -23,7 +23,7 @@ class AbstractFilter;
 
 
 class AbstractAggregator;
-class cell_t;
+class Cell;
 class datacube_selection_t;
 class datacube_colrow_t;
 
@@ -359,7 +359,7 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * @param result the cell with the element, or an invalid cell
      * The strange interface is to avoid exporting cell_t
      */
-    void bucket_for_element(int element, qdatacube::cell_t& result) const;
+    void bucket_for_element(int element, qdatacube::Cell& result) const;
 
     /**
      * Add a selection model for bucket change notification
