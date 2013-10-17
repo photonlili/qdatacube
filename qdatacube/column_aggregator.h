@@ -20,38 +20,37 @@ namespace qdatacube {
 
 class ColumnAggregatorPrivate;
 class QDATACUBE_EXPORT ColumnAggregator : public AbstractAggregator {
-  Q_OBJECT
-  public:
-    ColumnAggregator(QAbstractItemModel* model,  int section);
-    ~ColumnAggregator();
-    virtual int operator()(int row) const;
-    /**
-     * Return section
-     */
-    int section() const;
+    Q_OBJECT
+    public:
+        ColumnAggregator(QAbstractItemModel* model,  int section);
+        ~ColumnAggregator();
+        virtual int operator()(int row) const;
+        /**
+         * Return section
+         */
+        int section() const;
 
-    virtual int categoryCount() const;
+        virtual int categoryCount() const;
 
-    virtual QVariant categoryHeaderData(int category, int role = Qt::DisplayRole) const;
+        virtual QVariant categoryHeaderData(int category, int role = Qt::DisplayRole) const;
 
-    /**
-     * trim (new) categories from the right to max max_chars characters
-     **/
-    void setTrimNewCategoriesFromRight(int max_chars);
-  public Q_SLOTS:
-    /**
-     * Recalculate categories. This is also triggered automatically when the number of changed or removed rows
-     * exceeds the half the current size
-     */
-    void resetCategories();
-  private:
-    QScopedPointer<ColumnAggregatorPrivate> d;
-    void add_new_category(QString data);
-    void remove_category(QString category);
-  private Q_SLOTS:
-    void refresh_categories_in_rect(QModelIndex top_left, QModelIndex bottom_right);
-    void add_rows_to_categories(const QModelIndex& parent, int start, int end);
-    void remove_rows_from_categories(const QModelIndex& parent, int start, int end);
+        /**
+         * trim (new) categories from the right to max max_chars characters
+         **/
+        void setTrimNewCategoriesFromRight(int max_chars);
+    public Q_SLOTS:
+        /**
+         * Recalculate categories. This is also triggered automatically when the number of changed or removed rows
+         * exceeds the half the current size
+         */
+        void resetCategories();
+    private:
+        QScopedPointer<ColumnAggregatorPrivate> d;
+        friend class ColumnAggregatorPrivate;
+    private Q_SLOTS:
+        void refresh_categories_in_rect(QModelIndex top_left, QModelIndex bottom_right);
+        void add_rows_to_categories(const QModelIndex& parent, int start, int end);
+        void remove_rows_from_categories(const QModelIndex& parent, int start, int end);
 };
 
 }
