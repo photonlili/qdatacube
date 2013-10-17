@@ -73,7 +73,7 @@ void testheaders::slot_global_filter_button_pressed() {
   } else {
     int section = s->property("section").toInt();
     int categoryno = s->property("categoryno").toInt();
-    m_datacube->addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new filter_by_aggregate_t(std::tr1::shared_ptr<qdatacube::AbstractAggregator>(new ColumnAggregator(m_underlying_model, section)), categoryno)));
+    m_datacube->addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new FilterByAggregate(std::tr1::shared_ptr<qdatacube::AbstractAggregator>(new ColumnAggregator(m_underlying_model, section)), categoryno)));
   }
 }
 
@@ -156,7 +156,7 @@ void testheaders::slot_set_filter() {
   static int count = 0;
   std::tr1::shared_ptr<AbstractAggregator> aggregator(new ColumnAggregator(m_underlying_model, SEX));
   m_datacube->resetGlobalFilter();
-  m_datacube->addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new filter_by_aggregate_t(aggregator, (count++%2))));
+  m_datacube->addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new FilterByAggregate(aggregator, (count++%2))));
   QTimer::singleShot(2000, this, SLOT(slot_set_filter()));
 }
 

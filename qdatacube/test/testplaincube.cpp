@@ -332,7 +332,7 @@ void testplaincube::test_global_filter() {
   QVERIFY(fourty_cat != -1);
 
   // Set age filter to include 40-years old only (Expect one result, "Einar Madsen"
-  datacube.addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new filter_by_aggregate_t(age_aggregator, fourty_cat)));
+  datacube.addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new FilterByAggregate(age_aggregator, fourty_cat)));
   QCOMPARE(datacube.rowCount(),1);
   QCOMPARE(datacube.columnCount(),1);
   QList<int> rows = datacube.elements(0,0);
@@ -343,7 +343,7 @@ void testplaincube::test_global_filter() {
   // Set age filter to include 41-years old only (Expect one result, "Rigmor Jensen", weighting 76
   int fourtyone_cat = findCategoryIndexForString(age_aggregator, "41");
   datacube.resetGlobalFilter();
-  std::tr1::shared_ptr<AbstractFilter> global_filter(std::tr1::shared_ptr<AbstractFilter>( new filter_by_aggregate_t(age_aggregator, fourtyone_cat)));
+  std::tr1::shared_ptr<AbstractFilter> global_filter(std::tr1::shared_ptr<AbstractFilter>( new FilterByAggregate(age_aggregator, fourtyone_cat)));
   datacube.addGlobalFilter(global_filter);
   QCOMPARE(datacube.rowCount(),1);
   QCOMPARE(datacube.columnCount(),1);
@@ -356,7 +356,7 @@ void testplaincube::test_global_filter() {
   // Get all with that weight (besides Rigmor Jensen, this includes Lulu Petersen)
   int seventysix = findCategoryIndexForString(weight_aggregator, "76");
   datacube.removeGlobalFilter(global_filter);
-  datacube.addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new filter_by_aggregate_t(weight_aggregator, seventysix)));
+  datacube.addGlobalFilter(std::tr1::shared_ptr<AbstractFilter>(new FilterByAggregate(weight_aggregator, seventysix)));
   QCOMPARE(datacube.rowCount(),2);
   QCOMPARE(datacube.columnCount(),2);
   rows = datacube.elements(1,0);

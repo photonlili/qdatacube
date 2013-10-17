@@ -10,7 +10,7 @@ class FilterByAggregatePrivate {
         int m_categoryIndex;
 };
 
-filter_by_aggregate_t::filter_by_aggregate_t(std::tr1::shared_ptr< AbstractAggregator > aggregator, int category_index)
+FilterByAggregate::FilterByAggregate(std::tr1::shared_ptr< AbstractAggregator > aggregator, int category_index)
  : AbstractFilter(aggregator->underlyingModel()), d(new FilterByAggregatePrivate(aggregator, category_index))
 {
   Q_ASSERT(aggregator);
@@ -22,17 +22,17 @@ filter_by_aggregate_t::filter_by_aggregate_t(std::tr1::shared_ptr< AbstractAggre
   setName(d->m_aggregator->name() + "=" + d->m_aggregator->categoryHeaderData(d->m_categoryIndex).toString());
 }
 
-bool filter_by_aggregate_t::operator()(int row) const {
+bool FilterByAggregate::operator()(int row) const {
   return ((*(d->m_aggregator))(row) == d->m_categoryIndex);
 }
 
-void filter_by_aggregate_t::slot_aggregator_category_inserted(int index) {
+void FilterByAggregate::slot_aggregator_category_inserted(int index) {
   if (index <= d->m_categoryIndex) {
     ++d->m_categoryIndex;
   }
 }
 
-void filter_by_aggregate_t::slot_aggregator_category_removed(int index) {
+void FilterByAggregate::slot_aggregator_category_removed(int index) {
   if (index == d->m_categoryIndex) {
     d->m_categoryIndex = -1;
   } else if (index<d->m_categoryIndex) {
@@ -40,15 +40,15 @@ void filter_by_aggregate_t::slot_aggregator_category_removed(int index) {
   }
 }
 
-std::tr1::shared_ptr< AbstractAggregator > filter_by_aggregate_t::aggregator() const {
+std::tr1::shared_ptr< AbstractAggregator > FilterByAggregate::aggregator() const {
     return d->m_aggregator;
 }
 
-int filter_by_aggregate_t::category_index() const {
+int FilterByAggregate::categoryIndex() const {
     return d->m_categoryIndex;
 }
 
-filter_by_aggregate_t::~filter_by_aggregate_t() {
+FilterByAggregate::~FilterByAggregate() {
 
 }
 
