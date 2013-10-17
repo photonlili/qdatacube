@@ -11,7 +11,7 @@ class FilterByAggregatePrivate {
 };
 
 filter_by_aggregate_t::filter_by_aggregate_t(std::tr1::shared_ptr< AbstractAggregator > aggregator, int category_index)
- : abstract_filter_t(aggregator->underlyingModel()), d(new FilterByAggregatePrivate(aggregator, category_index))
+ : AbstractFilter(aggregator->underlyingModel()), d(new FilterByAggregatePrivate(aggregator, category_index))
 {
   Q_ASSERT(aggregator);
   Q_ASSERT(category_index>=0);

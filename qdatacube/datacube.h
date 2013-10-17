@@ -19,7 +19,7 @@ class QAbstractItemModel;
 
 namespace qdatacube {
 
-class abstract_filter_t;
+class AbstractFilter;
 
 
 class AbstractAggregator;
@@ -157,7 +157,7 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     /**
      * Add global filter.
      */
-    void add_global_filter(std::tr1::shared_ptr<abstract_filter_t> filter);
+    void add_global_filter(std::tr1::shared_ptr<AbstractFilter> filter);
 
     /**
      * Remove all global filters
@@ -167,12 +167,12 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     /**
      * Remove global filter from list
      */
-    void remove_global_filter(std::tr1::shared_ptr<abstract_filter_t> filter);
+    void remove_global_filter(std::tr1::shared_ptr<AbstractFilter> filter);
 
     /**
      * Remove global filter from list
      */
-    bool remove_global_filter(qdatacube::abstract_filter_t* filter);
+    bool remove_global_filter(qdatacube::AbstractFilter* filter);
 
     /**
      * Split header with aggregator.
@@ -204,13 +204,13 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      */
     int section_for_element_internal(int element, Qt::Orientation orientation) const;
 
-    typedef QList<std::tr1::shared_ptr<abstract_filter_t> > global_filters_t;
+    typedef QList<std::tr1::shared_ptr<AbstractFilter> > global_filters_t;
     typedef QList<std::tr1::shared_ptr<AbstractAggregator> > aggregators_t;
 
     /**
      * @return Return all global filters in effect with their categories
      */
-    QList< std::tr1::shared_ptr< abstract_filter_t > > global_filters() const;
+    QList< std::tr1::shared_ptr< AbstractFilter > > global_filters() const;
 
     /**
      * @return list of column aggregators, in order

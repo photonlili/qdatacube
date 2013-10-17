@@ -252,7 +252,7 @@ datacube_t::datacube_t(const QAbstractItemModel* model, QObject* parent)
 }
 
 
-void datacube_t::add_global_filter(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter) {
+void datacube_t::add_global_filter(std::tr1::shared_ptr< qdatacube::AbstractFilter > filter) {
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
@@ -273,14 +273,14 @@ void datacube_t::add_global_filter(std::tr1::shared_ptr< qdatacube::abstract_fil
 #endif
 }
 
-void datacube_t::remove_global_filter(std::tr1::shared_ptr< qdatacube::abstract_filter_t > filter)
+void datacube_t::remove_global_filter(std::tr1::shared_ptr< qdatacube::AbstractFilter > filter)
 {
   remove_global_filter(filter.get());
   emit global_filter_changed();
 }
 
 
-bool datacube_t::remove_global_filter(qdatacube::abstract_filter_t* filter) {
+bool datacube_t::remove_global_filter(qdatacube::AbstractFilter* filter) {
   for (global_filters_t::iterator it = d->global_filters.begin(), iend = d->global_filters.end(); it != iend; ++it) {
     if (it->get() == filter) {
       global_filters_t::value_type removed_filter = *it;
@@ -754,7 +754,7 @@ void datacube_t::bucket_for_element(int element, cell_t& result) const {
   result = d->reverse_index.value(element);
 }
 
-QList< std::tr1::shared_ptr< abstract_filter_t > > datacube_t::global_filters() const {
+QList< std::tr1::shared_ptr< AbstractFilter > > datacube_t::global_filters() const {
   return d->global_filters;
 }
 

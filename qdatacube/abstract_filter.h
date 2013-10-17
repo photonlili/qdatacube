@@ -9,34 +9,34 @@ class QAbstractItemModel;
 namespace qdatacube {
 
 class AbstractFilterPrivate;
-class QDATACUBE_EXPORT abstract_filter_t : public QObject {
-  Q_OBJECT
-  public:
-    explicit abstract_filter_t(QAbstractItemModel* underlying_model);
+class QDATACUBE_EXPORT AbstractFilter : public QObject {
+    Q_OBJECT
+    public:
+        explicit AbstractFilter(QAbstractItemModel* underlying_model);
 
-    /**
-     * @return true if row is to be included
-     */
-    virtual bool operator()(int row) const = 0;
+        /**
+         * @return true if row is to be included
+         */
+        virtual bool operator()(int row) const = 0;
 
-    /**
-     * @return name of filter
-     */
-    QString name() const ;
+        /**
+         * @return name of filter
+         */
+        QString name() const ;
 
-    /**
-     * @return short name of filter (for corner label)
-     */
-    QString short_name() const;
+        /**
+         * @return short name of filter (for corner label)
+         */
+        QString shortName() const;
 
-    /**
-     * @return underlying model
-     */
-    QAbstractItemModel* underlying_model() const;
-    /**
-     * dtor
-     */
-    virtual ~abstract_filter_t();
+        /**
+         * @return underlying model
+         */
+        QAbstractItemModel* underlyingModel() const;
+        /**
+         * dtor
+         */
+        virtual ~AbstractFilter();
     protected:
         /**
          * sets name of this filter to \param newName
