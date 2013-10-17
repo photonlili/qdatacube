@@ -18,7 +18,7 @@ class AbstractFormatterPrivate {
         QString m_name;
         QString m_shortName;
 };
-abstract_formatter_t::abstract_formatter_t(QAbstractItemModel* underlying_model, datacube_view_t* view)
+AbstractFormatter::AbstractFormatter(QAbstractItemModel* underlying_model, datacube_view_t* view)
  : QObject(view), d(new AbstractFormatterPrivate(underlying_model,view))
 {
     if (!underlying_model) {
@@ -29,56 +29,56 @@ abstract_formatter_t::abstract_formatter_t(QAbstractItemModel* underlying_model,
     }
 }
 
-QSize abstract_formatter_t::cell_size() const
+QSize AbstractFormatter::cellSize() const
 {
   return d->m_cell_size;
 }
 
-void abstract_formatter_t::set_cell_size(QSize size)
+void AbstractFormatter::setCellSize(QSize size)
 {
   if (d->m_cell_size != size) {
     d->m_cell_size = size;
-    emit cell_size_changed(size);
+    emit cellSizeChanged(size);
   }
 }
 
-datacube_view_t* abstract_formatter_t::datacubeView() const {
+datacube_view_t* AbstractFormatter::datacubeView() const {
     return d->m_view;
 }
 
-QAbstractItemModel* abstract_formatter_t::underlyingModel() const {
+QAbstractItemModel* AbstractFormatter::underlyingModel() const {
     return d->m_underlying_model;
 }
 
-bool abstract_formatter_t::eventFilter(QObject* filter , QEvent* event ) {
+bool AbstractFormatter::eventFilter(QObject* filter , QEvent* event ) {
     if(filter == datacubeView() && event->type() == QEvent::FontChange) {
-        update(qdatacube::abstract_formatter_t::CellSize);
+        update(qdatacube::AbstractFormatter::CellSize);
     }
     return QObject::eventFilter(filter, event);
 }
 
-void abstract_formatter_t::update(abstract_formatter_t::UpdateType element) {
+void AbstractFormatter::update(AbstractFormatter::UpdateType element) {
     Q_UNUSED(element);
     // do nothing
 }
 
-QString abstract_formatter_t::name() const {
+QString AbstractFormatter::name() const {
     return d->m_name;
 }
 
-void abstract_formatter_t::setName(const QString& newName) {
+void AbstractFormatter::setName(const QString& newName) {
     d->m_name = newName;
 }
 
-void abstract_formatter_t::setShortName(const QString& newShortName) {
+void AbstractFormatter::setShortName(const QString& newShortName) {
     d->m_shortName = newShortName;
 }
 
-QString abstract_formatter_t::short_name() const {
+QString AbstractFormatter::shortName() const {
     return d->m_shortName;
 }
 
-abstract_formatter_t::~abstract_formatter_t()
+AbstractFormatter::~AbstractFormatter()
 {
 
 }

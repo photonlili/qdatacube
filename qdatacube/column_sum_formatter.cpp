@@ -17,12 +17,12 @@ class ColumnSumFormatterPrivate {
 };
 
 column_sum_formatter_t::column_sum_formatter_t(QAbstractItemModel* underlying_model, qdatacube::datacube_view_t* view, int column, int precision, QString suffix, double scale)
- : abstract_formatter_t(underlying_model, view), d(new ColumnSumFormatterPrivate(column, precision, suffix, scale))
+ : AbstractFormatter(underlying_model, view), d(new ColumnSumFormatterPrivate(column, precision, suffix, scale))
 {
   if (column >= underlying_model->columnCount()|| column<0) {
     throw std::runtime_error(QString("Column %1 must be in the underlying model, ie., be between 0 and %2").arg(column).arg(underlying_model->columnCount()).toStdString());
   }
-  update(qdatacube::abstract_formatter_t::CellSize);
+  update(qdatacube::AbstractFormatter::CellSize);
   setShortName("SUM");
   setName(QString("Sum over %1").arg(underlyingModel()->headerData(d->m_column, Qt::Horizontal).toString()));
 }
@@ -35,8 +35,8 @@ QString column_sum_formatter_t::format(QList< int > rows) const
   }
   return QString::number(accumulator*d->m_scale,'f',d->m_precision) + d->m_suffix;
 }
-void column_sum_formatter_t::update(abstract_formatter_t::UpdateType element) {
-    if(element == qdatacube::abstract_formatter_t::CellSize) {
+void column_sum_formatter_t::update(AbstractFormatter::UpdateType element) {
+    if(element == qdatacube::AbstractFormatter::CellSize) {
         if(datacubeView()) {
             // Set the cell size, by summing up all the data in the model, and using that as input
             double accumulator = 0;
@@ -44,7 +44,7 @@ void column_sum_formatter_t::update(abstract_formatter_t::UpdateType element) {
                 accumulator += underlyingModel()->index(element, d->m_column).data().toDouble();
             }
             QString big_cell_contents = QString::number(accumulator*d->m_scale, 'f', d->m_precision) + d->m_suffix;
-            set_cell_size(QSize(datacubeView()->fontMetrics().width(big_cell_contents), datacubeView()->fontMetrics().lineSpacing()));
+            setCellSize(QSize(datacubeView()->fontMetrics().width(big_cell_contents), datacubeView()->fontMetrics().lineSpacing()));
         }
     }
 }

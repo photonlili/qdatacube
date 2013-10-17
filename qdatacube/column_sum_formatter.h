@@ -9,7 +9,7 @@ namespace qdatacube {
   * Simple demonstration formatter that takes a column and uses the sum of that for display
   */
 class ColumnSumFormatterPrivate;
-class QDATACUBE_EXPORT column_sum_formatter_t : public abstract_formatter_t
+class QDATACUBE_EXPORT column_sum_formatter_t : public AbstractFormatter
 {
   public:
     /**

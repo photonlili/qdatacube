@@ -40,7 +40,7 @@ class datacube_view_private_t : public QSharedData {
     datacube_view_private_t();
     datacube_t* datacube;
     datacube_selection_t* selection;
-    QList<abstract_formatter_t*> formatters;
+    QList<AbstractFormatter*> formatters;
     int horizontal_header_height;
     int vertical_header_width;
     QSize cell_size;
@@ -134,8 +134,8 @@ void datacube_view_t::relayout() {
   }
   d->datacube_size = QSize(d->datacube->column_count(), d->datacube->row_count());
   QSize cell_size(fontMetrics().width("9999"), 0);
-  Q_FOREACH(abstract_formatter_t* formatter, d->formatters) {
-    QSize formatter_cell_size = formatter->cell_size();
+  Q_FOREACH(AbstractFormatter* formatter, d->formatters) {
+    QSize formatter_cell_size = formatter->cellSize();
     cell_size.setWidth(qMax(formatter_cell_size.width()+2, cell_size.width()));
     cell_size.setHeight(cell_size.height() + formatter_cell_size.height());
   }
@@ -258,8 +258,8 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
         painter.drawRect(summary_rect);
         QRect text_rect(summary_rect);
         QList<int> elements = d->datacube->elements(Qt::Horizontal, hh, header_index);
-        Q_FOREACH(abstract_formatter_t* formatter, d->formatters) {
-          text_rect.setHeight(formatter->cell_size().height());
+        Q_FOREACH(AbstractFormatter* formatter, d->formatters) {
+          text_rect.setHeight(formatter->cellSize().height());
           const QString value = formatter->format(elements);
             painter.save();
             QVariant maybeforeground = aggregator->categoryHeaderData(header.categoryIndex, Qt::ForegroundRole);
@@ -338,8 +338,8 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
         QRect text_rect(summary_rect);
         text_rect.translate(0, (summary_rect.height()-cell_size.height())/2); // Center vertically
         QList<int> elements = d->datacube->elements(Qt::Vertical, vh, header_index);
-        Q_FOREACH(abstract_formatter_t* formatter, d->formatters) {
-          text_rect.setHeight(formatter->cell_size().height());
+        Q_FOREACH(AbstractFormatter* formatter, d->formatters) {
+          text_rect.setHeight(formatter->cellSize().height());
           const QString value = formatter->format(elements);
             painter.save();
             QVariant maybeforeground = aggregator->categoryHeaderData(header.categoryIndex, Qt::ForegroundRole);
@@ -374,8 +374,8 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
     QRect text_rect(summary_rect);
     text_rect.translate(0, (summary_rect.height()-cell_size.height())/2); // Center vertically
     QList<int> elements = d->datacube->elements();
-    Q_FOREACH(abstract_formatter_t* formatter, d->formatters) {
-      text_rect.setHeight(formatter->cell_size().height());
+    Q_FOREACH(AbstractFormatter* formatter, d->formatters) {
+      text_rect.setHeight(formatter->cellSize().height());
       const QString value = formatter->format(elements);
       painter.drawText(text_rect.adjusted(0,0,0,2), Qt::AlignCenter, value);
       text_rect.translate(0, text_rect.height());
@@ -426,8 +426,8 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
       QList<int> elements = d->datacube->elements(r,c);
       if (elements.size() > 0) {
         QRect textrect(options.rect);
-        Q_FOREACH(abstract_formatter_t* formatter, d->formatters) {
-          textrect.setHeight(formatter->cell_size().height());
+        Q_FOREACH(AbstractFormatter* formatter, d->formatters) {
+          textrect.setHeight(formatter->cellSize().height());
           const QString value = formatter->format(elements);
           style()->drawItemText(&painter, textrect.adjusted(0,0,0,2), Qt::AlignCenter, palette(), true, value, highlighted ? QPalette::HighlightedText : QPalette::Text);
           textrect.translate(0,textrect.height());
@@ -670,26 +670,26 @@ QRect datacube_view_t::corner() const {
   return QRect(0,0,d->vertical_header_width, d->horizontal_header_height);
 }
 
-void datacube_view_t::add_formatter(abstract_formatter_t* formatter)
+void datacube_view_t::add_formatter(AbstractFormatter* formatter)
 {
   d->formatters << formatter;
-  connect(formatter,SIGNAL(cell_size_changed(QSize)),SLOT(relayout()));
-  connect(formatter,SIGNAL(formatter_changed()), SLOT(relayout()));
+  connect(formatter,SIGNAL(cellSizeChanged(QSize)),SLOT(relayout()));
+  connect(formatter,SIGNAL(formatterChanged()), SLOT(relayout()));
   formatter->setParent(this);
   relayout();
 
 }
 
-QList< abstract_formatter_t* > datacube_view_t::formatters() const
+QList< AbstractFormatter* > datacube_view_t::formatters() const
 {
   return d->formatters;
 }
 
-abstract_formatter_t* datacube_view_t::take_formatter(int index)
+AbstractFormatter* datacube_view_t::take_formatter(int index)
 {
-  abstract_formatter_t* formatter = d->formatters.takeAt(index);
-  connect(formatter,SIGNAL(cell_size_changed(QSize)),this,SLOT(relayout()));
-  connect(formatter,SIGNAL(formatter_changed()),this, SLOT(relayout()));
+  AbstractFormatter* formatter = d->formatters.takeAt(index);
+  connect(formatter,SIGNAL(cellSizeChanged(QSize)),this,SLOT(relayout()));
+  connect(formatter,SIGNAL(formatterChanged()),this, SLOT(relayout()));
   relayout();
   return formatter;
 }
