@@ -16,7 +16,7 @@ class ColumnSumFormatterPrivate {
         const double m_scale;
 };
 
-column_sum_formatter_t::column_sum_formatter_t(QAbstractItemModel* underlying_model, qdatacube::datacube_view_t* view, int column, int precision, QString suffix, double scale)
+ColumnSumFormatter::ColumnSumFormatter(QAbstractItemModel* underlying_model, qdatacube::datacube_view_t* view, int column, int precision, QString suffix, double scale)
  : AbstractFormatter(underlying_model, view), d(new ColumnSumFormatterPrivate(column, precision, suffix, scale))
 {
   if (column >= underlying_model->columnCount()|| column<0) {
@@ -27,7 +27,7 @@ column_sum_formatter_t::column_sum_formatter_t(QAbstractItemModel* underlying_mo
   setName(QString("Sum over %1").arg(underlyingModel()->headerData(d->m_column, Qt::Horizontal).toString()));
 }
 
-QString column_sum_formatter_t::format(QList< int > rows) const
+QString ColumnSumFormatter::format(QList< int > rows) const
 {
   double accumulator = 0;
   Q_FOREACH(int element, rows) {
@@ -35,7 +35,7 @@ QString column_sum_formatter_t::format(QList< int > rows) const
   }
   return QString::number(accumulator*d->m_scale,'f',d->m_precision) + d->m_suffix;
 }
-void column_sum_formatter_t::update(AbstractFormatter::UpdateType element) {
+void ColumnSumFormatter::update(AbstractFormatter::UpdateType element) {
     if(element == qdatacube::AbstractFormatter::CellSize) {
         if(datacubeView()) {
             // Set the cell size, by summing up all the data in the model, and using that as input
@@ -49,7 +49,7 @@ void column_sum_formatter_t::update(AbstractFormatter::UpdateType element) {
     }
 }
 
-column_sum_formatter_t::~column_sum_formatter_t() {
+ColumnSumFormatter::~ColumnSumFormatter() {
 
 }
 

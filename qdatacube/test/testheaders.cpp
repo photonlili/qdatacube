@@ -285,7 +285,7 @@ void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno
 
 void testheaders::summarize_weight()
 {
-  column_sum_formatter_t* summarizer = new column_sum_formatter_t(m_underlying_model, m_view, WEIGHT, 1, "t", .001);
+  ColumnSumFormatter* summarizer = new ColumnSumFormatter(m_underlying_model, m_view, WEIGHT, 1, "t", .001);
   m_view->add_formatter(summarizer);
 
 }
