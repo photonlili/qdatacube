@@ -18,7 +18,7 @@ class QDATACUBE_EXPORT ColumnSumFormatter : public AbstractFormatter {
          * @param scale this is multiplied on the sum before displaying (e.g. using .001 to convert kg to T)
          * @param suffix a (small) string that is appended to the format, e.g. "t" for tonnes.
          */
-        ColumnSumFormatter(QAbstractItemModel* underlying_model, qdatacube::datacube_view_t* view, int column, int precision, QString suffix, double scale = 1.0 );
+        ColumnSumFormatter(QAbstractItemModel* underlying_model, qdatacube::DatacubeView* view, int column, int precision, QString suffix, double scale = 1.0 );
         virtual QString format(QList< int > rows) const;
         virtual ~ColumnSumFormatter();
     protected:

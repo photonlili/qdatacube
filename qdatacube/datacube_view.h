@@ -16,71 +16,67 @@ namespace qdatacube {
 class AbstractFormatter;
 class DatacubeSelection;
 class Datacube;
-class datacube_selection_model_t;
-class datacube_view_private_t;
+class DatacubeViewPrivate;
 
-class QDATACUBE_EXPORT datacube_view_t : public QAbstractScrollArea  {
-  Q_OBJECT
-  public:
-    datacube_view_t(QWidget* parent = 0);
-    virtual ~datacube_view_t();
+class QDATACUBE_EXPORT DatacubeView : public QAbstractScrollArea  {
+    Q_OBJECT
+    public:
+        DatacubeView(QWidget* parent = 0);
+        virtual ~DatacubeView();
 
-    /**
-     * Set the datacube to be view
-     * If the underlying model has changed, this will clear all the formatters
-     */
-    void set_datacube(Datacube* datacube);
+        /**
+         * Set the datacube to be view
+         * If the underlying model has changed, this will clear all the formatters
+         */
+        void setDatacube(Datacube* datacube);
 
-    /**
-     * @return current datacube
-     */
-    Datacube* datacube() const;
+        /**
+         * @return current datacube
+         */
+        Datacube* datacube() const;
 
-    /**
-     * @return current datacube_selection
-     */
-    DatacubeSelection* datacube_selection() const;
+        /**
+         * @return current datacube_selection
+         */
+        DatacubeSelection* datacubeSelection() const;
 
-    /**
-     * Add formatter below each cell
-     * Ownership over summarizer will be claimed
-     */
-    void add_formatter(AbstractFormatter* formatter);
+        /**
+         * Add formatter below each cell
+         * Ownership over summarizer will be claimed
+         */
+        void addFormatter(AbstractFormatter* formatter);
 
-    /**
-     * Take formatter by index, clearning parent
-     * @return the formatter taken.
-     */
-    AbstractFormatter* take_formatter(int index);
+        /**
+         * Take formatter by index, clearning parent
+         * @return the formatter taken.
+         */
+        AbstractFormatter* takeFormatter(int index);
 
-    /**
-     * @return all the formatters in current use
-     */
-    QList<AbstractFormatter*> formatters() const;
-  protected:
-    virtual void mousePressEvent(QMouseEvent* event);
-    virtual void mouseReleaseEvent(QMouseEvent* event );
-    virtual void mouseMoveEvent(QMouseEvent* event);
-    virtual void resizeEvent(QResizeEvent* event);
+        /**
+         * @return all the formatters in current use
+         */
+        QList<AbstractFormatter*> formatters() const;
+    protected:
+        virtual void mousePressEvent(QMouseEvent* event);
+        virtual void mouseReleaseEvent(QMouseEvent* event );
+        virtual void mouseMoveEvent(QMouseEvent* event);
+        virtual void resizeEvent(QResizeEvent* event);
 
-    /**
-     * @return rectangle describing the corner area
-     */
-    QRect corner() const;
-  Q_SIGNALS:
-    void vertical_header_context_menu(QPoint pos,int level,int section);
-    void horizontal_header_context_menu(QPoint pos, int level, int section);
-    void corner_context_menu(QPoint pos);
-    void cell_context_menu(QPoint pos, int row, int column);
-  private Q_SLOTS:
-    void relayout();
-    void datacube_deleted();
-  protected:
-    virtual bool viewportEvent(QEvent* event);
-    virtual void contextMenuEvent(QContextMenuEvent* event);
-  private:
-    void paint_datacube(QPaintEvent* event) const;
-    QSharedDataPointer<datacube_view_private_t> d;
+        /**
+         * @return rectangle describing the corner area
+         */
+        QRect corner() const;
+    Q_SIGNALS:
+        void verticalHeaderContextMenu(QPoint pos,int level,int section);
+        void horizontalHeaderContextMenu(QPoint pos, int level, int section);
+        void cornerContextMenu(QPoint pos);
+        void cellContextMenu(QPoint pos, int row, int column);
+    protected:
+        virtual bool viewportEvent(QEvent* event);
+        virtual void contextMenuEvent(QContextMenuEvent* event);
+    private:
+        QScopedPointer<DatacubeViewPrivate> d;
+        friend class DatacubeViewPrivate;
 
 };
 

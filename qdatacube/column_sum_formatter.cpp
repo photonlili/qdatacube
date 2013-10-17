@@ -16,7 +16,7 @@ class ColumnSumFormatterPrivate {
         const double m_scale;
 };
 
-ColumnSumFormatter::ColumnSumFormatter(QAbstractItemModel* underlying_model, qdatacube::datacube_view_t* view, int column, int precision, QString suffix, double scale)
+ColumnSumFormatter::ColumnSumFormatter(QAbstractItemModel* underlying_model, qdatacube::DatacubeView* view, int column, int precision, QString suffix, double scale)
  : AbstractFormatter(underlying_model, view), d(new ColumnSumFormatterPrivate(column, precision, suffix, scale))
 {
   if (column >= underlying_model->columnCount()|| column<0) {

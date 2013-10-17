@@ -5,7 +5,7 @@
 
 namespace qdatacube {
 
-CountFormatter::CountFormatter(QAbstractItemModel* underlying_model, qdatacube::datacube_view_t* view)
+CountFormatter::CountFormatter(QAbstractItemModel* underlying_model, qdatacube::DatacubeView* view)
   : AbstractFormatter(underlying_model, view)
 {
     update(qdatacube::AbstractFormatter::CellSize);

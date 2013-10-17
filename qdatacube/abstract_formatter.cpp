@@ -8,17 +8,17 @@ namespace qdatacube {
 
 class AbstractFormatterPrivate {
     public:
-        AbstractFormatterPrivate(QAbstractItemModel* underlying_model, datacube_view_t* view) : m_underlying_model(underlying_model), m_view(view), m_cell_size(10,10) {
+        AbstractFormatterPrivate(QAbstractItemModel* underlying_model, DatacubeView* view) : m_underlying_model(underlying_model), m_view(view), m_cell_size(10,10) {
             m_name = "unnamed";
             m_shortName = "N/A";
         }
         QAbstractItemModel* m_underlying_model;
-        datacube_view_t* m_view;
+        DatacubeView* m_view;
         QSize m_cell_size;
         QString m_name;
         QString m_shortName;
 };
-AbstractFormatter::AbstractFormatter(QAbstractItemModel* underlying_model, datacube_view_t* view)
+AbstractFormatter::AbstractFormatter(QAbstractItemModel* underlying_model, DatacubeView* view)
  : QObject(view), d(new AbstractFormatterPrivate(underlying_model,view))
 {
     if (!underlying_model) {
@@ -42,7 +42,7 @@ void AbstractFormatter::setCellSize(QSize size)
   }
 }
 
-datacube_view_t* AbstractFormatter::datacubeView() const {
+DatacubeView* AbstractFormatter::datacubeView() const {
     return d->m_view;
 }
 

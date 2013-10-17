@@ -205,7 +205,7 @@ void DatacubeSelection::removeElements(QList< int > elements) {
 }
 
 
-DatacubeSelection::DatacubeSelection (qdatacube::Datacube* datacube, qdatacube::datacube_view_t* view) :
+DatacubeSelection::DatacubeSelection (qdatacube::Datacube* datacube, qdatacube::DatacubeView* view) :
     QObject(view),
     d(new DatacubeSelectionPrivate(this)) {
   d->datacube = datacube;

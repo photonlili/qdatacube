@@ -7,7 +7,7 @@
 
 namespace qdatacube {
 
-class datacube_view_t;
+class DatacubeView;
 
 
 class Datacube;
@@ -26,7 +26,7 @@ class DatacubeSelectionPrivate;
 class QDATACUBE_EXPORT DatacubeSelection : public QObject {
     Q_OBJECT
     public:
-        DatacubeSelection(qdatacube::Datacube* datacube, datacube_view_t* view);
+        DatacubeSelection(qdatacube::Datacube* datacube, DatacubeView* view);
         virtual ~DatacubeSelection();
 
         enum SelectionStatus {

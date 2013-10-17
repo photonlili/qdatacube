@@ -82,12 +82,12 @@ void testheaders::createtableview() {
   QWidget* mw = new QWidget();
   top->setCentralWidget(mw);
   new QVBoxLayout(mw);
-  m_view = new datacube_view_t(top);
-  m_view->add_formatter(new CountFormatter(m_underlying_model, m_view));
-  m_view->set_datacube(m_datacube);
+  m_view = new DatacubeView(top);
+  m_view->addFormatter(new CountFormatter(m_underlying_model, m_view));
+  m_view->setDatacube(m_datacube);
   mw->layout()->addWidget(m_view);
-  connect(m_view, SIGNAL(horizontal_header_context_menu(QPoint,int,int)), SLOT(slot_horizontal_context_menu(QPoint,int,int)));
-  connect(m_view, SIGNAL(vertical_header_context_menu(QPoint,int,int)), SLOT(slot_vertical_context_menu(QPoint,int,int)));
+  connect(m_view, SIGNAL(horizontalHeaderContextMenu(QPoint,int,int)), SLOT(slot_horizontal_context_menu(QPoint,int,int)));
+  connect(m_view, SIGNAL(verticalHeaderContextMenu(QPoint,int,int)), SLOT(slot_vertical_context_menu(QPoint,int,int)));
   top->resize(1600, 1000);
   top->show();
   QTimer::singleShot(500, this, SLOT(slot_set_model()));
@@ -116,24 +116,24 @@ void testheaders::createtableview() {
   m_underlying_table_view->setSelectionBehavior(QAbstractItemView::SelectRows);
   underlying_view->setWidget(m_underlying_table_view);
   m_underlying_table_view->setSortingEnabled(true);
-  m_view->datacube_selection()->synchronizeWith(m_underlying_table_view->selectionModel());
+  m_view->datacubeSelection()->synchronizeWith(m_underlying_table_view->selectionModel());
 
 
   QDockWidget* second_dc = new QDockWidget("Second datacube");
   top->addDockWidget(Qt::BottomDockWidgetArea, second_dc);
-  datacube_view_t* second_view = new datacube_view_t(second_dc);
-  second_view->add_formatter(new CountFormatter(m_underlying_model, second_view));
+  DatacubeView* second_view = new DatacubeView(second_dc);
+  second_view->addFormatter(new CountFormatter(m_underlying_model, second_view));
   Datacube* second_datacube = new Datacube(m_underlying_model, kommune_aggregator, age_aggregator);
-  second_view->set_datacube(second_datacube);
-  second_view->datacube_selection()->synchronizeWith(m_underlying_table_view->selectionModel());
+  second_view->setDatacube(second_datacube);
+  second_view->datacubeSelection()->synchronizeWith(m_underlying_table_view->selectionModel());
   second_dc->setWidget(second_view);
   QAction* sum_weight = top->menuBar()->addAction("Summarize over weight");
   connect(sum_weight, SIGNAL(triggered(bool)), SLOT(summarize_weight()));
 }
 
 void testheaders::slot_set_model() {
-  m_view->set_datacube(m_datacube);
-  m_view->datacube_selection()->synchronizeWith(m_underlying_table_view->selectionModel());
+  m_view->setDatacube(m_datacube);
+  m_view->datacubeSelection()->synchronizeWith(m_underlying_table_view->selectionModel());
 
 }
 
@@ -286,7 +286,7 @@ void testheaders::slot_vertical_context_menu(const QPoint& /*pos*/, int headerno
 void testheaders::summarize_weight()
 {
   ColumnSumFormatter* summarizer = new ColumnSumFormatter(m_underlying_model, m_view, WEIGHT, 1, "t", .001);
-  m_view->add_formatter(summarizer);
+  m_view->addFormatter(summarizer);
 
 }
 

@@ -10,7 +10,7 @@ class QAbstractItemModel;
 
 namespace qdatacube {
 
-class datacube_view_t;
+class DatacubeView;
 
 
 /**
@@ -33,7 +33,7 @@ class QDATACUBE_EXPORT AbstractFormatter : public QObject {
          *
          * To install the formatter, use datacube_view->add_formatter()
          */
-        AbstractFormatter(QAbstractItemModel* underlying_model, datacube_view_t* view = 0);
+        AbstractFormatter(QAbstractItemModel* underlying_model, DatacubeView* view = 0);
 
         /**
          * @return the accumulator, suitably formatted for output. E.g, units could be added, rounding
@@ -64,7 +64,7 @@ class QDATACUBE_EXPORT AbstractFormatter : public QObject {
         /**
          * @return the datacube view that this formatter is formatting for.
          */
-        datacube_view_t* datacubeView() const;
+        DatacubeView* datacubeView() const;
 
         /**
          * dtor

@@ -18,7 +18,7 @@ class QStandardItemModel;
 class QTableView;
 namespace qdatacube {
 class datacube_model_t;
-class datacube_view_t;
+class DatacubeView;
 }
 
 class QAbstractItemModel;
@@ -40,7 +40,7 @@ class testheaders : public danishnamecube_t {
     void summarize_weight();
   private:
     qdatacube::Datacube* m_datacube;
-    qdatacube::datacube_view_t* m_view;
+    qdatacube::DatacubeView* m_view;
     void add_global_filter_bottoms(std::tr1::shared_ptr< qdatacube::AbstractAggregator > filter, QLayout* layout);
     QAction* create_aggregator_action(std::tr1::shared_ptr< qdatacube::AbstractAggregator > aggregator);
     QAction* m_collapse_action;
