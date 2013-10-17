@@ -11,7 +11,7 @@
 #include <QStandardItemModel>
 #include <QDebug>
 
-#include "column_aggregator.h"
+#include "columnaggregator.h"
 #include "datacube.h"
 #include "modeltest.h"
 

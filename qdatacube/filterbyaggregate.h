@@ -1,7 +1,7 @@
 #ifndef FILTER_BY_AGGREGATE_H
 #define FILTER_BY_AGGREGATE_H
 
-#include "abstract_filter.h"
+#include "abstractfilter.h"
 #include "qdatacube_export.h"
 #include <tr1/memory>
 

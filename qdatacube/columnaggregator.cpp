@@ -5,7 +5,7 @@
 
 */
 
-#include "column_aggregator.h"
+#include "columnaggregator.h"
 #include <QStringList>
 #include <QAbstractItemModel>
 #include <QSet>
@@ -201,4 +201,4 @@ void ColumnAggregator::resetCategories() {
 
 }
 
-#include "column_aggregator.moc"
+#include "columnaggregator.moc"

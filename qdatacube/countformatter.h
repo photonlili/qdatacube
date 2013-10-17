@@ -1,7 +1,7 @@
 #ifndef QDATACUBE_COUNT_FORMATTER_H
 #define QDATACUBE_COUNT_FORMATTER_H
 
-#include "abstract_formatter.h"
+#include "abstractformatter.h"
 #include "qdatacube_export.h"
 
 namespace qdatacube {

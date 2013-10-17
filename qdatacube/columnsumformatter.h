@@ -1,7 +1,7 @@
 #ifndef QDATACUBE_COLUMN_FORMATTER_H
 #define QDATACUBE_COLUMN_FORMATTER_H
 
-#include "abstract_formatter.h"
+#include "abstractformatter.h"
 #include "qdatacube_export.h"
 namespace qdatacube {
 

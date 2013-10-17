@@ -1,7 +1,7 @@
-#include "datacube_selection.h"
+#include "datacubeselection.h"
 #include "datacube.h"
 #include <QVector>
-#include "datacube_view.h"
+#include "datacubeview.h"
 
 #include <iostream>
 #include <iomanip>
@@ -334,4 +334,4 @@ void DatacubeSelectionPrivate::datacube_inserts_elements(int start, int end) {
 
 } // end of namespace
 
-#include "datacube_selection.moc"
+#include "datacubeselection.moc"

@@ -1,9 +1,9 @@
-#include "column_sum_formatter.h"
+#include "columnsumformatter.h"
 #include <QAbstractItemModel>
 #include <QEvent>
 #include <stdexcept>
 #include <QWidget>
-#include "datacube_view.h"
+#include "datacubeview.h"
 namespace qdatacube {
 
 class ColumnSumFormatterPrivate {

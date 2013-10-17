@@ -3,17 +3,17 @@
 #
 
 SET(QDATACUBE_SRC
-  abstract_filter.cpp
-  abstract_aggregator.cpp
-  abstract_formatter.cpp
+  abstractfilter.cpp
+  abstractaggregator.cpp
+  abstractformatter.cpp
   cell.cpp
-  column_aggregator.cpp
-  column_sum_formatter.cpp
-  count_formatter.cpp
+  columnaggregator.cpp
+  columnsumformatter.cpp
+  countformatter.cpp
   datacube.cpp
-  datacube_selection.cpp
-  datacube_view.cpp
-  filter_by_aggregate.cpp
+  datacubeselection.cpp
+  datacubeview.cpp
+  filterbyaggregate.cpp
 )
 
 QT4_AUTOMOC(${QDATACUBE_SRC})
@@ -29,17 +29,17 @@ SET(QDATACUBE_SO_VERSION 0)
 set_target_properties(qdatacube PROPERTIES VERSION "${QDATACUBE_SO_VERSION}.0.0" SOVERSION "${QDATACUBE_SO_VERSION}" DEFINE_SYMBOL BUILDING_QDATACUBE )
 
 SET(CONTAINERS_PUBLIC_HEADERS
-  column_aggregator.h
+  columnaggregator.h
   datacube.h
-  datacube_selection.h
-  datacube_view.h
-  abstract_aggregator.h
-  abstract_formatter.h
-  abstract_filter.h
-  column_sum_formatter.h
-  count_formatter.h
+  datacubeselection.h
+  datacubeview.h
+  abstractaggregator.h
+  abstractformatter.h
+  abstractfilter.h
+  columnsumformatter.h
+  countformatter.h
   qdatacube_export.h
-  filter_by_aggregate.h
+  filterbyaggregate.h
 )
 
 add_subdirectory(test)

@@ -1,4 +1,4 @@
-#include "abstract_filter.h"
+#include "abstractfilter.h"
 
 namespace qdatacube {
 
@@ -48,4 +48,4 @@ AbstractFilter::~AbstractFilter() {
 
 }
 
-#include "abstract_filter.moc"
+#include "abstractfilter.moc"

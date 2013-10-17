@@ -18,7 +18,7 @@ class Datacube;
 class AbstractAggregator;
 }
 
-#include <column_aggregator.h>
+#include <columnaggregator.h>
 #include <QColor>
 class SexAggregator : public qdatacube::ColumnAggregator {
     public:

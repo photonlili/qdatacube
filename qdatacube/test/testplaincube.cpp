@@ -9,8 +9,8 @@
 #include <QStandardItemModel>
 #include <algorithm>
 #include "datacube.h"
-#include "column_aggregator.h"
-#include "filter_by_aggregate.h"
+#include "columnaggregator.h"
+#include "filterbyaggregate.h"
 
 using namespace qdatacube;
 

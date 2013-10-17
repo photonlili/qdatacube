@@ -1,5 +1,5 @@
-#include "abstract_formatter.h"
-#include "datacube_view.h"
+#include "abstractformatter.h"
+#include "datacubeview.h"
 #include <stdexcept>
 #include <QEvent>
 
@@ -86,4 +86,4 @@ AbstractFormatter::~AbstractFormatter()
 
 }
 
-#include "abstract_formatter.moc"
+#include "abstractformatter.moc"

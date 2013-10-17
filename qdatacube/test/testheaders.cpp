@@ -6,7 +6,7 @@
 */
 
 #include "testheaders.h"
-#include "column_aggregator.h"
+#include "columnaggregator.h"
 #include "datacube.h"
 #include <QStandardItemModel>
 #include <QFile>
@@ -20,13 +20,13 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QMenu>
-#include <datacube_view.h>
-#include <datacube_selection.h>
+#include <datacubeview.h>
+#include <datacubeselection.h>
 #include <qsortfilterproxymodel.h>
-#include <filter_by_aggregate.h>
+#include <filterbyaggregate.h>
 #include <qmenubar.h>
-#include "column_sum_formatter.h"
-#include <count_formatter.h>
+#include "columnsumformatter.h"
+#include <countformatter.h>
 
 using namespace qdatacube;
 

@@ -1,5 +1,5 @@
-#include "filter_by_aggregate.h"
-#include "abstract_aggregator.h"
+#include "filterbyaggregate.h"
+#include "abstractaggregator.h"
 
 namespace qdatacube {
 
@@ -55,4 +55,4 @@ FilterByAggregate::~FilterByAggregate() {
 
 
 }
-#include "filter_by_aggregate.moc"
+#include "filterbyaggregate.moc"

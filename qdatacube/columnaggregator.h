@@ -8,7 +8,7 @@
 #ifndef COLUMN_FILTER_H
 #define COLUMN_FILTER_H
 
-#include "abstract_aggregator.h"
+#include "abstractaggregator.h"
 
 #include <QScopedPointer>
 

@@ -9,15 +9,15 @@
 // #define ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS 1
 
 #include "datacube.h"
-#include "abstract_aggregator.h"
-#include "abstract_filter.h"
+#include "abstractaggregator.h"
+#include "abstractfilter.h"
 
 #include <QVector>
 #include <algorithm>
 
 #include <QAbstractItemModel>
 #include "cell.h"
-#include "datacube_selection.h"
+#include "datacubeselection.h"
 #include "datacubeselection_p.h"
 
 #include "datacube_p.h"

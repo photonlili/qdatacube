@@ -1,4 +1,4 @@
-#include "abstract_aggregator.h"
+#include "abstractaggregator.h"
 
 class qdatacube::AbstractAggregatorPrivate {
     public:
@@ -31,4 +31,4 @@ void qdatacube::AbstractAggregator::setName(const QString& newName) {
 }
 
 
-#include "abstract_aggregator.moc"
+#include "abstractaggregator.moc"

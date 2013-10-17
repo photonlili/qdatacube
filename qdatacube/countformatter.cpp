@@ -1,7 +1,7 @@
-#include "count_formatter.h"
+#include "countformatter.h"
 #include <QAbstractItemModel>
 #include <QEvent>
-#include "datacube_view.h"
+#include "datacubeview.h"
 
 namespace qdatacube {
 

@@ -5,17 +5,17 @@
 
 */
 
-#include "datacube_view.h"
+#include "datacubeview.h"
 #include <QtGui/QHeaderView>
 #include <QtGui/QMouseEvent>
 #include <QPainter>
 #include "datacube.h"
-#include "datacube_selection.h"
+#include "datacubeselection.h"
 #include "cell.h"
 #include <QScrollBar>
-#include "abstract_aggregator.h"
-#include "abstract_filter.h"
-#include "abstract_formatter.h"
+#include "abstractaggregator.h"
+#include "abstractfilter.h"
+#include "abstractformatter.h"
 
 #include "datacubeview_p.h"
 
@@ -676,4 +676,4 @@ void DatacubeViewPrivate::datacube_deleted() {
 
 } // end of namespace
 
-#include "datacube_view.moc"
+#include "datacubeview.moc"
