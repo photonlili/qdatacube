@@ -5,7 +5,7 @@
 
 namespace qdatacube {
 
-count_formatter_t::count_formatter_t(QAbstractItemModel* underlying_model, qdatacube::datacube_view_t* view)
+CountFormatter::CountFormatter(QAbstractItemModel* underlying_model, qdatacube::datacube_view_t* view)
   : AbstractFormatter(underlying_model, view)
 {
     update(qdatacube::AbstractFormatter::CellSize);
@@ -13,11 +13,11 @@ count_formatter_t::count_formatter_t(QAbstractItemModel* underlying_model, qdata
     setShortName("#");
 }
 
-QString count_formatter_t::format(QList< int > rows) const {
+QString CountFormatter::format(QList< int > rows) const {
   return QString::number(rows.size());
 }
 
-void count_formatter_t::update(AbstractFormatter::UpdateType updateType) {
+void CountFormatter::update(AbstractFormatter::UpdateType updateType) {
     if(updateType == qdatacube::AbstractFormatter::CellSize) {
         if(datacubeView()) {
         QString big_cell_contents = QString::number(underlyingModel()->rowCount());

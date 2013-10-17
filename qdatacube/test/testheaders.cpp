@@ -83,7 +83,7 @@ void testheaders::createtableview() {
   top->setCentralWidget(mw);
   new QVBoxLayout(mw);
   m_view = new datacube_view_t(top);
-  m_view->add_formatter(new count_formatter_t(m_underlying_model, m_view));
+  m_view->add_formatter(new CountFormatter(m_underlying_model, m_view));
   m_view->set_datacube(m_datacube);
   mw->layout()->addWidget(m_view);
   connect(m_view, SIGNAL(horizontal_header_context_menu(QPoint,int,int)), SLOT(slot_horizontal_context_menu(QPoint,int,int)));
@@ -122,7 +122,7 @@ void testheaders::createtableview() {
   QDockWidget* second_dc = new QDockWidget("Second datacube");
   top->addDockWidget(Qt::BottomDockWidgetArea, second_dc);
   datacube_view_t* second_view = new datacube_view_t(second_dc);
-  second_view->add_formatter(new count_formatter_t(m_underlying_model, second_view));
+  second_view->add_formatter(new CountFormatter(m_underlying_model, second_view));
   datacube_t* second_datacube = new datacube_t(m_underlying_model, kommune_aggregator, age_aggregator);
   second_view->set_datacube(second_datacube);
   second_view->datacube_selection()->synchronize_with(m_underlying_table_view->selectionModel());
