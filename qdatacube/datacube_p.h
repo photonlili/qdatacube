@@ -54,7 +54,7 @@ class DatacubePrivate : public QObject {
         Datacube::GlobalFilters global_filters;
         typedef QHash<int, Cell> reverse_index_t;
         reverse_index_t reverse_index;
-        QList<datacube_selection_t*> selection_models;
+        QList<DatacubeSelection*> selection_models;
         const QList<int> empty_list;
         cells_t cells;
 
@@ -107,7 +107,7 @@ class DatacubePrivate : public QObject {
         /**
         * Add a selection model for bucket change notification
         */
-        void add_selection_model(datacube_selection_t* selection);
+        void add_selection_model(DatacubeSelection* selection);
 
         /**
         * @returns true if included by the current set of global filters

@@ -14,7 +14,7 @@
 namespace qdatacube {
 
 class AbstractFormatter;
-class datacube_selection_t;
+class DatacubeSelection;
 class Datacube;
 class datacube_selection_model_t;
 class datacube_view_private_t;
@@ -39,7 +39,7 @@ class QDATACUBE_EXPORT datacube_view_t : public QAbstractScrollArea  {
     /**
      * @return current datacube_selection
      */
-    datacube_selection_t* datacube_selection() const;
+    DatacubeSelection* datacube_selection() const;
 
     /**
      * Add formatter below each cell

@@ -22,74 +22,66 @@ class Datacube;
  * Usually, there is no need to instantiate this class manually, as one is created automatically by
  * the datacube_view_t
  */
-class QDATACUBE_EXPORT datacube_selection_t : public QObject {
-  Q_OBJECT
-  public:
-    datacube_selection_t(qdatacube::Datacube* datacube, datacube_view_t* view);
-    virtual ~datacube_selection_t();
+class DatacubeSelectionPrivate;
+class QDATACUBE_EXPORT DatacubeSelection : public QObject {
+    Q_OBJECT
+    public:
+        DatacubeSelection(qdatacube::Datacube* datacube, datacube_view_t* view);
+        virtual ~DatacubeSelection();
 
-    enum selection_status_t {
-      UNSELECTED = 0,
-      PARTIALLY_SELECTED = 1,
-      SELECTED = 2
-    };
+        enum SelectionStatus {
+            UNSELECTED = 0,
+            PARTIALLY_SELECTED = 1,
+            SELECTED = 2
+        };
 
-    /**
-     * Clears selection
-     */
-    void clear();
+        /**
+         * Clears selection
+         */
+        void clear();
 
-    /**
-     * Add elements to selection
-     */
-    void add_elements(QList<int> elements);
+        /**
+         * Add elements to selection
+         */
+        void addElements(QList<int> elements);
 
-    /**
-     * Remove elements from selection
-     **/
-    void remove_elements(QList<int> elements);
+        /**
+         * Remove elements from selection
+         **/
+        void removeElements(QList<int> elements);
 
-    /**
-     * Add cell to selection
-     */
-    void add_cell(int row, int column);
+        /**
+         * Add cell to selection
+         */
+        void addCell(int row, int column);
 
-    /**
-     * Get selection status from (view) cell
-     */
-    selection_status_t selection_status(int row, int column) const;
+        /**
+         * Get selection status from (view) cell
+         */
+        SelectionStatus selectionStatus(int row, int column) const;
 
-    /**
-     * Synchronize with specified model. Any previous sync. is deleted, and
-     * passing null will remove any synchronization
-     **/
-    void synchronize_with(QItemSelectionModel* synchronized_selection_model);
+        /**
+         * Synchronize with specified model. Any previous sync. is deleted, and
+         * passing null will remove any synchronization
+         **/
+        void synchronizeWith(QItemSelectionModel* synchronized_selection_model);
 
-  Q_SIGNALS:
-    /**
-     * Selection status has changed for cell
-     **/
-    void selection_status_changed(int row, int column);
+    Q_SIGNALS:
+        /**
+         * Selection status has changed for cell
+         **/
+        void selectionStatusChanged(int row, int column);
 
-  public Q_SLOTS:
-    /**
-     * Update the selection by adding the items in select to the selection and removing the items in deselect
-     **/
-    void update_selection(QItemSelection select,QItemSelection deselect);
+    public Q_SLOTS:
+        /**
+         * Update the selection by adding the items in select to the selection and removing the items in deselect
+         **/
+        void updateSelection(QItemSelection select,QItemSelection deselect);
 
-  private Q_SLOTS:
-    void reset();
-
-  private:
-    void datacube_adds_element_to_bucket(int row, int column, int element);
-    void datacube_removes_element_from_bucket(int row, int column, int element);
-    void datacube_deletes_elements(int start, int end);
-    void datacube_inserts_elements(int start, int end);
-
-    class secret_t;
-    friend class Datacube;
-    friend class DatacubePrivate;
-    QScopedPointer<secret_t> d;
+    private:
+        friend class Datacube;
+        friend class DatacubePrivate;
+        QScopedPointer<DatacubeSelectionPrivate> d;
 };
 
 }

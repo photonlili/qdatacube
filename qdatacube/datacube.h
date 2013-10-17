@@ -19,12 +19,14 @@ class QAbstractItemModel;
 
 namespace qdatacube {
 
+class DatacubeSelectionPrivate;
+
 class AbstractFilter;
 
 
 class AbstractAggregator;
 class Cell;
-class datacube_selection_t;
+class DatacubeSelection;
 class datacube_colrow_t;
 
 /**
@@ -304,7 +306,8 @@ class QDATACUBE_EXPORT Datacube : public QObject {
     private:
         QScopedPointer<DatacubePrivate> d;
         friend class DatacubePrivate;
-        friend class datacube_selection_t;
+        friend class DatacubeSelection;
+        friend class DatacubeSelectionPrivate;
 
 };
 }

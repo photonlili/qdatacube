@@ -9,33 +9,14 @@
 #include <QSet>
 #include "cell.h"
 #include "datacube_p.h"
+#include "datacubeselection_p.h"
 #include <QAbstractProxyModel>
 #include <QDate>
 
 namespace qdatacube {
 
-struct datacube_selection_t::secret_t {
-  secret_t();
-  Datacube* datacube;
-  QVector<int> cells;
-  QSet<int> selected_elements;
-  QItemSelectionModel* synchronized_selection_model;
-  bool ignore_synchronized;
-  int nrows;
-  int ncolumns;
 
-  int& cell(int row, int column);
-
-  void dump();
-
-  void select_on_synchronized(QList<int> elements);
-  void deselect_on_synchronized(QList<int> elements);
-  void clear_synchronized();
-  QItemSelection map_to_synchronized(QList<int> elements);
-  QList<int> elements_from_selection(QItemSelection selection);
-};
-
-QList< int > datacube_selection_t::secret_t::elements_from_selection(QItemSelection selection) {
+QList< int > DatacubeSelectionPrivate::elements_from_selection(QItemSelection selection) {
   QList<int> rv;
   if (synchronized_selection_model) {
     // Create list of rows (that is, indexes of the first column)
@@ -71,7 +52,7 @@ QList< int > datacube_selection_t::secret_t::elements_from_selection(QItemSelect
 
 }
 
-QItemSelection datacube_selection_t::secret_t::map_to_synchronized(QList< int > elements) {
+QItemSelection DatacubeSelectionPrivate::map_to_synchronized(QList< int > elements) {
   QItemSelection selection;
   if (synchronized_selection_model) {
     // Get the reversed list of proxies to source model
@@ -123,7 +104,7 @@ QItemSelection datacube_selection_t::secret_t::map_to_synchronized(QList< int > 
   return selection;
 }
 
-void datacube_selection_t::secret_t::select_on_synchronized(QList<int> elements) {
+void DatacubeSelectionPrivate::select_on_synchronized(QList<int> elements) {
   if (elements.isEmpty()) {
     return;
   }
@@ -137,7 +118,7 @@ void datacube_selection_t::secret_t::select_on_synchronized(QList<int> elements)
 
 }
 
-void datacube_selection_t::secret_t::deselect_on_synchronized(QList< int > elements) {
+void DatacubeSelectionPrivate::deselect_on_synchronized(QList< int > elements) {
   if (synchronized_selection_model) {
     // Select on sync. model
     ignore_synchronized = true;
@@ -146,7 +127,7 @@ void datacube_selection_t::secret_t::deselect_on_synchronized(QList< int > eleme
   }
 
 }
-void datacube_selection_t::secret_t::clear_synchronized() {
+void DatacubeSelectionPrivate::clear_synchronized() {
   if (synchronized_selection_model) {
     ignore_synchronized = true;
     synchronized_selection_model->clearSelection();
@@ -154,7 +135,8 @@ void datacube_selection_t::secret_t::clear_synchronized() {
   }
 }
 
-datacube_selection_t::secret_t::secret_t() :
+DatacubeSelectionPrivate::DatacubeSelectionPrivate(DatacubeSelection* datacubeselection) :
+    q(datacubeselection),
     datacube(0L),
     synchronized_selection_model(0L),
     ignore_synchronized(false),
@@ -164,7 +146,7 @@ datacube_selection_t::secret_t::secret_t() :
 
 }
 
-void datacube_selection_t::secret_t::dump() {
+void DatacubeSelectionPrivate::dump() {
   for (int r = 0; r < nrows; ++r) {
     for (int c = 0; c < ncolumns; ++c) {
       std::cout << std::setw(3) << cell(r, c) << " ";
@@ -174,12 +156,12 @@ void datacube_selection_t::secret_t::dump() {
   std::cout << std::endl;
 }
 
-int& datacube_selection_t::secret_t::cell(int row, int column) {
+int& DatacubeSelectionPrivate::cell(int row, int column) {
   return cells[row+column*nrows];
 
 }
 
-void datacube_selection_t::add_elements(QList< int > elements) {
+void DatacubeSelection::addElements(QList< int > elements) {
   QList<int> actually_selected_elements;
   Cell cell;
   Q_FOREACH(int element, elements) {
@@ -192,7 +174,7 @@ void datacube_selection_t::add_elements(QList< int > elements) {
         if (newvalue == 1 || newvalue == d->datacube->d->elements_in_bucket(cell.row(), cell.column()).size()) {
           const int row_section = d->datacube->d->section_for_bucket_row(cell.row());
           const int column_section = d->datacube->d->section_for_bucket_column(cell.column());
-          emit selection_status_changed(row_section,column_section);
+          emit selectionStatusChanged(row_section,column_section);
         }
       }
     }
@@ -200,7 +182,7 @@ void datacube_selection_t::add_elements(QList< int > elements) {
   d->select_on_synchronized(actually_selected_elements);
 }
 
-void datacube_selection_t::remove_elements(QList< int > elements) {
+void DatacubeSelection::removeElements(QList< int > elements) {
   QList<int> actually_deselected_elements;
   Cell cell;
   Q_FOREACH(int element, elements) {
@@ -213,7 +195,7 @@ void datacube_selection_t::remove_elements(QList< int > elements) {
         if (newvalue == 0 || newvalue == d->datacube->d->elements_in_bucket(cell.row(), cell.column()).size()-1) {
           const int row_section = d->datacube->d->section_for_bucket_row(cell.row());
           const int column_section = d->datacube->d->section_for_bucket_column(cell.column());
-          emit selection_status_changed(row_section,column_section);
+          emit selectionStatusChanged(row_section,column_section);
         }
       }
     }
@@ -223,27 +205,26 @@ void datacube_selection_t::remove_elements(QList< int > elements) {
 }
 
 
-datacube_selection_t::datacube_selection_t (qdatacube::Datacube* datacube, qdatacube::datacube_view_t* view) :
+DatacubeSelection::DatacubeSelection (qdatacube::Datacube* datacube, qdatacube::datacube_view_t* view) :
     QObject(view),
-    d(new secret_t) {
+    d(new DatacubeSelectionPrivate(this)) {
   d->datacube = datacube;
   datacube->d->add_selection_model(this);
-  connect(d->datacube, SIGNAL(reset()), SLOT(reset()));
-  reset();
+  connect(d->datacube, SIGNAL(reset()),d.data(), SLOT(reset()));
+  d->reset();
 }
 
-void datacube_selection_t::reset() {
-  d->nrows = d->datacube->d->number_of_buckets(Qt::Vertical);
-  d->ncolumns = d->datacube->d->number_of_buckets(Qt::Horizontal);
-  d->cells.resize(d->ncolumns*d->nrows);
-  std::fill(d->cells.begin(), d->cells.end(), 0);
-  QList<int> old_selected_elements = d->selected_elements.toList();
-  d->selected_elements.clear();
-  add_elements(old_selected_elements);
-
+void DatacubeSelectionPrivate::reset() {
+    nrows = datacube->d->number_of_buckets(Qt::Vertical);
+    ncolumns = datacube->d->number_of_buckets(Qt::Horizontal);
+    cells.resize(ncolumns*nrows);
+    std::fill(cells.begin(), cells.end(), 0);
+    QList<int> old_selected_elements = selected_elements.toList();
+    selected_elements.clear();
+    q->addElements(old_selected_elements);
 }
 
-void datacube_selection_t::add_cell(int row, int column) {
+void DatacubeSelection::addCell(int row, int column) {
   int bucket_row = d->datacube->d->bucket_for_row(row);
   int bucket_column = d->datacube->d->bucket_for_column(column);
   int& cell = d->cell(bucket_row, bucket_column);
@@ -259,28 +240,28 @@ void datacube_selection_t::add_cell(int row, int column) {
     Q_FOREACH(int element, elements) {
       d->selected_elements << element;
     }
-    emit selection_status_changed(row, column);
+    emit selectionStatusChanged(row, column);
     d->select_on_synchronized(elements);
   }
 }
 
-void datacube_selection_t::datacube_adds_element_to_bucket(int row, int column, int element) {
-  if (d->selected_elements.contains(element)) {
-    int& cell = d->cell(row, column);
-    ++cell;
-    Q_ASSERT(cell <= d->datacube->d->elements_in_bucket(row, column).size());
+void DatacubeSelectionPrivate::datacube_adds_element_to_bucket(int row, int column, int element) {
+  if (selected_elements.contains(element)) {
+    int& c = cell(row, column);
+    ++c;
+    Q_ASSERT(c <= datacube->d->elements_in_bucket(row, column).size());
   }
 }
 
-void datacube_selection_t::datacube_removes_element_from_bucket(int row, int column, int element) {
-  if (d->selected_elements.contains(element)) {
-    int& cell = d->cell(row, column);
-    --cell;
-    Q_ASSERT(cell >= 0);
+void DatacubeSelectionPrivate::datacube_removes_element_from_bucket(int row, int column, int element) {
+  if (selected_elements.contains(element)) {
+    int& c = cell(row, column);
+    --c;
+    Q_ASSERT(c >= 0);
   }
 }
 
-datacube_selection_t::selection_status_t datacube_selection_t::selection_status(int row, int column) const {
+DatacubeSelection::SelectionStatus DatacubeSelection::selectionStatus(int row, int column) const {
   const int bucket_row = d->datacube->d->bucket_for_row(row);
   const int bucket_column = d->datacube->d->bucket_for_column(column);
   const int selected_count = d->cell(bucket_row, bucket_column);
@@ -297,57 +278,57 @@ datacube_selection_t::selection_status_t datacube_selection_t::selection_status(
 
 }
 
-void datacube_selection_t::clear() {
+void DatacubeSelection::clear() {
   d->selected_elements.clear();
   std::fill(d->cells.begin(), d->cells.end(), 0);
   d->clear_synchronized();
 }
 
-void datacube_selection_t::update_selection(QItemSelection select, QItemSelection deselect) {
+void DatacubeSelection::updateSelection(QItemSelection select, QItemSelection deselect) {
   if (!d->ignore_synchronized) {
-    add_elements(d->elements_from_selection(select));
-    remove_elements(d->elements_from_selection(deselect));
+    addElements(d->elements_from_selection(select));
+    removeElements(d->elements_from_selection(deselect));
   }
 }
 
-datacube_selection_t::~datacube_selection_t() {
+DatacubeSelection::~DatacubeSelection() {
   // declared to have secret_t in scope
 }
 
-void datacube_selection_t::synchronize_with(QItemSelectionModel* synchronized_selection_model) {
+void DatacubeSelection::synchronizeWith(QItemSelectionModel* synchronized_selection_model) {
   if (d->synchronized_selection_model) {
-    d->synchronized_selection_model->disconnect(SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(update_selection(QItemSelection,QItemSelection)));
+    d->synchronized_selection_model->disconnect(SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(updateSelection(QItemSelection,QItemSelection)));
     d->synchronized_selection_model = 0L;
   }
   if (synchronized_selection_model) {
     d->synchronized_selection_model = synchronized_selection_model;
     connect(synchronized_selection_model,
           SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-          SLOT(update_selection(QItemSelection,QItemSelection)));
-    update_selection(synchronized_selection_model->selection(), QItemSelection());
+          SLOT(updateSelection(QItemSelection,QItemSelection)));
+    updateSelection(synchronized_selection_model->selection(), QItemSelection());
   }
 
 }
 
-void datacube_selection_t::datacube_deletes_elements(int start, int end)
+void DatacubeSelectionPrivate::datacube_deletes_elements(int start, int end)
 {
   const int adjust = (end-start)+1;
   QSet<int> new_selected_elements;
-  Q_FOREACH(int e, d->selected_elements) {
+  Q_FOREACH(int e, selected_elements) {
     Q_ASSERT(e<start || e>end);
     new_selected_elements << (e>start? e-adjust:e);
   }
-  d->selected_elements = new_selected_elements;
+  selected_elements = new_selected_elements;
 
 }
 
-void datacube_selection_t::datacube_inserts_elements(int start, int end) {
+void DatacubeSelectionPrivate::datacube_inserts_elements(int start, int end) {
   const int adjust = (end-start)+1;
   QSet<int> new_selected_elements;
-  Q_FOREACH(int e, d->selected_elements) {
+  Q_FOREACH(int e, selected_elements) {
     new_selected_elements << (e>=start? e+adjust:e);
   }
-  d->selected_elements = new_selected_elements;
+  selected_elements = new_selected_elements;
 
 }
 

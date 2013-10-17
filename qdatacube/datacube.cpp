@@ -18,6 +18,7 @@
 #include <QAbstractItemModel>
 #include "cell.h"
 #include "datacube_selection.h"
+#include "datacubeselection_p.h"
 
 #include "datacube_p.h"
 using std::tr1::shared_ptr;
@@ -389,8 +390,8 @@ void DatacubePrivate::add(int index) {
   reverse_index.insert(index, Cell(row_section, column_section));
 
   // Notify various listerners
-  Q_FOREACH(datacube_selection_t* selection, selection_models) {
-    selection->datacube_adds_element_to_bucket(row_section, column_section, index);
+  Q_FOREACH(DatacubeSelection* selection, selection_models) {
+    selection->d->datacube_adds_element_to_bucket(row_section, column_section, index);
   }
   if(column_to_add>=0) {
     emit q->columnsInserted(column_to_add,1);
@@ -409,8 +410,8 @@ void DatacubePrivate::remove(int index) {
     // Our datacube does not cover that container. Just ignore it.
     return;
   }
-  Q_FOREACH(datacube_selection_t* selection, selection_models) {
-    selection->datacube_removes_element_from_bucket(cell.row(), cell.column(), index);
+  Q_FOREACH(DatacubeSelection* selection, selection_models) {
+    selection->d->datacube_removes_element_from_bucket(cell.row(), cell.column(), index);
   }
   int row_to_remove = -1;
   int column_to_remove = -1;
@@ -463,8 +464,8 @@ void DatacubePrivate::update_data(QModelIndex topleft, QModelIndex bottomRight) 
 void DatacubePrivate::insert_data(QModelIndex parent, int start, int end) {
   Q_ASSERT(!parent.isValid());
   Q_UNUSED(parent);
-  Q_FOREACH(datacube_selection_t* selection, selection_models) {
-    selection->datacube_inserts_elements(start, end);
+  Q_FOREACH(DatacubeSelection* selection, selection_models) {
+    selection->d->datacube_inserts_elements(start, end);
   }
   renumber_cells(start, end-start+1);
   for (int row = start; row <=end; ++row) {
@@ -487,8 +488,8 @@ void DatacubePrivate::remove_data(QModelIndex parent, int start, int end) {
   for (int row = end; row>=start; --row) {
     remove(row);
   }
-  Q_FOREACH(datacube_selection_t* selection, selection_models) {
-    selection->datacube_deletes_elements(start, end);
+  Q_FOREACH(DatacubeSelection* selection, selection_models) {
+    selection->d->datacube_deletes_elements(start, end);
   }
   // Now, all the remaining elements have to be renumbered
   renumber_cells(end+1, start-end-1);
@@ -864,7 +865,7 @@ int qdatacube::DatacubePrivate::number_of_buckets(Qt::Orientation orientation) c
   return orientation == Qt::Vertical ? row_counts.size() : col_counts.size();
 }
 
-void qdatacube::DatacubePrivate::add_selection_model(qdatacube::datacube_selection_t* selection) {
+void qdatacube::DatacubePrivate::add_selection_model(qdatacube::DatacubeSelection* selection) {
   selection_models << selection;
   connect(selection, SIGNAL(destroyed(QObject*)), SLOT(remove_selection_model(QObject*)));
 }
@@ -878,7 +879,7 @@ int qdatacube::DatacubePrivate::section_for_bucket_row(int bucket_row) const {
 }
 
 void qdatacube::DatacubePrivate::remove_selection_model(QObject* selection_model) {
-  selection_models.removeAll(static_cast<datacube_selection_t*>(selection_model));
+  selection_models.removeAll(static_cast<DatacubeSelection*>(selection_model));
 }
 
 int qdatacube::Datacube::categoryIndex(Qt::Orientation orientation, int header_index, int section) const {

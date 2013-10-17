@@ -39,7 +39,7 @@ class datacube_view_private_t : public QSharedData {
   public:
     datacube_view_private_t();
     Datacube* datacube;
-    datacube_selection_t* selection;
+    DatacubeSelection* selection;
     QList<AbstractFormatter*> formatters;
     int horizontal_header_height;
     int vertical_header_width;
@@ -114,9 +114,9 @@ void datacube_view_t::set_datacube(Datacube* datacube) {
   }
   d->datacube = datacube;
   delete d->selection;
-  d->selection = new datacube_selection_t(datacube, this);
+  d->selection = new DatacubeSelection(datacube, this);
   viewport()->update();
-  connect(d->selection, SIGNAL(selection_status_changed(int, int)), viewport(), SLOT(update()));
+  connect(d->selection, SIGNAL(selectionStatusChanged(int, int)), viewport(), SLOT(update()));
   connect(datacube, SIGNAL(destroyed(QObject*)), SLOT(datacube_deleted()));
   connect(datacube, SIGNAL(reset()), SLOT(relayout()));
   connect(datacube, SIGNAL(dataChanged(int, int)), viewport(), SLOT(update()));
@@ -396,16 +396,16 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
   for (int r = verticalScrollBar()->value(), nr = qMin(d->datacube->rowCount(), bottommost_row+1); r < nr; ++r) {
     options.rect.moveLeft(viewport()->rect().left() + vertical_header_width);
     for (int c =horizontalScrollBar()->value(), nc = qMin(d->datacube->columnCount(), rightmost_column+1       ); c < nc; ++c) {
-      datacube_selection_t::selection_status_t selection_status = d->selection->selection_status(r, c);
+      DatacubeSelection::SelectionStatus selection_status = d->selection->selectionStatus(r, c);
       bool highlighted = false;
       switch (selection_status) {
-        case datacube_selection_t::UNSELECTED:
+        case DatacubeSelection::UNSELECTED:
           if (d->selection_area.contains(r, c)) {
             painter.fillRect(options.rect, highlight);
             highlighted = true;
           }
           break;
-        case datacube_selection_t::SELECTED:
+        case DatacubeSelection::SELECTED:
           if (d->selection_area.contains(r, c)) {
             painter.fillRect(options.rect, highlight);
             highlighted = true;
@@ -414,7 +414,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
             highlighted = true;
           }
           break;
-        case datacube_selection_t::PARTIALLY_SELECTED:
+        case DatacubeSelection::PARTIALLY_SELECTED:
           if (d->selection_area.contains(r, c)) {
             painter.fillRect(options.rect, highlight);
             highlighted = true;
@@ -635,7 +635,7 @@ void datacube_view_t::mouseReleaseEvent(QMouseEvent* event) {
     for (int r = d->selection_area.left(); r <= d->selection_area.right(); ++r) {
       for (int c = d->selection_area.top(); c <= d->selection_area.bottom(); ++c) {
         if (r >= 0 && c >= 0 && r < d->datacube_size.height() && c < d->datacube_size.width()) {
-          d->selection->add_cell(r, c);
+          d->selection->addCell(r, c);
         } else {
           if (c >= d->datacube_size.width()) {
             //
@@ -652,7 +652,7 @@ void datacube_view_t::mouseReleaseEvent(QMouseEvent* event) {
       Cell press = d->cell_for_position(d->last_mouse_press_point, d->last_mouse_press_scrollbar_state.y(), d->last_mouse_press_scrollbar_state.x());
       if (press.column()>=d->datacube_size.width() && press.row() >= d->datacube_size.height()) {
         // Lower right corner "total summary" was pressed. Select all
-        d->selection->add_elements(d->datacube->elements());
+        d->selection->addElements(d->datacube->elements());
       }
     }
   }
@@ -661,7 +661,7 @@ void datacube_view_t::mouseReleaseEvent(QMouseEvent* event) {
   d->mouse_press_point = QPoint();
 }
 
-datacube_selection_t* datacube_view_t::datacube_selection() const
+DatacubeSelection* datacube_view_t::datacube_selection() const
 {
   return d->selection;
 }
