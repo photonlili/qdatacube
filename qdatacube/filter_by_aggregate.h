@@ -7,17 +7,17 @@
 
 namespace qdatacube {
 
-class abstract_aggregator_t;
+class AbstractAggregator;
 
 class FilterByAggregatePrivate;
 class QDATACUBE_EXPORT  filter_by_aggregate_t : public abstract_filter_t {
   Q_OBJECT
   public:
-    filter_by_aggregate_t(std::tr1::shared_ptr<abstract_aggregator_t> aggregator, int category_index);
+    filter_by_aggregate_t(std::tr1::shared_ptr<AbstractAggregator> aggregator, int category_index);
 
     virtual bool operator()(int row) const;
 
-    std::tr1::shared_ptr<abstract_aggregator_t> aggregator() const;
+    std::tr1::shared_ptr<AbstractAggregator> aggregator() const;
 
     int category_index() const;
     virtual ~filter_by_aggregate_t();

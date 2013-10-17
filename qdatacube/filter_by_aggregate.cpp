@@ -5,19 +5,19 @@ namespace qdatacube {
 
 class FilterByAggregatePrivate {
     public:
-        FilterByAggregatePrivate(std::tr1::shared_ptr<abstract_aggregator_t> aggregator, int category_index) : m_aggregator(aggregator), m_categoryIndex(category_index) {}
-        std::tr1::shared_ptr<abstract_aggregator_t> m_aggregator;
+        FilterByAggregatePrivate(std::tr1::shared_ptr<AbstractAggregator> aggregator, int category_index) : m_aggregator(aggregator), m_categoryIndex(category_index) {}
+        std::tr1::shared_ptr<AbstractAggregator> m_aggregator;
         int m_categoryIndex;
 };
 
-filter_by_aggregate_t::filter_by_aggregate_t(std::tr1::shared_ptr< abstract_aggregator_t > aggregator, int category_index)
- : abstract_filter_t(aggregator->underlying_model()), d(new FilterByAggregatePrivate(aggregator, category_index))
+filter_by_aggregate_t::filter_by_aggregate_t(std::tr1::shared_ptr< AbstractAggregator > aggregator, int category_index)
+ : abstract_filter_t(aggregator->underlyingModel()), d(new FilterByAggregatePrivate(aggregator, category_index))
 {
   Q_ASSERT(aggregator);
   Q_ASSERT(category_index>=0);
   Q_ASSERT(category_index<aggregator->categoryCount());
-  connect(aggregator.get(), SIGNAL(category_added(int)), SLOT(slot_aggregator_category_inserted(int)));
-  connect(aggregator.get(), SIGNAL(category_removed(int)), SLOT(slot_aggregator_category_removed(int)));
+  connect(aggregator.get(), SIGNAL(categoryAdded(int)), SLOT(slot_aggregator_category_inserted(int)));
+  connect(aggregator.get(), SIGNAL(categoryRemoved(int)), SLOT(slot_aggregator_category_removed(int)));
   setShortName(d->m_aggregator->categoryHeaderData(d->m_categoryIndex).toString());
   setName(d->m_aggregator->name() + "=" + d->m_aggregator->categoryHeaderData(d->m_categoryIndex).toString());
 }
@@ -40,7 +40,7 @@ void filter_by_aggregate_t::slot_aggregator_category_removed(int index) {
   }
 }
 
-std::tr1::shared_ptr< abstract_aggregator_t > filter_by_aggregate_t::aggregator() const {
+std::tr1::shared_ptr< AbstractAggregator > filter_by_aggregate_t::aggregator() const {
     return d->m_aggregator;
 }
 

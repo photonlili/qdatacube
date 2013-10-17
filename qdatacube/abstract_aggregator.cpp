@@ -8,25 +8,25 @@ class qdatacube::AbstractAggregatorPrivate {
         QString m_name;
 };
 
-qdatacube::abstract_aggregator_t::abstract_aggregator_t(QAbstractItemModel* model):
+qdatacube::AbstractAggregator::AbstractAggregator(QAbstractItemModel* model):
     d(new AbstractAggregatorPrivate(model))
 {
   Q_ASSERT(model);
 }
 
-QString qdatacube::abstract_aggregator_t::name() const {
+QString qdatacube::AbstractAggregator::name() const {
     return d->m_name;
 }
 
-QAbstractItemModel* qdatacube::abstract_aggregator_t::underlying_model() const {
+QAbstractItemModel* qdatacube::AbstractAggregator::underlyingModel() const {
     return d->m_underlying_model;
 }
 
-qdatacube::abstract_aggregator_t::~abstract_aggregator_t() {
+qdatacube::AbstractAggregator::~AbstractAggregator() {
 
 }
 
-void qdatacube::abstract_aggregator_t::setName(const QString& newName) {
+void qdatacube::AbstractAggregator::setName(const QString& newName) {
     d->m_name = newName;
 }
 

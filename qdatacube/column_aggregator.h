@@ -19,7 +19,7 @@ class QModelIndex;
 namespace qdatacube {
 
 class ColumnAggregatorPrivate;
-class QDATACUBE_EXPORT column_aggregator_t : public abstract_aggregator_t {
+class QDATACUBE_EXPORT column_aggregator_t : public AbstractAggregator {
   Q_OBJECT
   public:
     column_aggregator_t(QAbstractItemModel* model,  int section);

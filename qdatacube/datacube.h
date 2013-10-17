@@ -22,7 +22,7 @@ namespace qdatacube {
 class abstract_filter_t;
 
 
-class abstract_aggregator_t;
+class AbstractAggregator;
 class cell_t;
 class datacube_selection_t;
 class datacube_colrow_t;
@@ -44,8 +44,8 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      * @param column_aggregator initial aggregator.
      */
     datacube_t(const QAbstractItemModel* model,
-            std::tr1::shared_ptr<abstract_aggregator_t> row_aggregator,
-            std::tr1::shared_ptr<abstract_aggregator_t> column_aggregator,
+            std::tr1::shared_ptr<AbstractAggregator> row_aggregator,
+            std::tr1::shared_ptr<AbstractAggregator> column_aggregator,
             QObject* parent = 0);
 
     /**
@@ -181,7 +181,7 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
      *                 header_count(orientation) is the bottommost.
      * @param aggregator aggregator to use. Each non-empty category will give a new row or column
      */
-    void split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr<abstract_aggregator_t> aggregator);
+    void split(Qt::Orientation orientation, int headerno, std::tr1::shared_ptr<AbstractAggregator> aggregator);
 
     /**
      * Collapse header, removing it from datacube. Requries headercount(orientation)>=2
@@ -205,7 +205,7 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
     int section_for_element_internal(int element, Qt::Orientation orientation) const;
 
     typedef QList<std::tr1::shared_ptr<abstract_filter_t> > global_filters_t;
-    typedef QList<std::tr1::shared_ptr<abstract_aggregator_t> > aggregators_t;
+    typedef QList<std::tr1::shared_ptr<AbstractAggregator> > aggregators_t;
 
     /**
      * @return Return all global filters in effect with their categories
@@ -317,10 +317,10 @@ class QDATACUBE_EXPORT datacube_t : public QObject {
   private:
     void remove(int index);
     void add(int index);
-    void split_row(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > aggregator);
-    void split_column(int headerno, std::tr1::shared_ptr< abstract_aggregator_t > aggregator);
-    void aggregator_category_added(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > aggregator, int headerno, int index, Qt::Orientation orientation);
-    void aggregator_category_removed(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > aggregator, int headerno, int index, Qt::Orientation orientation);
+    void split_row(int headerno, std::tr1::shared_ptr< AbstractAggregator > aggregator);
+    void split_column(int headerno, std::tr1::shared_ptr< AbstractAggregator > aggregator);
+    void aggregator_category_added(std::tr1::shared_ptr< qdatacube::AbstractAggregator > aggregator, int headerno, int index, Qt::Orientation orientation);
+    void aggregator_category_removed(std::tr1::shared_ptr< qdatacube::AbstractAggregator > aggregator, int headerno, int index, Qt::Orientation orientation);
 
     /**
      * @returns the number of buckets (i.e. sections including empty sections) in datacube for

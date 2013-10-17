@@ -22,56 +22,56 @@ namespace qdatacube {
  * aggregate elements into a number of categories
  */
 class AbstractAggregatorPrivate;
-class QDATACUBE_EXPORT abstract_aggregator_t : public QObject {
-  Q_OBJECT
-  public:
-    explicit abstract_aggregator_t(QAbstractItemModel* model);
+class QDATACUBE_EXPORT AbstractAggregator : public QObject {
+    Q_OBJECT
+    public:
+        explicit AbstractAggregator(QAbstractItemModel* model);
 
-    /**
-     * @param row number in m_model
-     * @returns the category number for row, 0 <= return value < categories().size()
-     *
-     */
-    virtual int operator()(int row) const = 0;
+        /**
+         * @param row number in m_model
+         * @returns the category number for row, 0 <= return value < categories().size()
+         *
+         */
+        virtual int operator()(int row) const = 0;
 
-    /**
-     * @return the number of categories in this aggregator
-     */
-    virtual int categoryCount() const = 0;
+        /**
+         * @return the number of categories in this aggregator
+         */
+        virtual int categoryCount() const = 0;
 
-    /**
-     * @param  category to query
-     * @param role header data role to query
-     * @return the headerdata for a category and a role.
-     */
-    virtual QVariant categoryHeaderData(int category, int role = Qt::DisplayRole) const = 0;
+        /**
+         * @param  category to query
+         * @param role header data role to query
+         * @return the headerdata for a category and a role.
+         */
+        virtual QVariant categoryHeaderData(int category, int role = Qt::DisplayRole) const = 0;
 
-    /**
-     * @returns an name for this aggregator. Default implementation returns "unnamed";
-     */
-    QString name() const;
+        /**
+         * @returns an name for this aggregator. Default implementation returns "unnamed";
+         */
+        QString name() const;
 
-    /**
-    * @return underlying model
-    */
-    QAbstractItemModel* underlying_model() const;
+        /**
+        * @return underlying model
+        */
+        QAbstractItemModel* underlyingModel() const;
 
-    /**
-     * dtor
-     */
-    virtual ~abstract_aggregator_t();
-  Q_SIGNALS:
-    /**
-     * Implementors must emit this signal when a category has been added
-     * @param index index of removed category
-     */
-    void category_added(int index) const;
+        /**
+        * dtor
+        */
+        virtual ~AbstractAggregator();
+    Q_SIGNALS:
+        /**
+         * Implementors must emit this signal when a category has been added
+         * @param index index of removed category
+         */
+        void categoryAdded(int index) const;
 
-    /**
-     * Implementors must emit this signal when a category has been removed
-     * @param index index of new category
-     */
-    void category_removed(int index) const;
+        /**
+         * Implementors must emit this signal when a category has been removed
+         * @param index index of new category
+         */
+        void categoryRemoved(int index) const;
 
     protected:
         /**

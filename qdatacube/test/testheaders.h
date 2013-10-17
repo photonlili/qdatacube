@@ -41,8 +41,8 @@ class testheaders : public danishnamecube_t {
   private:
     qdatacube::datacube_t* m_datacube;
     qdatacube::datacube_view_t* m_view;
-    void add_global_filter_bottoms(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > filter, QLayout* layout);
-    QAction* create_aggregator_action(std::tr1::shared_ptr< qdatacube::abstract_aggregator_t > aggregator);
+    void add_global_filter_bottoms(std::tr1::shared_ptr< qdatacube::AbstractAggregator > filter, QLayout* layout);
+    QAction* create_aggregator_action(std::tr1::shared_ptr< qdatacube::AbstractAggregator > aggregator);
     QAction* m_collapse_action;
     QList<QAction*> m_col_used_aggregator_actions;
     QList<QAction*> m_row_used_aggregator_actions;

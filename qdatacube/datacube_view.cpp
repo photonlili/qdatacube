@@ -216,7 +216,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
     header_rect.moveLeft(viewport()->rect().left() + vertical_header_width);
     summary_rect.moveLeft(header_rect.left());
     QList<datacube_t::HeaderDescription > headers = d->datacube->headers(Qt::Horizontal, hh);
-    std::tr1::shared_ptr<abstract_aggregator_t> aggregator = d->datacube->column_aggregators().at(hh);
+    std::tr1::shared_ptr<AbstractAggregator> aggregator = d->datacube->column_aggregators().at(hh);
     int current_cell_equivalent = 0;
     for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= rightmost_column; ++header_index) {
         datacube_t::HeaderDescription header = headers.at(header_index);
@@ -295,7 +295,7 @@ void datacube_view_t::paint_datacube(QPaintEvent* event) const {
     header_rect.moveTop(options.rect.top());
     summary_rect.moveTop(header_rect.top());
     QList<datacube_t::HeaderDescription > headers = d->datacube->headers(Qt::Vertical, vh);
-    std::tr1::shared_ptr<abstract_aggregator_t> aggregator = d->datacube->row_aggregators().at(vh);
+    std::tr1::shared_ptr<AbstractAggregator> aggregator = d->datacube->row_aggregators().at(vh);
     int current_cell_equivalent = 0;
     for (int header_index = 0; header_index < headers.size() && current_cell_equivalent <= bottommost_row; ++header_index) {
         datacube_t::HeaderDescription header = headers.at(header_index);
