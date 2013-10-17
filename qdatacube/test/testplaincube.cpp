@@ -292,7 +292,7 @@ void testplaincube::do_testcollapse3(Qt::Orientation orientation) {
 
 void testplaincube::test_columnaggregator()
 {
-  std::tr1::shared_ptr<column_aggregator_t> first_name_aggregator(new column_aggregator_t(m_underlying_model, testplaincube::FIRST_NAME));
+  std::tr1::shared_ptr<ColumnAggregator> first_name_aggregator(new ColumnAggregator(m_underlying_model, testplaincube::FIRST_NAME));
   QCOMPARE(first_name_aggregator->categoryCount(), 14);
   QCOMPARE(first_name_aggregator->categoryHeaderData(0).toString(),QString::fromLocal8Bit("Andersine"));
   QCOMPARE(first_name_aggregator->categoryHeaderData(7).toString(),QString::fromLocal8Bit("Kim"));
@@ -427,10 +427,10 @@ void testplaincube::test_reverse_index()
 
 void testplaincube::test_add_category() {
   QStandardItemModel* tmp_model = copy_model();
-  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new column_aggregator_t(tmp_model, SEX));
-  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new column_aggregator_t(tmp_model, KOMMUNE));
-  std::tr1::shared_ptr<AbstractAggregator> first_name_aggregator(new column_aggregator_t(tmp_model, FIRST_NAME));
-  std::tr1::shared_ptr<AbstractAggregator> last_name_aggregator(new column_aggregator_t(tmp_model, LAST_NAME));
+  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new ColumnAggregator(tmp_model, SEX));
+  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
+  std::tr1::shared_ptr<AbstractAggregator> first_name_aggregator(new ColumnAggregator(tmp_model, FIRST_NAME));
+  std::tr1::shared_ptr<AbstractAggregator> last_name_aggregator(new ColumnAggregator(tmp_model, LAST_NAME));
   datacube_t datacube(tmp_model, last_name_aggregator, first_name_aggregator);
   datacube.split(Qt::Horizontal, 0, sex_aggregator);
   datacube.split(Qt::Horizontal, 2, kommune_aggregator);
@@ -503,10 +503,10 @@ void testplaincube::test_add_category() {
 void testplaincube::test_add_category_simple()
 {
   QStandardItemModel* tmp_model = copy_model();
-  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new column_aggregator_t(tmp_model, SEX));
-  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new column_aggregator_t(tmp_model, KOMMUNE));
-  std::tr1::shared_ptr<AbstractAggregator> first_name_aggregator(new column_aggregator_t(tmp_model, FIRST_NAME));
-  std::tr1::shared_ptr<AbstractAggregator> last_name_aggregator(new column_aggregator_t(tmp_model, LAST_NAME));
+  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new ColumnAggregator(tmp_model, SEX));
+  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
+  std::tr1::shared_ptr<AbstractAggregator> first_name_aggregator(new ColumnAggregator(tmp_model, FIRST_NAME));
+  std::tr1::shared_ptr<AbstractAggregator> last_name_aggregator(new ColumnAggregator(tmp_model, LAST_NAME));
   datacube_t datacube(tmp_model, kommune_aggregator, sex_aggregator);
   QList<QStandardItem*> row;
   for (int c=0; c<tmp_model->columnCount(); ++c) {
@@ -559,8 +559,8 @@ void testplaincube::test_add_category_simple()
 
 void testplaincube::test_delete_rows() {
   QStandardItemModel* tmp_model = copy_model();
-  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new column_aggregator_t(tmp_model, SEX));
-  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new column_aggregator_t(tmp_model, KOMMUNE));
+  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new ColumnAggregator(tmp_model, SEX));
+  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
   datacube_t datacube(tmp_model, kommune_aggregator, sex_aggregator);
   tmp_model->removeRows(30, 10);
   QCOMPARE(m_underlying_model->rowCount()-10, tmp_model->rowCount());
@@ -595,8 +595,8 @@ void testplaincube::test_delete_rows() {
 
 void testplaincube::test_add_rows() {
   QStandardItemModel* tmp_model = copy_model();
-  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new column_aggregator_t(tmp_model, SEX));
-  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new column_aggregator_t(tmp_model, KOMMUNE));
+  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new ColumnAggregator(tmp_model, SEX));
+  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
   datacube_t datacube(tmp_model, kommune_aggregator, sex_aggregator);
   for (int i=0; i<10; ++i) {
     int source_row = i*7+2;
@@ -639,10 +639,10 @@ void testplaincube::test_add_rows() {
 void testplaincube::test_remove_category()
 {
   QStandardItemModel* tmp_model = copy_model();
-  std::tr1::shared_ptr<column_aggregator_t> age_aggregator(new column_aggregator_t(tmp_model, AGE));
-  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new column_aggregator_t(tmp_model, KOMMUNE));
-  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new column_aggregator_t(tmp_model, SEX));
-  std::tr1::shared_ptr<AbstractAggregator> last_name_aggregator(new column_aggregator_t(tmp_model, LAST_NAME));
+  std::tr1::shared_ptr<ColumnAggregator> age_aggregator(new ColumnAggregator(tmp_model, AGE));
+  std::tr1::shared_ptr<AbstractAggregator> kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
+  std::tr1::shared_ptr<AbstractAggregator> sex_aggregator(new ColumnAggregator(tmp_model, SEX));
+  std::tr1::shared_ptr<AbstractAggregator> last_name_aggregator(new ColumnAggregator(tmp_model, LAST_NAME));
   datacube_t datacube(tmp_model, kommune_aggregator, age_aggregator);
   datacube.split(Qt::Horizontal, 1, last_name_aggregator);
   datacube.split(Qt::Horizontal, 0, sex_aggregator);
@@ -660,7 +660,7 @@ void testplaincube::test_remove_category()
   QVERIFY(findCategoryIndexForString(age_aggregator,"20") != -1);
 
   // Manually trigger removal
-  age_aggregator->reset_categories();
+  age_aggregator->resetCategories();
 
   // age_filter should now not have an "20" aged category
   QVERIFY(findCategoryIndexForString(age_aggregator, "20") == -1);

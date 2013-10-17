@@ -19,11 +19,11 @@ class QModelIndex;
 namespace qdatacube {
 
 class ColumnAggregatorPrivate;
-class QDATACUBE_EXPORT column_aggregator_t : public AbstractAggregator {
+class QDATACUBE_EXPORT ColumnAggregator : public AbstractAggregator {
   Q_OBJECT
   public:
-    column_aggregator_t(QAbstractItemModel* model,  int section);
-    ~column_aggregator_t();
+    ColumnAggregator(QAbstractItemModel* model,  int section);
+    ~ColumnAggregator();
     virtual int operator()(int row) const;
     /**
      * Return section
@@ -37,13 +37,13 @@ class QDATACUBE_EXPORT column_aggregator_t : public AbstractAggregator {
     /**
      * trim (new) categories from the right to max max_chars characters
      **/
-    void set_trim_new_categories_from_right(int max_chars);
+    void setTrimNewCategoriesFromRight(int max_chars);
   public Q_SLOTS:
     /**
      * Recalculate categories. This is also triggered automatically when the number of changed or removed rows
      * exceeds the half the current size
      */
-    void reset_categories();
+    void resetCategories();
   private:
     QScopedPointer<ColumnAggregatorPrivate> d;
     void add_new_category(QString data);

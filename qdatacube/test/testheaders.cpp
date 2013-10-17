@@ -56,7 +56,7 @@ void testheaders::add_global_filter_bottoms(std::tr1::shared_ptr< AbstractAggreg
   for(int cat = 0; cat < aggregator->categoryCount() ; cat++) {
       QString catText = aggregator->categoryHeaderData(cat).toString();
     QPushButton* button = new QPushButton(catText, top);
-    column_aggregator_t* cf = static_cast<column_aggregator_t*>(aggregator.get());
+    ColumnAggregator* cf = static_cast<ColumnAggregator*>(aggregator.get());
     button->setProperty("section", cf->section());
     button->setProperty("categoryno", cat);
     lay->addWidget(button);
@@ -73,7 +73,7 @@ void testheaders::slot_global_filter_button_pressed() {
   } else {
     int section = s->property("section").toInt();
     int categoryno = s->property("categoryno").toInt();
-    m_datacube->add_global_filter(std::tr1::shared_ptr<AbstractFilter>(new filter_by_aggregate_t(std::tr1::shared_ptr<qdatacube::AbstractAggregator>(new column_aggregator_t(m_underlying_model, section)), categoryno)));
+    m_datacube->add_global_filter(std::tr1::shared_ptr<AbstractFilter>(new filter_by_aggregate_t(std::tr1::shared_ptr<qdatacube::AbstractAggregator>(new ColumnAggregator(m_underlying_model, section)), categoryno)));
   }
 }
 
@@ -154,7 +154,7 @@ void testheaders::slot_set_data() {
 
 void testheaders::slot_set_filter() {
   static int count = 0;
-  std::tr1::shared_ptr<AbstractAggregator> aggregator(new column_aggregator_t(m_underlying_model, SEX));
+  std::tr1::shared_ptr<AbstractAggregator> aggregator(new ColumnAggregator(m_underlying_model, SEX));
   m_datacube->reset_global_filter();
   m_datacube->add_global_filter(std::tr1::shared_ptr<AbstractFilter>(new filter_by_aggregate_t(aggregator, (count++%2))));
   QTimer::singleShot(2000, this, SLOT(slot_set_filter()));

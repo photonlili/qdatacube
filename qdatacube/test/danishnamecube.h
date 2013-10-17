@@ -20,13 +20,13 @@ class AbstractAggregator;
 
 #include <column_aggregator.h>
 #include <QColor>
-class SexAggregator : public qdatacube::column_aggregator_t {
+class SexAggregator : public qdatacube::ColumnAggregator {
     public:
-        SexAggregator(QAbstractItemModel* model, int section) : column_aggregator_t(model,section) {
+        SexAggregator(QAbstractItemModel* model, int section) : ColumnAggregator(model,section) {
 
         }
         virtual QVariant categoryHeaderData(int category, int role = Qt::DisplayRole) const {
-            QVariant displayrole = column_aggregator_t::categoryHeaderData(category,Qt::DisplayRole);
+            QVariant displayrole = ColumnAggregator::categoryHeaderData(category,Qt::DisplayRole);
             if(role == Qt::DisplayRole) {
                 return displayrole;
             }
