@@ -20,7 +20,7 @@ QString CountFormatter::format(QList< int > rows) const {
 void CountFormatter::update(AbstractFormatter::UpdateType updateType) {
     if(updateType == qdatacube::AbstractFormatter::CellSize) {
         if(datacubeView()) {
-        QString big_cell_contents = QString::number(underlyingModel()->rowCount());
+            QString big_cell_contents = QString::number(underlyingModel()->rowCount());
             setCellSize(QSize(datacubeView()->fontMetrics().width(big_cell_contents),
                             datacubeView()->fontMetrics().ascent()+1));
         }
