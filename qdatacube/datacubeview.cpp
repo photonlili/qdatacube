@@ -188,7 +188,7 @@ void DatacubeViewPrivate::paint_datacube(QPaintEvent* event) const {
   const int horizontal_header_count = datacube->headerCount(Qt::Horizontal);
   const int ndatarows = datacube->rowCount();
   QRect summary_rect(header_rect);
-  summary_rect.translate(0, cell_size.height()*(ndatarows- topmost_row+horizontal_header_count));
+  summary_rect.translate(0, cell_size.height() * (ndatarows - topmost_row+horizontal_header_count*2-1));
   for (int hh = 0; hh < horizontal_header_count; ++hh) {
     header_rect.moveLeft(q->viewport()->rect().left() + vertical_header_width);
     summary_rect.moveLeft(header_rect.left());
@@ -253,7 +253,7 @@ void DatacubeViewPrivate::paint_datacube(QPaintEvent* event) const {
       }
     }
     header_rect.translate(0, cell_size.height());
-    summary_rect.translate(0, cell_size.height());
+    summary_rect.translate(0, -cell_size.height());
   }
   if (horizontal_header_count == 0) {
     header_rect.moveLeft(q->viewport()->rect().left() + vertical_header_width);
@@ -265,7 +265,7 @@ void DatacubeViewPrivate::paint_datacube(QPaintEvent* event) const {
   const int ndatacolumns = datacube->columnCount();
   const int vertical_header_count = datacube->headerCount(Qt::Vertical);
   header_rect.moveLeft(q->viewport()->rect().left());
-  summary_rect.moveLeft(header_rect.left() + cell_size.width()*(ndatacolumns-leftmost_column+vertical_header_count));
+  summary_rect.moveLeft(header_rect.left() + cell_size.width()*(ndatacolumns-leftmost_column+vertical_header_count*2-1));
   options.rect.moveTop(q->viewport()->rect().top() + horizontal_header_height);
 
   for (int vh = 0; vh < vertical_header_count; ++vh) {
@@ -333,7 +333,7 @@ void DatacubeViewPrivate::paint_datacube(QPaintEvent* event) const {
       }
     }
     header_rect.translate(cell_size.width(), 0);
-    summary_rect.translate(cell_size.width(), 0);
+    summary_rect.translate(-cell_size.width(), 0);
   }
   if (vertical_header_count == 0) {
     header_rect.moveTop(q->viewport()->rect().top() + horizontal_header_height);
