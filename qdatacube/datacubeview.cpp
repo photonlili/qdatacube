@@ -116,7 +116,7 @@ void DatacubeViewPrivate::relayout() {
   QSize new_cell_size(q->fontMetrics().width("9999"), 0);
   Q_FOREACH(AbstractFormatter* formatter, formatters) {
     QSize formatter_cell_size = formatter->cellSize();
-    new_cell_size.setWidth(qMax(formatter_cell_size.width()+2, cell_size.width()));
+    new_cell_size.setWidth(qMax(formatter_cell_size.width()+2, new_cell_size.width()));
     new_cell_size.setHeight(new_cell_size.height() + formatter_cell_size.height());
   }
   if (new_cell_size.height() == 0) {
