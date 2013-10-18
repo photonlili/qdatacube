@@ -259,6 +259,12 @@ void DatacubeViewPrivate::paint_datacube(QPaintEvent* event) const {
     header_rect.moveLeft(q->viewport()->rect().left() + vertical_header_width);
     header_rect.setSize(QSize(cell_size.width(), cell_size.height()));
     painter.drawRect(header_rect);
+    if(show_totals) {
+        summary_rect.moveLeft(q->viewport()->rect().left() + vertical_header_width);
+        summary_rect.setSize(QSize(cell_size.width(), cell_size.height()));
+        summary_rect.translate(0, cell_size.height()*2);
+        painter.drawRect(summary_rect);
+    }
   }
 
   // Draw vertical header
@@ -339,6 +345,12 @@ void DatacubeViewPrivate::paint_datacube(QPaintEvent* event) const {
     header_rect.moveTop(q->viewport()->rect().top() + horizontal_header_height);
     header_rect.setSize(QSize(cell_size.width(), cell_size.height()));
     painter.drawRect(header_rect);
+    if(show_totals) {
+        summary_rect.moveTop(q->viewport()->rect().top() + horizontal_header_height);
+        summary_rect.setSize(QSize(cell_size.width(), cell_size.height()));
+        summary_rect.translate(cell_size.width()*2,0);
+        painter.drawRect(summary_rect);
+    }
   }
 
   // Draw grand total cell, if appropriate
