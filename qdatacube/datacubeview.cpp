@@ -129,8 +129,8 @@ void DatacubeViewPrivate::relayout() {
   // Calculate the number of rows and columns at least partly visible
   const int rows_visible = (visible_size.height() - horizontal_header_height + 1) / (cell_size.height());
   const int columns_visible = (visible_size.width() - vertical_header_width + 1) / (cell_size.width());
-  const int nrows = datacube_size.height() + (show_totals ? datacube->headerCount(Qt::Horizontal) : 0);
-  const int ncolumns = datacube_size.width() + (show_totals ? datacube->headerCount(Qt::Vertical) : 0);
+  const int nrows = datacube_size.height() + (show_totals ? qMax(1,datacube->headerCount(Qt::Horizontal)) : 0);
+  const int ncolumns = datacube_size.width() + (show_totals ? qMax(1,datacube->headerCount(Qt::Vertical)) : 0);
   visible_cells = QSize(qMin(columns_visible, ncolumns), qMin(rows_visible, nrows));
   // Set range of scrollbars
   q->verticalScrollBar()->setRange(0, qMax(0, nrows - rows_visible));
@@ -343,10 +343,12 @@ void DatacubeViewPrivate::paint_datacube(QPaintEvent* event) const {
 
   // Draw grand total cell, if appropriate
   if (show_totals && bottommost_row >= ndatarows  && rightmost_column >= ndatacolumns ) {
-    const int leftmost_summary = ndatacolumns-leftmost_column+vertical_header_count;
-    const int topmost_summary = ndatarows-topmost_row+horizontal_header_count;
+      int adaptedVerticalHeaderCount = qMax(vertical_header_count,1);
+      int adaptedHorizontalHeaderCount = qMax(horizontal_header_count,1);
+    const int leftmost_summary = ndatacolumns-leftmost_column+adaptedVerticalHeaderCount;
+    const int topmost_summary = ndatarows-topmost_row+adaptedHorizontalHeaderCount;
     summary_rect.moveTopLeft(q->viewport()->rect().topLeft() + QPoint(cell_size.width()*leftmost_summary, cell_size.height()*topmost_summary));
-    summary_rect.setSize(QSize(cell_size.width() * vertical_header_count, cell_size.height() * horizontal_header_count));
+    summary_rect.setSize(QSize(cell_size.width() * adaptedVerticalHeaderCount, cell_size.height() * adaptedHorizontalHeaderCount));
     painter.drawRect(summary_rect);
     QRect text_rect(summary_rect);
     text_rect.translate(0, (summary_rect.height()-cell_size.height())/2); // Center vertically
