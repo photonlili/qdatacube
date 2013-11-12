@@ -5,8 +5,9 @@
 
 namespace qdatacube {
 
-CountFormatter::CountFormatter(QAbstractItemModel* underlying_model, qdatacube::DatacubeView* view)
-  : AbstractFormatter(underlying_model, view)
+CountFormatter::CountFormatter(QAbstractItemModel* underlying_model, qdatacube::DatacubeView* view, const double multiplier)
+  : AbstractFormatter(underlying_model, view),
+    m_multiplier(multiplier)
 {
     update(qdatacube::AbstractFormatter::CellSize);
     setName(tr("Count"));
@@ -14,7 +15,7 @@ CountFormatter::CountFormatter(QAbstractItemModel* underlying_model, qdatacube::
 }
 
 QString CountFormatter::format(QList< int > rows) const {
-  return QString::number(rows.size());
+  return QString::number(rows.size()*m_multiplier);
 }
 
 void CountFormatter::update(AbstractFormatter::UpdateType updateType) {
