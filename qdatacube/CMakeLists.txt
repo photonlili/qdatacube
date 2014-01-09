@@ -16,19 +16,7 @@ SET(QDATACUBE_SRC
   filterbyaggregate.cpp
 )
 
-QT4_AUTOMOC(${QDATACUBE_SRC})
-
-QT4_WRAP_CPP(MANUALLY_MOCED datacube_p.h datacubeselection_p.h datacubeview_p.h)
-
-include_directories(. ${CMAKE_CURRENT_BINARY_DIR} ${QT_QTCORE_INCLUDE_DIR} ${QT_QTGUI_INCLUDE_DIR})
-
-ADD_LIBRARY(qdatacube SHARED ${QDATACUBE_SRC} ${MANUALLY_MOCED})
-
-target_link_libraries(qdatacube ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
-SET(QDATACUBE_SO_VERSION 1)
-set_target_properties(qdatacube PROPERTIES VERSION "${QDATACUBE_SO_VERSION}.0.0" SOVERSION "${QDATACUBE_SO_VERSION}" DEFINE_SYMBOL BUILDING_QDATACUBE )
-
-SET(CONTAINERS_PUBLIC_HEADERS
+SET(QDATACUBE_PUBLIC_HEADERS
   columnaggregator.h
   datacube.h
   datacubeselection.h
@@ -38,30 +26,48 @@ SET(CONTAINERS_PUBLIC_HEADERS
   abstractfilter.h
   columnsumformatter.h
   countformatter.h
-  qdatacube_export.h
   filterbyaggregate.h
 )
 
+add_library(qdatacube SHARED ${QDATACUBE_SRC})
+target_link_libraries(qdatacube Qt5::Core Qt5::Widgets)
+target_compile_options(qdatacube PRIVATE -include QDebug)
+generate_export_header(qdatacube)
+
+set_property(TARGET qdatacube PROPERTY VERSION "${QDATACUBE_SO_VERSION}.0.0")
+set_property(TARGET qdatacube PROPERTY SOVERSION "${QDATACUBE_SO_VERSION}")
+
+install(TARGETS qdatacube EXPORT QDatacubeTargets
+    RUNTIME DESTINATION "bin" 
+    LIBRARY DESTINATION "lib"
+    INCLUDES DESTINATION "include"
+)
+
+install(FILES ${QDATACUBE_PUBLIC_HEADERS} ${CMAKE_CURRENT_BINARY_DIR}/qdatacube_export.h DESTINATION "include/qdatacube" )
+
+
+
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/QDatacubeConfigVersion.cmake VERSION ${QDATACUBE_VERSION} COMPATIBILITY SameMajorVersion )
+
+export(TARGETS qdatacube FILE "${CMAKE_CURRENT_BINARY_DIR}/QDatacubeTargets.cmake")
+
+
+set(ConfigPackageLocation lib/cmake/QDatacube)
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/QDatacubeConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/QDatacubeConfig.cmake"
+  @ONLY
+)
+
+install(EXPORT QDatacubeTargets 
+    FILE QDatacubeTargets.cmake
+    DESTINATION ${ConfigPackageLocation})
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/QDatacubeConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/QDatacubeConfig.cmake DESTINATION  ${ConfigPackageLocation})
+
+
+
 add_subdirectory(test)
 
-GET_TARGET_PROPERTY(LIB_OUT_NAME qdatacube LOCATION)
-GET_FILENAME_COMPONENT(LIB_OUT_NAME  ${LIB_OUT_NAME} NAME)
-
-# Create cmake files for install usage
-STRING(TOUPPER "${PROJECT_NAME}" PROJECT_NAME_UPPER)
-SET(INCLUDEPATH "${CMAKE_INSTALL_PREFIX}/include")
-SET(LIBPATH "${CMAKE_INSTALL_PREFIX}/lib")
-CONFIGURE_FILE(qdatacube-config.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/qdatacube-config.cmake" @ONLY)
-CONFIGURE_FILE(qdatacube-config-version.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/qdatacube-config-version.cmake" @ONLY)
-SET(INCLUDEPATH "${CMAKE_SOURCE_DIR}")
-SET(LIBPATH "${CMAKE_CURRENT_BINARY_DIR}")
-CONFIGURE_FILE(qdatacube-config.cmake.in "${CMAKE_BINARY_DIR}/qdatacube-config.cmake" @ONLY)
-CONFIGURE_FILE(qdatacube-config-version.cmake.in "${CMAKE_BINARY_DIR}/qdatacube-config-version.cmake" @ONLY)
-
-
-#Installation
-INSTALL(TARGETS qdatacube RUNTIME DESTINATION "bin" LIBRARY DESTINATION "lib")
-INSTALL(FILES ${CONTAINERS_PUBLIC_HEADERS} DESTINATION "include/qdatacube")
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/qdatacube-config.cmake
-              ${CMAKE_CURRENT_BINARY_DIR}/qdatacube-config-version.cmake
-        DESTINATION "lib/cmake/qdatacube")

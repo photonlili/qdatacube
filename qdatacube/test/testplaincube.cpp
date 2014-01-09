@@ -817,6 +817,7 @@ void testplaincube::test_section_to_header_section_and_back_again()
       QCOMPARE(datacube.toSection(Qt::Vertical, 0, h0), intpair_t(h1,h1+row0_header.span-1));
       for (int h1_end = h1+row0_header.span;h1 < h1_end; ++h1) {
         Datacube::HeaderDescription row1_header = row1_headers.at(h1);
+        Q_UNUSED(row1_header)
         Q_ASSERT(row1_header.span == 1); // If we split futher, we must be more clever)
         QCOMPARE(datacube.toHeaderSection(Qt::Vertical, 1, h1), h1);
         QCOMPARE(datacube.toHeaderSection(Qt::Vertical, 0, h1), h0);
@@ -835,6 +836,7 @@ void testplaincube::test_section_to_header_section_and_back_again()
       QCOMPARE(datacube.toSection(Qt::Horizontal, 0, h0), intpair_t(h1,h1+row0_header.span-1));
       for (int h1_end = h1+row0_header.span ;h1 < h1_end; ++h1) {
         Datacube::HeaderDescription row1_header = column1_headers.at(h1);
+        Q_UNUSED(row1_header)
         Q_ASSERT(row1_header.span == 1); // If we split futher, we must be more clever)
         QCOMPARE(datacube.toHeaderSection(Qt::Horizontal, 1, h1), h1);
         QCOMPARE(datacube.toHeaderSection(Qt::Horizontal, 0, h1), h0);

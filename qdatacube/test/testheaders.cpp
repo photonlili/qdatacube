@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
   app.exec();
 }
 
-void testheaders::slot_horizontal_context_menu(QPoint /*pos*/, int headerno, int /*category*/) {
+void testheaders::slot_horizontal_context_menu(const QPoint& /*pos*/, int headerno, int /*category*/) {
   QList<QAction*> actions = m_unused_aggregator_actions;
   if (headerno<0) {
     actions.removeAll(m_collapse_action);

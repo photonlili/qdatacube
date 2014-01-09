@@ -35,7 +35,7 @@ class testheaders : public danishnamecube_t {
     void slot_remove_data();
     void slot_global_filter_button_pressed();
 
-    void slot_horizontal_context_menu(QPoint pos, int headerno, int category);
+    void slot_horizontal_context_menu(const QPoint& pos, int headerno, int category);
     void slot_vertical_context_menu(const QPoint& pos, int headerno, int category);
     void summarize_weight();
   private:

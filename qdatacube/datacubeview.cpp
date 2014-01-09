@@ -6,8 +6,8 @@
 */
 
 #include "datacubeview.h"
-#include <QtGui/QHeaderView>
-#include <QtGui/QMouseEvent>
+#include <QMouseEvent>
+#include <QStyleOption>
 #include <QPainter>
 #include "datacube.h"
 #include "datacubeselection.h"

@@ -112,6 +112,7 @@ void ModelTest::nonDestructiveBasicTest()
     model->fetchMore(QModelIndex());
     fetchingMore = false;
     Qt::ItemFlags flags = model->flags(QModelIndex());
+    Q_UNUSED(flags)
     Q_ASSERT(flags == Qt::ItemIsDropEnabled || flags == 0);
     model->hasChildren(QModelIndex());
     model->hasIndex(0, 0);
@@ -191,6 +192,7 @@ void ModelTest::hasIndex()
 
     int rows = model->rowCount();
     int columns = model->columnCount();
+    Q_UNUSED(columns)
 
     // check out of bounds
     Q_ASSERT(model->hasIndex(rows, columns) == false);
@@ -215,6 +217,7 @@ void ModelTest::index()
 
     int rows = model->rowCount();
     int columns = model->columnCount();
+    Q_UNUSED(columns);
 
     if (rows == 0)
         return;
@@ -226,6 +229,8 @@ void ModelTest::index()
     // Make sure that the same index is *always* returned
     QModelIndex a = model->index(0, 0);
     QModelIndex b = model->index(0, 0);
+    Q_UNUSED(a);
+    Q_UNUSED(b);
     Q_ASSERT(a == b);
 
     // index() is tested more extensively in checkChildren(),
@@ -262,6 +267,7 @@ void ModelTest::parent()
         //qDebug("topIndex I %llx", topIndex.internalId());
         //qDebug("childIndex RCI %x %x %llx", childIndex.row(), childIndex.column(), childIndex.internalId());
         Q_ASSERT(model->parent(childIndex) == topIndex);
+        Q_UNUSED(childIndex);
     }
 
     // Common error test #3, the second column should NOT have the same children
@@ -270,7 +276,9 @@ void ModelTest::parent()
     QModelIndex topIndex1 = model->index(0, 1, QModelIndex());
     if (model->rowCount(topIndex1) > 0) {
         QModelIndex childIndex = model->index(0, 0, topIndex);
+        Q_UNUSED(childIndex);
         QModelIndex childIndex1 = model->index(0, 0, topIndex1);
+        Q_UNUSED(childIndex1);
         Q_ASSERT(childIndex != childIndex1);
     }
 
@@ -338,11 +346,14 @@ void ModelTest::checkChildren(const QModelIndex &parent, int currentDepth)
 
             // index() should always return the same index when called twice in a row
             QModelIndex modifiedIndex = model->index(r, c, parent);
+            Q_UNUSED(modifiedIndex);
             Q_ASSERT(index == modifiedIndex);
 
             // Make sure we get the same index if we request it twice in a row
             QModelIndex a = model->index(r, c, parent);
             QModelIndex b = model->index(r, c, parent);
+            Q_UNUSED(a);
+            Q_UNUSED(b);
             Q_ASSERT(a == b);
 
             // Some basic checking on the index that is returned
@@ -367,6 +378,7 @@ void ModelTest::checkChildren(const QModelIndex &parent, int currentDepth)
 
             // Check that we can get back our real parent.
             QModelIndex p = model->parent(index);
+            Q_UNUSED(p);
             //qDebug() << "child:" << index;
             //qDebug() << p;
             //qDebug() << parent;
@@ -380,6 +392,7 @@ void ModelTest::checkChildren(const QModelIndex &parent, int currentDepth)
 
             // make sure that after testing the children that the index doesn't change.
             QModelIndex newerIndex = model->index(r, c, parent);
+            Q_UNUSED(newerIndex);
             Q_ASSERT(index == newerIndex);
         }
     }
@@ -432,6 +445,7 @@ void ModelTest::data()
     QVariant textAlignmentVariant = model->data(model->index(0, 0), Qt::TextAlignmentRole);
     if (textAlignmentVariant.isValid()) {
         int alignment = textAlignmentVariant.toInt();
+        Q_UNUSED(alignment);
         Q_ASSERT(alignment == Qt::AlignLeft ||
                  alignment == Qt::AlignRight ||
                  alignment == Qt::AlignHCenter ||
@@ -460,6 +474,7 @@ void ModelTest::data()
     QVariant checkStateVariant = model->data(model->index(0, 0), Qt::CheckStateRole);
     if (checkStateVariant.isValid()) {
         int state = checkStateVariant.toInt();
+        Q_UNUSED(state);
         Q_ASSERT(state == Qt::Unchecked ||
                  state == Qt::PartiallyChecked ||
                  state == Qt::Checked);
@@ -491,6 +506,9 @@ void ModelTest::rowsInserted(const QModelIndex & parent, int start, int end)
 {
     Changing c = insert.pop();
     Q_ASSERT(c.parent == parent);
+    Q_UNUSED(parent);
+    Q_UNUSED(start);
+    Q_UNUSED(end);
     Q_ASSERT(c.oldSize + (end - start + 1) == model->rowCount(parent));
     Q_ASSERT(c.last == model->data(model->index(start - 1, 0, c.parent)));
     /*
@@ -541,6 +559,9 @@ void ModelTest::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int e
  */
 void ModelTest::rowsRemoved(const QModelIndex & parent, int start, int end)
 {
+    Q_UNUSED(parent);
+    Q_UNUSED(end);
+    Q_UNUSED(start);
     Changing c = remove.pop();
     Q_ASSERT(c.parent == parent);
     Q_ASSERT(c.oldSize - (end - start + 1) == model->rowCount(parent));
