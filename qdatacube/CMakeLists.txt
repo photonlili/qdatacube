@@ -40,6 +40,7 @@ set_property(TARGET qdatacube PROPERTY SOVERSION "${QDATACUBE_SO_VERSION}")
 install(TARGETS qdatacube EXPORT QDatacubeTargets
     RUNTIME DESTINATION "bin" 
     LIBRARY DESTINATION "lib"
+    ARCHIVE DESTINATION "lib"
     INCLUDES DESTINATION "include"
 )
 
