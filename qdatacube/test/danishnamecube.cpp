@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QStandardItemModel>
 #include <QDebug>
+#include <QtTest/QTest>
 
 #include "columnaggregator.h"
 #include "datacube.h"
@@ -49,8 +50,9 @@ int danishnamecube_t::printdatacube(const qdatacube::Datacube* datacube) {
 }
 
 void danishnamecube_t::load_model_data(QString filename) {
-  QFile data(QString(DATADIR)+"/"+filename);
-  data.open(QIODevice::ReadOnly);
+    QString datapath = QFINDTESTDATA("data/"+filename);
+    QFile data(datapath);
+    data.open(QIODevice::ReadOnly);
   while (!data.atEnd()) {
     QString line = QString::fromLocal8Bit(data.readLine());
     QStringList columns = line.split(' ');

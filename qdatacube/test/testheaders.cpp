@@ -27,6 +27,8 @@
 #include <qmenubar.h>
 #include "columnsumformatter.h"
 #include <countformatter.h>
+#include <QDebug>
+#include <QtTest/QTest>
 
 using namespace qdatacube;
 
@@ -161,7 +163,8 @@ void testheaders::slot_set_filter() {
 }
 
 void testheaders::slot_insert_data() {
-  QFile data(DATADIR "/100extra.txt");
+    QString datapath = QFINDTESTDATA("data/100extra.txt");
+  QFile data(datapath);
   data.open(QIODevice::ReadOnly);
   int n=0;
   while (!data.atEnd()) {
