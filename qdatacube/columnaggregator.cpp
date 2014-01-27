@@ -53,6 +53,9 @@ int ColumnAggregator::categoryCount() const {
 }
 
 QVariant ColumnAggregator::categoryHeaderData(int category, int role) const {
+    if(category >= d->categories.size()) {
+        return QVariant();
+    }
     if(role == Qt::DisplayRole) {
         return d->categories.at(category);
     }
