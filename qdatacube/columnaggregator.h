@@ -18,6 +18,22 @@
 class QModelIndex;
 namespace qdatacube {
 
+/**
+ * \brief Aggregates based on contents in a given column in the underlying model.
+ *
+ * Aggregation happens based on unique string content in the given column.
+ *
+ * For example, a column with a content like
+ *
+ * London
+ * Newcastle
+ * London
+ * York
+ *
+ * will report 3 categories, and place row 0 and 2 in the London category, row 1
+ * in the Newcastle category and row 3 in the York category.
+ */
+
 class ColumnAggregatorPrivate;
 class QDATACUBE_EXPORT ColumnAggregator : public AbstractAggregator {
     Q_OBJECT
