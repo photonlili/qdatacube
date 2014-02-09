@@ -27,7 +27,7 @@ class AbstractAggregatorPrivate;
 class QDATACUBE_EXPORT AbstractAggregator : public QObject {
     Q_OBJECT
     public:
-        typedef QSharedPointer<AbstractAggregator> Ptr ;
+        typedef QSharedPointer<AbstractAggregator> Ptr;
         explicit AbstractAggregator(QAbstractItemModel* model);
 
         /**
