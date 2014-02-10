@@ -3,8 +3,6 @@
 
 #include "abstractfilter.h"
 
-template<class T >
-class QSharedPointer;
 class QAbstractItemModel;
 
 namespace qdatacube {
@@ -18,8 +16,7 @@ class MultiFilterPrivate;
 class QDATACUBE_EXPORT MultiFilter : public AbstractFilter {
     Q_OBJECT
     public:
-        typedef QSharedPointer<MultiFilter> Ptr;
-        explicit MultiFilter();
+        explicit MultiFilter(QAbstractItemModel* underlyingModel);
 
         /**
          * @return true if row is to be included
@@ -30,22 +27,8 @@ class QDATACUBE_EXPORT MultiFilter : public AbstractFilter {
          * adds a filter
          * Note: all filters need to share the same underlyingModel
          */
-        void addFilter(AbstractFilter* filter);
+        void addFilter(AbstractFilter::Ptr filter);
 
-        /**
-         * @return name of filter
-         */
-        QString name() const ;
-
-        /**
-         * @return short name of filter (for corner label)
-         */
-        QString shortName() const;
-
-        /**
-         * @return underlying model
-         */
-        QAbstractItemModel* underlyingModel() const;
         /**
          * dtor
          */
