@@ -17,12 +17,12 @@ void MultiFilter::addFilter(AbstractFilter* filter) {
 }
 
 bool MultiFilter::operator()(int row) const {
-    Q_ASSERT(d->m_filterComponents.length() > 0);
-    bool rv = d->m_filterComponents.at(0)->operator()(row);
-    for(int i = 1; i < d->m_filterComponents.length(); ++i) {
-        rv |= d->m_filterComponents.at(i)->operator()(row);
+    Q_FOREACH(AbstractFilter* filter, d->m_filterComponents) {
+       if((*filter)(row))  {
+           return true;
+       }
     }
-    return rv;
+    return false;
 }
 
 QAbstractItemModel* MultiFilter::underlyingModel() const {
