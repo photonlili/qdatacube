@@ -51,10 +51,10 @@ QAction* testheaders::create_aggregator_action(AbstractAggregator::Ptr aggregato
   return rv;
 }
 
-void testheaders::add_global_filter_bottoms(AbstractAggregator::Ptr aggregator, QLayout* layout) {
+void testheaders::add_filter_button(AbstractAggregator::Ptr aggregator, QLayout* layout) {
   QWidget* top = new QWidget(layout->widget());
   layout->addWidget(top);
-  QBoxLayout* lay = new QVBoxLayout(top);
+  QBoxLayout* lay = new QVBoxLayout();
   for(int cat = 0; cat < aggregator->categoryCount() ; cat++) {
       QString catText = aggregator->categoryHeaderData(cat).toString();
     QPushButton* button = new QPushButton(catText, top);
@@ -62,20 +62,21 @@ void testheaders::add_global_filter_bottoms(AbstractAggregator::Ptr aggregator, 
     button->setProperty("section", cf->section());
     button->setProperty("categoryno", cat);
     lay->addWidget(button);
-    connect(button, SIGNAL(clicked(bool)), SLOT(slot_global_filter_button_pressed()));
+    connect(button, SIGNAL(clicked(bool)), SLOT(slot_filter_button_pressed()));
   }
   lay->addStretch();
+  top->setLayout(lay);
 
 }
 
-void testheaders::slot_global_filter_button_pressed() {
+void testheaders::slot_filter_button_pressed() {
   QObject* s = sender();
   if (s->property("clear").toBool()) {
-    m_datacube->resetGlobalFilter();
+    m_datacube->resetFilter();
   } else {
     int section = s->property("section").toInt();
     int categoryno = s->property("categoryno").toInt();
-    m_datacube->addGlobalFilter(AbstractFilter::Ptr(new FilterByAggregate(qdatacube::AbstractAggregator::Ptr(new ColumnAggregator(m_underlying_model, section)), categoryno)));
+    m_datacube->addFilter(AbstractFilter::Ptr(new FilterByAggregate(qdatacube::AbstractAggregator::Ptr(new ColumnAggregator(m_underlying_model, section)), categoryno)));
   }
 }
 
@@ -93,21 +94,9 @@ void testheaders::createtableview() {
   top->resize(1600, 1000);
   top->show();
   QTimer::singleShot(500, this, SLOT(slot_set_model()));
-  QDockWidget* global_filters = new QDockWidget("Global filters", top);
-  top->addDockWidget(Qt::LeftDockWidgetArea,global_filters);
-  QWidget* gfcw = new QScrollArea(global_filters);
-  global_filters->setWidget(gfcw);
-  QBoxLayout* gfml = new QHBoxLayout(gfcw);
-  QPushButton*  clear_button = new QPushButton("clear", gfcw);
-  clear_button->setProperty("clear", true);
-  connect(clear_button, SIGNAL(clicked(bool)), SLOT(slot_global_filter_button_pressed()));
-  gfml->addWidget(clear_button);
-  add_global_filter_bottoms(first_name_aggregator, gfml);
-  add_global_filter_bottoms(last_name_aggregator, gfml);
-  add_global_filter_bottoms(sex_aggregator, gfml);
-  add_global_filter_bottoms(age_aggregator, gfml);
-  add_global_filter_bottoms(weight_aggregator, gfml);
-  add_global_filter_bottoms(kommune_aggregator, gfml);
+  QDockWidget* filters = new QDockWidget("Filters", top);
+  top->addDockWidget(Qt::LeftDockWidgetArea,filters);
+  QScrollArea* scroll = new QScrollArea();
 
   QDockWidget* underlying_view = new QDockWidget("Underlying model", top);
   top->addDockWidget(Qt::RightDockWidgetArea, underlying_view);
@@ -120,7 +109,6 @@ void testheaders::createtableview() {
   m_underlying_table_view->setSortingEnabled(true);
   m_view->datacubeSelection()->synchronizeWith(m_underlying_table_view->selectionModel());
 
-
   QDockWidget* second_dc = new QDockWidget("Second datacube");
   top->addDockWidget(Qt::BottomDockWidgetArea, second_dc);
   DatacubeView* second_view = new DatacubeView(second_dc);
@@ -131,6 +119,26 @@ void testheaders::createtableview() {
   second_dc->setWidget(second_view);
   QAction* sum_weight = top->menuBar()->addAction("Summarize over weight");
   connect(sum_weight, SIGNAL(triggered(bool)), SLOT(summarize_weight()));
+
+  QWidget* gfcw = new QWidget();
+  QBoxLayout* gfml = new QHBoxLayout();
+  gfcw->setLayout(gfml);
+
+  QPushButton*  clear_button = new QPushButton("clear", gfcw);
+  clear_button->setProperty("clear", true);
+  connect(clear_button, SIGNAL(clicked(bool)), SLOT(slot_filter_button_pressed()));
+  gfml->addWidget(clear_button);
+
+  add_filter_button(first_name_aggregator, gfml);
+  add_filter_button(last_name_aggregator, gfml);
+  add_filter_button(sex_aggregator, gfml);
+  add_filter_button(age_aggregator, gfml);
+  add_filter_button(weight_aggregator, gfml);
+  add_filter_button(kommune_aggregator, gfml);
+
+  scroll->setWidget(gfcw);
+
+  filters->setWidget(scroll);
 }
 
 void testheaders::slot_set_model() {
@@ -157,8 +165,8 @@ void testheaders::slot_set_data() {
 void testheaders::slot_set_filter() {
   static int count = 0;
   AbstractAggregator::Ptr aggregator(new ColumnAggregator(m_underlying_model, SEX));
-  m_datacube->resetGlobalFilter();
-  m_datacube->addGlobalFilter(AbstractFilter::Ptr(new FilterByAggregate(aggregator, (count++%2))));
+  m_datacube->resetFilter();
+  m_datacube->addFilter(AbstractFilter::Ptr(new FilterByAggregate(aggregator, (count++%2))));
   QTimer::singleShot(2000, this, SLOT(slot_set_filter()));
 }
 

@@ -150,8 +150,7 @@ int DatacubePrivate::bucket_to_row(int bucket_row) const {
 }
 DatacubePrivate::DatacubePrivate(Datacube* datacube, const QAbstractItemModel* model) :
                                q(datacube),
-                               model(model),
-                               global_filters()
+                               model(model)
 {
   col_counts = QVector<unsigned>(1);
   row_counts = QVector<unsigned>(1);
@@ -161,8 +160,7 @@ DatacubePrivate::DatacubePrivate(Datacube* datacube, const QAbstractItemModel* m
                                AbstractAggregator::Ptr row_aggregator,
                                AbstractAggregator::Ptr column_aggregator) :
     q(datacube),
-    model(model),
-    global_filters()
+    model(model)
 {
   col_aggregators << column_aggregator;
   row_aggregators << row_aggregator;
@@ -209,7 +207,7 @@ Datacube::Datacube(const QAbstractItemModel* model, QObject* parent)
 }
 
 
-void Datacube::addGlobalFilter(AbstractFilter::Ptr filter) {
+void Datacube::addFilter(AbstractFilter::Ptr filter) {
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
@@ -223,19 +221,19 @@ void Datacube::addGlobalFilter(AbstractFilter::Ptr filter) {
       d->remove(row);
     }
   }
-  d->global_filters << filter;
-  emit globalFilterChanged();
+  d->filters << filter;
+  emit filterChanged();
 #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
 }
 
-bool Datacube::removeGlobalFilter(AbstractFilter::Ptr filter)
+bool Datacube::removeFilter(AbstractFilter::Ptr filter)
 {
-  for (GlobalFilters::iterator it = d->global_filters.begin(), iend = d->global_filters.end(); it != iend; ++it) {
+  for (Filters::iterator it = d->filters.begin(), iend = d->filters.end(); it != iend; ++it) {
     if (*it == filter) {
-      GlobalFilters::value_type removed_filter = *it;
-      d->global_filters.erase(it);
+      Filters::value_type removed_filter = *it;
+      d->filters.erase(it);
       for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
         if (d->filtered_in(row)) {
           const bool excluded = !(*filter)(row);
@@ -244,7 +242,7 @@ bool Datacube::removeGlobalFilter(AbstractFilter::Ptr filter)
           }
         }
       }
-      emit globalFilterChanged();
+      emit filterChanged();
       return true;
     }
   }
@@ -257,8 +255,8 @@ void Datacube::check() const {
   const int nelements = d->model->rowCount();
   for (int i=0; i<nelements;  ++i) {
     bool included = true;
-    for (int filter_index=0, last_filter_index = d->global_filters.size()-1; filter_index<=last_filter_index; ++filter_index) {
-      GlobalFilters::const_reference filter = d->global_filters.at(filter_index);
+    for (int filter_index=0, last_filter_index = d->filters.size()-1; filter_index<=last_filter_index; ++filter_index) {
+      Filters::const_reference filter = d->filters.at(filter_index);
       if (!(*filter)(i)) {
         included = false;
         break;
@@ -296,18 +294,18 @@ void Datacube::check() const {
     qDebug() << "check done" << failcols << failrows;
 }
 
-void Datacube::resetGlobalFilter() {
-  if (d->global_filters.empty()) {
+void Datacube::resetFilter() {
+  if (d->filters.empty()) {
     return;
   }
-  d->global_filters.clear();
+  d->filters.clear();
   for (int row = 0, nrows = d->model->rowCount(); row<nrows; ++row) {
     const bool was_included = d->reverse_index.contains(row);
     if (!was_included) {
       d->add(row);
     }
   }
-  emit globalFilterChanged();
+  emit filterChanged();
 
 }
 
@@ -705,8 +703,8 @@ void DatacubePrivate::bucket_for_element(int element, Cell& result) const {
   result = reverse_index.value(element);
 }
 
-Datacube::GlobalFilters Datacube::globalFilters() const {
-  return d->global_filters;
+Datacube::Filters Datacube::filters() const {
+  return d->filters;
 }
 
 const QAbstractItemModel* qdatacube::Datacube::underlyingModel() const {
@@ -895,7 +893,7 @@ int qdatacube::Datacube::categoryIndex(Qt::Orientation orientation, int header_i
 }
 
 bool qdatacube::DatacubePrivate::filtered_in(int element) const {
-  Q_FOREACH(Datacube::GlobalFilters::value_type filter, global_filters) {
+  Q_FOREACH(Datacube::Filters::value_type filter, filters) {
     if (!(*filter)(element)) {
       return false;
     }

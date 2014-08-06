@@ -1,21 +1,21 @@
-#include "multifilter.h"
+#include "orfilter.h"
 #include <QSharedPointer>
 
 namespace qdatacube {
-class MultiFilterPrivate {
+class OrFilterPrivate {
 public:
-    MultiFilterPrivate() {};
+    OrFilterPrivate() {};
     QList<AbstractFilter::Ptr> m_filterComponents;
 };
 
-MultiFilter::MultiFilter(QAbstractItemModel* underlyingModel): AbstractFilter(underlyingModel), d(new MultiFilterPrivate()) {}
+OrFilter::OrFilter(QAbstractItemModel* underlyingModel): AbstractFilter(underlyingModel), d(new OrFilterPrivate()) {}
 
-void MultiFilter::addFilter(AbstractFilter::Ptr filter) {
+void OrFilter::addFilter(AbstractFilter::Ptr filter) {
     Q_ASSERT(filter->underlyingModel() == underlyingModel());
     d->m_filterComponents.append(filter);
 }
 
-bool MultiFilter::operator()(int row) const {
+bool OrFilter::operator()(int row) const {
     Q_FOREACH(AbstractFilter::Ptr filter, d->m_filterComponents) {
        if((*filter)(row))  {
            return true;
@@ -24,8 +24,8 @@ bool MultiFilter::operator()(int row) const {
     return false;
 }
 
-MultiFilter::~MultiFilter() {}
+OrFilter::~OrFilter() {}
 
 }
 
-#include "multifilter.moc"
+#include "orfilter.moc"

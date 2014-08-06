@@ -51,7 +51,7 @@ class DatacubePrivate : public QObject {
         QVector<unsigned> row_counts;
         QVector<unsigned> col_counts;
         typedef QHash<long, QList<int> > cells_t;
-        Datacube::GlobalFilters global_filters;
+        Datacube::Filters filters;
         typedef QHash<int, Cell> reverse_index_t;
         reverse_index_t reverse_index;
         QList<DatacubeSelection*> selection_models;
@@ -110,7 +110,7 @@ class DatacubePrivate : public QObject {
         void add_selection_model(DatacubeSelection* selection);
 
         /**
-        * @returns true if included by the current set of global filters
+        * @returns true if included by the current set of filters
         */
         bool filtered_in(int element) const;
     public Q_SLOTS:

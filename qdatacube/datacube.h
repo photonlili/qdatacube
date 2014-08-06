@@ -159,20 +159,20 @@ class QDATACUBE_EXPORT Datacube : public QObject {
         int categoryIndex(Qt::Orientation orientation, int header_index, int section) const;
 
         /**
-         * Add global filter.
+         * Add filter.
          */
-        void addGlobalFilter(AbstractFilter::Ptr filter);
+        void addFilter(AbstractFilter::Ptr filter);
 
         /**
-         * Remove all global filters
+         * Remove all filters
          */
-        void resetGlobalFilter();
+        void resetFilter();
 
         /**
-         * Remove global filter from list
+         * Remove filter from list
          * \return true if filter was found and removed, and false if not found
          */
-        bool removeGlobalFilter(AbstractFilter::Ptr filter);
+        bool removeFilter(AbstractFilter::Ptr filter);
 
         /**
          * Split header with aggregator.
@@ -199,18 +199,19 @@ class QDATACUBE_EXPORT Datacube : public QObject {
         int sectionForElement(int element, Qt::Orientation orientation) const;
 
         /**
-         * @return the current section for the element (which might be wrong if you are listening to e.g. rows_about_to_be_removed)
+         * @return the current section for the element (which might be wrong if you are listening to e.g. rowsAboutToBeRemoved)
+         * Used for tests.
          * TODO: Find a better name for this.
          */
         int internalSection(int element, Qt::Orientation orientation) const;
 
-        typedef QList< AbstractFilter::Ptr > GlobalFilters;
+        typedef QList< AbstractFilter::Ptr > Filters;
         typedef QList< AbstractAggregator::Ptr > Aggregators;
 
         /**
-         * @return Return all global filters in effect with their categories
+         * @return Return all filters in effect with their categories
          */
-        GlobalFilters globalFilters() const;
+        Filters filters() const;
 
         /**
          * @return list of column aggregators, in order
@@ -300,9 +301,9 @@ class QDATACUBE_EXPORT Datacube : public QObject {
         void reset();
 
         /**
-         * Global filtering changed
+         * filtering changed
          */
-        void globalFilterChanged();
+        void filterChanged();
 
     private:
         QScopedPointer<DatacubePrivate> d;

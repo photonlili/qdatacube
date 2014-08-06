@@ -33,7 +33,7 @@ class testheaders : public danishnamecube_t {
     void slot_set_data();
     void slot_insert_data();
     void slot_remove_data();
-    void slot_global_filter_button_pressed();
+    void slot_filter_button_pressed();
 
     void slot_horizontal_context_menu(const QPoint& pos, int headerno, int category);
     void slot_vertical_context_menu(const QPoint& pos, int headerno, int category);
@@ -41,7 +41,7 @@ class testheaders : public danishnamecube_t {
   private:
     qdatacube::Datacube* m_datacube;
     qdatacube::DatacubeView* m_view;
-    void add_global_filter_bottoms(qdatacube::AbstractAggregator::Ptr filter, QLayout* layout);
+    void add_filter_button(qdatacube::AbstractAggregator::Ptr filter, QLayout* layout);
     QAction* create_aggregator_action(qdatacube::AbstractAggregator::Ptr aggregator);
     QAction* m_collapse_action;
     QList<QAction*> m_col_used_aggregator_actions;

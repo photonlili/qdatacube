@@ -326,13 +326,13 @@ void testplaincube::test_autocollapse() {
 
 }
 
-void testplaincube::test_global_filter() {
+void testplaincube::test_filter() {
   Datacube datacube(m_underlying_model, first_name_aggregator, last_name_aggregator);
   int fourty_cat = findCategoryIndexForString(age_aggregator, "40");
   QVERIFY(fourty_cat != -1);
 
   // Set age filter to include 40-years old only (Expect one result, "Einar Madsen"
-  datacube.addGlobalFilter(AbstractFilter::Ptr(new FilterByAggregate(age_aggregator, fourty_cat)));
+  datacube.addFilter(AbstractFilter::Ptr(new FilterByAggregate(age_aggregator, fourty_cat)));
   QCOMPARE(datacube.rowCount(),1);
   QCOMPARE(datacube.columnCount(),1);
   QList<int> rows = datacube.elements(0,0);
@@ -342,9 +342,9 @@ void testplaincube::test_global_filter() {
   QCOMPARE(m_underlying_model->data(m_underlying_model->index(row, LAST_NAME)).toString(), QString::fromLocal8Bit("Madsen"));
   // Set age filter to include 41-years old only (Expect one result, "Rigmor Jensen", weighting 76
   int fourtyone_cat = findCategoryIndexForString(age_aggregator, "41");
-  datacube.resetGlobalFilter();
-  AbstractFilter::Ptr global_filter(AbstractFilter::Ptr( new FilterByAggregate(age_aggregator, fourtyone_cat)));
-  datacube.addGlobalFilter(global_filter);
+  datacube.resetFilter();
+  AbstractFilter::Ptr filter(AbstractFilter::Ptr( new FilterByAggregate(age_aggregator, fourtyone_cat)));
+  datacube.addFilter(filter);
   QCOMPARE(datacube.rowCount(),1);
   QCOMPARE(datacube.columnCount(),1);
   rows = datacube.elements(0,0);
@@ -355,8 +355,8 @@ void testplaincube::test_global_filter() {
   QCOMPARE(m_underlying_model->data(m_underlying_model->index(row, WEIGHT)).toString(), QString::fromLocal8Bit("76"));
   // Get all with that weight (besides Rigmor Jensen, this includes Lulu Petersen)
   int seventysix = findCategoryIndexForString(weight_aggregator, "76");
-  datacube.removeGlobalFilter(global_filter);
-  datacube.addGlobalFilter(AbstractFilter::Ptr(new FilterByAggregate(weight_aggregator, seventysix)));
+  datacube.removeFilter(filter);
+  datacube.addFilter(AbstractFilter::Ptr(new FilterByAggregate(weight_aggregator, seventysix)));
   QCOMPARE(datacube.rowCount(),2);
   QCOMPARE(datacube.columnCount(),2);
   rows = datacube.elements(1,0);

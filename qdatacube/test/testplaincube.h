@@ -80,9 +80,9 @@ class testplaincube : public danishnamecube_t {
     void test_deep_header();
 
     /**
-     * Test global filter
+     * Test filter
      */
-    void test_global_filter();
+    void test_filter();
 
     /**
      * Test reverse index

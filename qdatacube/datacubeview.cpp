@@ -104,7 +104,7 @@ void DatacubeView::setDatacube(Datacube* datacube) {
   connect(datacube, SIGNAL(rowsInserted(int, int)), d.data(), SLOT(relayout()));
   connect(datacube, SIGNAL(columnsRemoved(int, int)), d.data(), SLOT(relayout()));
   connect(datacube, SIGNAL(rowsRemoved(int, int)), d.data(), SLOT(relayout()));
-  connect(datacube, SIGNAL(globalFilterChanged()), d.data(), SLOT(relayout()));
+  connect(datacube, SIGNAL(filterChanged()), d.data(), SLOT(relayout()));
   d->relayout();
 }
 
@@ -170,13 +170,13 @@ void DatacubeViewPrivate::paint_datacube(QPaintEvent* event) const {
   painter.setBrush(q->palette().button());
   painter.setPen(q->palette().color(QPalette::WindowText));
 
-  // Draw global filter corner, if applicable
+  // Draw filter corner, if applicable
   QRect cornerRect(options.rect.topLeft(), QSize(vertical_header_width,horizontal_header_height));
   painter.drawRect(cornerRect);
   painter.setPen(q->palette().buttonText().color());
-  if (AbstractFilter::Ptr global_filter = datacube->globalFilters().value(0)) {
-    QString global_category = global_filter->shortName();
-    painter.drawText(cornerRect.adjusted(1, 1, -1, -1), Qt::AlignCenter, global_category);
+  if (AbstractFilter::Ptr first_filter = datacube->filters().value(0)) {
+    QString first_filter_category = first_filter->shortName();
+    painter.drawText(cornerRect.adjusted(1, 1, -1, -1), Qt::AlignCenter, first_filter_category);
   }
 
 

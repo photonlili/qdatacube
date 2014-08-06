@@ -6,6 +6,7 @@ SET(QDATACUBE_SRC
   abstractfilter.cpp
   abstractaggregator.cpp
   abstractformatter.cpp
+  andfilter.cpp
   cell.cpp
   columnaggregator.cpp
   columnsumformatter.cpp
@@ -14,10 +15,11 @@ SET(QDATACUBE_SRC
   datacubeselection.cpp
   datacubeview.cpp
   filterbyaggregate.cpp
-  multifilter.cpp
+  orfilter.cpp
 )
 
 SET(QDATACUBE_PUBLIC_HEADERS
+  andfilter.h
   columnaggregator.h
   datacube.h
   datacubeselection.h
@@ -28,7 +30,7 @@ SET(QDATACUBE_PUBLIC_HEADERS
   columnsumformatter.h
   countformatter.h
   filterbyaggregate.h
-  multifilter.h
+  orfilter.h
 )
 
 add_library(qdatacube SHARED ${QDATACUBE_SRC})
