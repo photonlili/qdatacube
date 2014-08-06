@@ -28,4 +28,4 @@ AndFilter::~AndFilter() {}
 
 }
 
-#include "orfilter.moc"
+#include "andfilter.moc"

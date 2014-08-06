@@ -1,5 +1,5 @@
-#ifndef OR_FILTER_H
-#define OR_FILTER_H
+#ifndef AND_FILTER_H
+#define AND_FILTER_H
 
 #include "abstractfilter.h"
 
@@ -12,10 +12,10 @@ class AndFilterPrivate;
  * A filter allowing multiple filters to be combined, by AND'ing the
  * result of their operator().
  */
-class QDATACUBE_EXPORT OrFilter : public AbstractFilter {
+class QDATACUBE_EXPORT AndFilter : public AbstractFilter {
     Q_OBJECT
     public:
-        explicit OrFilter(QAbstractItemModel* underlyingModel);
+        explicit AndFilter(QAbstractItemModel* underlyingModel);
 
         /**
          * @return true if row is to be included
@@ -37,4 +37,4 @@ class QDATACUBE_EXPORT OrFilter : public AbstractFilter {
 
 };
 }
-#endif // OR_FILTER_H
+#endif // AND_FILTER_H
