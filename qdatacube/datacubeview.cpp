@@ -623,10 +623,12 @@ void DatacubeView::mouseMoveEvent(QMouseEvent* event) {
 void DatacubeView::mouseReleaseEvent(QMouseEvent* event) {
   QAbstractScrollArea::mouseReleaseEvent(event);
   if (!d->selection_area.isNull()) {
+    QList<int> elementsToinclude;
     for (int r = d->selection_area.left(); r <= d->selection_area.right(); ++r) {
       for (int c = d->selection_area.top(); c <= d->selection_area.bottom(); ++c) {
         if (r >= 0 && c >= 0 && r < d->datacube_size.height() && c < d->datacube_size.width()) {
-          d->selection->addCell(r, c);
+          QList<int> raw_elements = d->datacube->elements(r,c);
+          elementsToinclude << raw_elements;
         } else {
           if (c >= d->datacube_size.width()) {
             //
@@ -636,6 +638,9 @@ void DatacubeView::mouseReleaseEvent(QMouseEvent* event) {
 
         }
       }
+    }
+    if(!elementsToinclude.isEmpty()) {
+      d->selection->addElements(elementsToinclude);
     }
   } else {
     Cell release = d->cell_for_position(event->pos(), verticalScrollBar()->value(), horizontalScrollBar()->value());
