@@ -23,6 +23,24 @@ FilterByAggregate::FilterByAggregate(AbstractAggregator::Ptr aggregator, int cat
   setName(d->m_aggregator->name() + "=" + d->m_aggregator->categoryHeaderData(d->m_categoryIndex).toString());
 }
 
+/**
+ * utility function to find the index corresponding to a category
+ */
+int categoryToIndex(const AbstractAggregator::Ptr aggregator, const QVariant& category) {
+    int categoryIndex = -1;
+    for(int i = 0 ; i < aggregator->categoryCount(); i++ ) {
+        if(aggregator->categoryHeaderData(i) == category ) {
+            categoryIndex = i;
+            break;
+        }
+    }
+    return categoryIndex;
+}
+
+FilterByAggregate::FilterByAggregate(AbstractAggregator::Ptr aggregator, const QVariant& category):
+  FilterByAggregate(aggregator, categoryToIndex(aggregator, category)) {}
+
+
 bool FilterByAggregate::operator()(int row) const {
   return ((*(d->m_aggregator))(row) == d->m_categoryIndex);
 }

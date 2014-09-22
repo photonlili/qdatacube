@@ -12,6 +12,7 @@ class QDATACUBE_EXPORT  FilterByAggregate : public AbstractFilter {
     Q_OBJECT
     public:
         FilterByAggregate(AbstractAggregator::Ptr aggregator, int category_index);
+        FilterByAggregate(AbstractAggregator::Ptr aggregator, const QVariant& category);
 
         virtual bool operator()(int row) const;
 
