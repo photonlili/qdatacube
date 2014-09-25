@@ -791,6 +791,7 @@ void qdatacube::DatacubePrivate::aggregator_category_added(qdatacube::AbstractAg
   const Datacube::Aggregators& parallel_aggregators = orientation == Qt::Horizontal ? col_aggregators : row_aggregators;
   QVector<unsigned>& new_parallel_counts = orientation == Qt::Horizontal ? col_counts : row_counts;
   const int normal_count = orientation == Qt::Horizontal ? row_counts.size() : col_counts.size();
+  const QVector<unsigned>& normal_parallel_counts = orientation == Qt::Horizontal ? row_counts : col_counts;
   const QVector<unsigned> old_parallel_counts = new_parallel_counts;
   DatacubePrivate::cells_t old_cells = cells;
   int nsuper_categories = 1;
@@ -807,20 +808,28 @@ void qdatacube::DatacubePrivate::aggregator_category_added(qdatacube::AbstractAg
   if (!reverse_index.empty()) { // If there is no elements in the recap, it is possible some of the aggregators have no categories.
     const int old_ncats = new_ncats - 1;
     const int stride = old_parallel_counts.size()/old_ncats/nsuper_categories;
-    Q_ASSERT(stride*nsuper_categories*old_ncats == old_parallel_counts.size());
     reverse_index.clear();
     for (int normal_index=0; normal_index<normal_count; ++normal_index) {
+        if(normal_parallel_counts[normal_index] == 0) {
+            continue;
+        }
       for (int super_index=0; super_index<nsuper_categories; ++super_index) {
         for (int category_index=0; category_index<old_ncats; ++category_index) {
           for (int sub_index=0; sub_index<stride; ++sub_index) {
             const int old_p = super_index*stride*old_ncats + category_index*stride + sub_index;
+            if(old_parallel_counts[old_p] == 0) {
+                continue;
+            }
             const int new_category_index = index<=category_index ? category_index+1 : category_index;
             const int p = super_index*stride*new_ncats + new_category_index*stride + sub_index;
-            setCell(orientation == Qt::Horizontal ? CellPoint(normal_index, p) : CellPoint(p, normal_index),
-                orientation == Qt::Horizontal ? old_cells.value(normal_index+ old_p*normal_count) : old_cells.value(normal_index*old_parallel_counts.size()+old_p));
             new_parallel_counts[p] = old_parallel_counts[old_p];
-            Q_FOREACH(int element, orientation == Qt::Horizontal ? cell(normal_index, p) : cell(p, normal_index) ) {
-              reverse_index.insert(element, orientation == Qt::Horizontal ? Cell(normal_index,p) : Cell(p, normal_index));
+            const QList<int>& values = orientation == Qt::Horizontal ? old_cells.value(normal_index+ old_p*normal_count) : old_cells.value(normal_index*old_parallel_counts.size()+old_p);
+            if(!values.isEmpty()) {
+                setCell(orientation == Qt::Horizontal ? CellPoint(normal_index, p) : CellPoint(p, normal_index),
+                    values);
+                Q_FOREACH(int element,  values) {
+                    reverse_index.insert(element, orientation == Qt::Horizontal ? Cell(normal_index,p) : Cell(p, normal_index));
+                }
             }
           }
         }
@@ -836,6 +845,7 @@ void qdatacube::DatacubePrivate::aggregator_category_removed(qdatacube::Abstract
   const Datacube::Aggregators& parallel_aggregators = orientation == Qt::Horizontal ? col_aggregators : row_aggregators;
   QVector<unsigned>& new_parallel_counts = orientation == Qt::Horizontal ? col_counts : row_counts;
   const int normal_count = orientation == Qt::Horizontal ? row_counts.size() : col_counts.size();
+  const QVector<unsigned>& normal_parallel_counts = orientation == Qt::Horizontal ? row_counts : col_counts;
   const QVector<unsigned> old_parallel_counts = new_parallel_counts;
   DatacubePrivate::cells_t old_cells = cells;
   int nsuper_categories = 1;
