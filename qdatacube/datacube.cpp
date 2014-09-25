@@ -204,7 +204,7 @@ Datacube::Datacube(const QAbstractItemModel* model, QObject* parent)
   for (int element = 0, nelements = model->rowCount(); element < nelements; ++element) {
     d->add(element);
   }
-  #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   check();
 #endif
 }
@@ -281,7 +281,7 @@ void Datacube::check() const {
       col_count += nelements;
     }
     if (col_count != d->col_counts[c]) {
-      qDebug() << col_count << "!=" << d->col_counts[c];
+      qDebug() << "col" << "found, expected" << col_count << "!=" << d->col_counts[c];
       failcols++;
       Q_ASSERT(col_count == d->col_counts[c]);
     }
@@ -290,6 +290,7 @@ void Datacube::check() const {
   Q_ASSERT_X(count == total_count, __func__, QString("%1 == %2").arg(count).arg(total_count).toLocal8Bit().data());
   for (int i=0; i<d->row_counts.size(); ++i) {
         if(check_row_counts[i] != d->row_counts[i]) {
+            qDebug() << "row" << "found, expected" << check_row_counts[i] << "!=" << d->row_counts[i];
             failrows++;
             Q_ASSERT(check_row_counts[i] == d->row_counts[i]);
         }
@@ -485,7 +486,7 @@ void DatacubePrivate::insert_data(QModelIndex parent, int start, int end) {
       add(row);
     }
   }
-  #ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
+#ifdef ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS
   q->check();
 #endif
 
@@ -827,6 +828,7 @@ void qdatacube::DatacubePrivate::aggregator_category_added(qdatacube::AbstractAg
     }
   }
   emit q->reset(); // TODO: It is not impossible to emit the correct row/column changed instead
+  // we can't do a check here because a element might be added to the model and about to be registered in the datacube
 }
 
 void qdatacube::DatacubePrivate::aggregator_category_removed(qdatacube::AbstractAggregator::Ptr aggregator, int headerno, int index, Qt::Orientation orientation)
@@ -848,24 +850,32 @@ void qdatacube::DatacubePrivate::aggregator_category_removed(qdatacube::Abstract
   cells = DatacubePrivate::cells_t();
   reverse_index.clear();
   for (int normal_index=0; normal_index<normal_count; ++normal_index) {
+    if(normal_parallel_counts[normal_index] == 0) {
+        continue;
+    }
     for (int super_index=0; super_index<nsuper_categories; ++super_index) {
       for (int category_index=0; category_index<new_ncats; ++category_index) {
         for (int sub_index=0; sub_index<stride; ++sub_index) {
           const int old_category_index = index<=category_index ? category_index+1 : category_index;
           const int old_p = super_index*stride*old_ncats + old_category_index*stride + sub_index;
+          if(old_parallel_counts[old_p] == 0) {
+              continue;
+          }
           const int p = super_index*stride*new_ncats + category_index*stride + sub_index;
-          setCell(orientation == Qt::Horizontal ? CellPoint(normal_index, p) : CellPoint(p, normal_index),
-             orientation == Qt::Horizontal ? old_cells.value(normal_index+ old_p*normal_count) : old_cells.value(normal_index*old_parallel_counts.size()+old_p));
+          const QList<int>& value = orientation == Qt::Horizontal ? old_cells.value(normal_index+ old_p*normal_count) : old_cells.value(normal_index*old_parallel_counts.size()+old_p);
           new_parallel_counts[p] = old_parallel_counts[old_p];
-          Q_FOREACH(int element, orientation == Qt::Horizontal ? cell(normal_index, p) : cell(p, normal_index)) {
-            reverse_index.insert(element, orientation == Qt::Horizontal ? Cell(normal_index,p) : Cell(p, normal_index));
+          if(!value.isEmpty()) {
+            setCell(orientation == Qt::Horizontal ? CellPoint(normal_index, p) : CellPoint(p, normal_index), value);
+            Q_FOREACH(int element, value) {
+                reverse_index.insert(element, orientation == Qt::Horizontal ? Cell(normal_index,p) : Cell(p, normal_index));
+            }
           }
         }
       }
     }
   }
   emit q->reset(); // TODO: It is not impossible to emit the correct row/column changed instead
-
+  // we can't do a check here because a element might be added to the model and about to be registered in the datacube
 }
 
 QList<int> qdatacube::DatacubePrivate::elements_in_bucket(int row, int column) const {
