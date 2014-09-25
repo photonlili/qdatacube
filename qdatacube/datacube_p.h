@@ -33,8 +33,8 @@ class DatacubePrivate : public QObject {
         int compute_section_for_index(Qt::Orientation orientation, int index);
         const QList<int>& cell(long int bucket_row, long int bucket_column) const;
         int hasCell(long int bucket_row, long int bucket_column) const;
-        void setCell(long int bucket_row, long int bucket_column, QList< int > cell_content);
-        void setCell(CellPoint point, QList<int> cell_content);
+        void setCell(long int bucket_row, long int bucket_column, const QList< int >& cell_content);
+        void setCell(qdatacube::CellPoint point, const QList< int >& cell_content);
         void cellAppend(long int bucket_row, long int bucket_column, int to_add);
         void cellAppend(CellPoint point, QList<int> listadd);
         int bucket_to_row(int bucket_row) const;

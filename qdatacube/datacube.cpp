@@ -108,11 +108,11 @@ int DatacubePrivate::hasCell(long int bucket_row, long bucket_column) const {
     return it != cells.constEnd();
 }
 
-void DatacubePrivate::setCell(long int bucket_row, long bucket_column, QList< int > cell_content) {
+void DatacubePrivate::setCell(long int bucket_row, long bucket_column, const QList< int >& cell_content) {
     setCell(CellPoint(bucket_row, bucket_column), cell_content);
 }
 
-void DatacubePrivate::setCell(CellPoint point, QList< int > cell_content) {
+void DatacubePrivate::setCell(CellPoint point, const QList< int >& cell_content) {
     const long i = point.row + point.column*row_counts.size();
     cells_t::iterator it = cells.find(i);
     if(it == cells.end()) {
