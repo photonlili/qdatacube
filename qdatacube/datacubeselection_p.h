@@ -1,6 +1,7 @@
 #ifndef QDATACUBE_DATACUBESELECTION_P
 #define QDATACUBE_DATACUBESELECTION_P
 #include <QObject>
+#include <QHash>
 #include <QItemSelectionModel>
 
 class QItemSelectionModel;
@@ -16,14 +17,55 @@ class DatacubeSelectionPrivate : public QObject {
         DatacubeSelectionPrivate(DatacubeSelection* datacubeselection);
         DatacubeSelection* q;
         Datacube* datacube;
-        QVector<int> cells;
+        QHash<long,int> cells;
         QSet<int> selected_elements;
         QItemSelectionModel* synchronized_selection_model;
         bool ignore_synchronized;
         int nrows;
         int ncolumns;
 
-        int& cell(int row, int column);
+        /**
+         * \return the value in cell \param row, \param value
+         */
+        int cellValue(int row, int column) const {
+            return cells.value(row+column*nrows,0);
+        }
+        /**
+         * \param row row to decrease
+         * \param column column to decrease
+         * \param value how much to decrease with
+         * \return the new value
+         */
+        int decreaseCell(int row, int column, int value = 1) {
+            QHash<long,int>::iterator it = cells.find(row+column*nrows);
+            if(it == cells.end()) {
+                Q_ASSERT(false);
+                return 0;
+            } else {
+                *it-=value;
+                if(*it == 0) {
+                    cells.erase(it);
+                    return 0;
+                }
+                return *it;
+            }
+        }
+        /**
+         * \param row row to increase
+         * \param column column to increase
+         * \param value how much to increase with
+         * \return the new value in \param row
+         */
+        int increaseCell(int row, int column, int value = 1) {
+            QHash<long,int>::iterator it = cells.find(row+column*nrows);
+            if(it == cells.end()) {
+                cells.insert(row+column*nrows,value);
+                return value;
+            } else {
+                *it+=value;
+                return *it;
+            }
+        }
 
         void dump();
 

@@ -149,17 +149,13 @@ DatacubeSelectionPrivate::DatacubeSelectionPrivate(DatacubeSelection* datacubese
 void DatacubeSelectionPrivate::dump() {
   for (int r = 0; r < nrows; ++r) {
     for (int c = 0; c < ncolumns; ++c) {
-      std::cout << std::setw(3) << cell(r, c) << " ";
+      std::cout << std::setw(3) << cellValue(r, c) << " ";
     }
     std::cout << "\n";
   }
   std::cout << std::endl;
 }
 
-int& DatacubeSelectionPrivate::cell(int row, int column) {
-  return cells[row+column*nrows];
-
-}
 
 void DatacubeSelection::addElements(QList< int > elements) {
   QList<int> actually_selected_elements;
@@ -170,7 +166,7 @@ void DatacubeSelection::addElements(QList< int > elements) {
       d->selected_elements << element;
       actually_selected_elements << element;
       if (!cell.invalid()) {
-        int newvalue = ++d->cell(cell.row(), cell.column());
+        int newvalue = d->increaseCell(cell.row(), cell.column(),1);
         if (newvalue == 1 || newvalue == d->datacube->d->elements_in_bucket(cell.row(), cell.column()).size()) {
           const int row_section = d->datacube->d->section_for_bucket_row(cell.row());
           const int column_section = d->datacube->d->section_for_bucket_column(cell.column());
@@ -190,7 +186,7 @@ void DatacubeSelection::removeElements(QList< int > elements) {
       d->datacube->d->bucket_for_element(element, cell);
       actually_deselected_elements << element;
       if (!cell.invalid()) {
-        int newvalue = --d->cell(cell.row(), cell.column());
+        int newvalue = d->decreaseCell(cell.row(), cell.column());
         Q_ASSERT(newvalue>=0);
         if (newvalue == 0 || newvalue == d->datacube->d->elements_in_bucket(cell.row(), cell.column()).size()-1) {
           const int row_section = d->datacube->d->section_for_bucket_row(cell.row());
@@ -217,8 +213,6 @@ DatacubeSelection::DatacubeSelection (qdatacube::Datacube* datacube, qdatacube::
 void DatacubeSelectionPrivate::reset() {
     nrows = datacube->d->number_of_buckets(Qt::Vertical);
     ncolumns = datacube->d->number_of_buckets(Qt::Horizontal);
-    cells.resize(ncolumns*nrows);
-    std::fill(cells.begin(), cells.end(), 0);
     QList<int> old_selected_elements = selected_elements.toList();
     selected_elements.clear();
     q->addElements(old_selected_elements);
@@ -227,7 +221,6 @@ void DatacubeSelectionPrivate::reset() {
 void DatacubeSelection::addCell(int row, int column) {
   int bucket_row = d->datacube->d->bucket_for_row(row);
   int bucket_column = d->datacube->d->bucket_for_column(column);
-  int& cell = d->cell(bucket_row, bucket_column);
   QList<int> raw_elements = d->datacube->d->elements_in_bucket(bucket_row, bucket_column);
   QList<int> elements;
   Q_FOREACH(int raw_element, raw_elements) {
@@ -236,7 +229,7 @@ void DatacubeSelection::addCell(int row, int column) {
     }
   }
   if (!elements.isEmpty()) {
-    cell += elements.size();
+      d->increaseCell(bucket_row, bucket_column, elements.size());
     Q_FOREACH(int element, elements) {
       d->selected_elements << element;
     }
@@ -247,24 +240,22 @@ void DatacubeSelection::addCell(int row, int column) {
 
 void DatacubeSelectionPrivate::datacube_adds_element_to_bucket(int row, int column, int element) {
   if (selected_elements.contains(element)) {
-    int& c = cell(row, column);
-    ++c;
-    Q_ASSERT(c <= datacube->d->elements_in_bucket(row, column).size());
+    int c = increaseCell(row, column);
+    Q_ASSERT(c <= datacube->d->elements_in_bucket(row, column).size()); Q_UNUSED(c);
   }
 }
 
 void DatacubeSelectionPrivate::datacube_removes_element_from_bucket(int row, int column, int element) {
   if (selected_elements.contains(element)) {
-    int& c = cell(row, column);
-    --c;
-    Q_ASSERT(c >= 0);
+    int c = decreaseCell(row, column);
+    Q_ASSERT(c >= 0); Q_UNUSED(c);
   }
 }
 
 DatacubeSelection::SelectionStatus DatacubeSelection::selectionStatus(int row, int column) const {
   const int bucket_row = d->datacube->d->bucket_for_row(row);
   const int bucket_column = d->datacube->d->bucket_for_column(column);
-  const int selected_count = d->cell(bucket_row, bucket_column);
+  const int selected_count = d->cellValue(bucket_row, bucket_column);
   if (selected_count > 0) {
     const int count = d->datacube->d->elements_in_bucket(bucket_row, bucket_column).size();
     if (selected_count == count) {
