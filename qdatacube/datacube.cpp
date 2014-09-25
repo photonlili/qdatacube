@@ -5,6 +5,16 @@
 
 */
 
+
+/**
+ * Vocabulary:
+ *
+ * In several functions, normal_count, normal_parallel_counts and similar constructs are used.
+ * Normal in this context means 'surface normal', or 'the other direction' than what the function is working on.
+ *
+ * Stride is used as the (final) number of buckets created in this direction with the given aggregator.
+ */
+
 // Enable this to get a lot of consistency checks
 // #define ANGE_QDATACUBE_CHECK_PRE_POST_CONDITIONS 1
 
