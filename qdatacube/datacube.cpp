@@ -379,14 +379,22 @@ void DatacubePrivate::add(int index) {
   // Check if rows/columns are added, and notify listernes as neccessary
   int row_to_add = -1;
   int column_to_add = -1;
-  if(row_counts[row_section]++ == 0) {
-    row_to_add = bucket_to_row(row_section);;
-    emit q->rowsAboutToBeInserted(row_to_add,1);
-  }
-  if(col_counts[column_section]++ == 0) {
-    column_to_add = bucket_to_column(column_section);
-    emit q->columnsAboutToBeInserted(column_to_add,1);
-  }
+    {
+        unsigned int& section_count = row_counts[row_section];
+        section_count += 1;
+        if(section_count == 1) {
+            row_to_add = bucket_to_row(row_section);;
+            emit q->rowsAboutToBeInserted(row_to_add,1);
+        }
+    }
+    {
+        unsigned int& section_count = col_counts[column_section];
+        section_count += 1;
+        if(section_count == 1) {
+            column_to_add = bucket_to_column(column_section);
+            emit q->columnsAboutToBeInserted(column_to_add,1);
+        }
+    }
 
   // Actually add
   cellAppend(row_section, column_section,index);
