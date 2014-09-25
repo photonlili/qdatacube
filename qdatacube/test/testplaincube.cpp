@@ -427,6 +427,7 @@ void testplaincube::test_reverse_index()
 
 void testplaincube::test_add_category() {
   QStandardItemModel* tmp_model = copy_model();
+  QCOMPARE(tmp_model->rowCount(), 100);
   AbstractAggregator::Ptr sex_aggregator(new ColumnAggregator(tmp_model, SEX));
   AbstractAggregator::Ptr kommune_aggregator(new ColumnAggregator(tmp_model, KOMMUNE));
   AbstractAggregator::Ptr first_name_aggregator(new ColumnAggregator(tmp_model, FIRST_NAME));
@@ -459,9 +460,29 @@ void testplaincube::test_add_category() {
         Q_ASSERT(false);
     }
   }
+    {
+        int counter =0;
+        for (int r = 0; r < datacube.rowCount(); ++r) {
+            for (int c = 0; c < datacube.columnCount(); ++c) {
+            QList<int> elements = datacube.elements(r,c);
+            counter+=elements.count();
+            }
+        }
+        QCOMPARE(counter,100);
+    }
   tmp_model->appendRow(row);
   QVERIFY(findCategoryIndexForString(first_name_aggregator, "Agnete") != -1);
   QCOMPARE(tmp_model->rowCount(), 101);
+    {
+        int counter =0;
+        for (int r = 0; r < datacube.rowCount(); ++r) {
+            for (int c = 0; c < datacube.columnCount(); ++c) {
+            QList<int> elements = datacube.elements(r,c);
+            counter+=elements.count();
+            }
+        }
+        QCOMPARE(counter,101);
+    }
   QStringList column0_headers;
   AbstractAggregator::Ptr column0_aggregator = datacube.columnAggregators().at(0);
   Q_FOREACH(Datacube::HeaderDescription hp, datacube.headers(Qt::Horizontal,0)) {
