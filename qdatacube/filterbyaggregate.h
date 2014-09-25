@@ -11,8 +11,18 @@ class FilterByAggregatePrivate;
 class QDATACUBE_EXPORT  FilterByAggregate : public AbstractFilter {
     Q_OBJECT
     public:
+        /**
+         * Creates a filter to filter in a given category in the aggregator.
+         */
         FilterByAggregate(AbstractAggregator::Ptr aggregator, int category_index);
-        FilterByAggregate(AbstractAggregator::Ptr aggregator, const QVariant& category);
+        /**
+         * Creates a filter to filter in a given category in the aggregator.
+         * The category is found by comparing the display text for the various categories
+         * in the aggregator and uses the first match found.
+         *
+         * To query if something *is* found, you can check that \ref categoryIndex() is non-negative
+         */
+        FilterByAggregate(AbstractAggregator::Ptr aggregator, const QString& categoryLabel);
 
         virtual bool operator()(int row) const;
 
@@ -25,6 +35,7 @@ class QDATACUBE_EXPORT  FilterByAggregate : public AbstractFilter {
         void slot_aggregator_category_removed(int index);
     private:
         QScopedPointer<FilterByAggregatePrivate> d;
+        friend FilterByAggregatePrivate;
 };
 
 }

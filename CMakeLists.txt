@@ -22,9 +22,9 @@ set(CMAKE_INCLUDE_DIRECTORIES_PROJECT_BEFORE ON)
 
 
 IF(NOT WIN32)
-   add_compile_options(-ggdb3 -Wall -Werror -Wno-error=deprecated-declarations -Wno-error=unused-local-typedefs -Wno-strict-overflow -Wno-trigraphs -Wno-deprecated -Wclobbered -Wempty-body -Wignored-qualifiers -Wmissing-field-initializers -Wsign-compare -Wtype-limits -Winit-self -Wunused-parameter -std=c++11)
+   add_compile_options(-ggdb3 -Wall -Werror -Wno-error=deprecated-declarations -Wno-error=unused-local-typedefs -Wno-strict-overflow -Wno-trigraphs -Wno-deprecated -Wclobbered -Wempty-body -Wignored-qualifiers -Wmissing-field-initializers -Wsign-compare -Wtype-limits -Winit-self -Wunused-parameter )
 ELSE(NOT WIN32)
-  add_compile_options(-Wno-trigraphs -Wno-deprecated -std=c++11)
+  add_compile_options(-Wno-trigraphs -Wno-deprecated )
 ENDIF(NOT WIN32)
 
 if(COMMAND cmake_policy)
