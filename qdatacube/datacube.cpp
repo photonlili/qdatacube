@@ -115,7 +115,9 @@ void DatacubePrivate::setCell(CellPoint point, QList< int > cell_content) {
     const long i = point.row + point.column*row_counts.size();
     cells_t::iterator it = cells.find(i);
     if(it == cells.end()) {
-        cells.insert(i,cell_content);
+        if(!cell_content.isEmpty()) {
+            cells.insert(i,cell_content);
+        }
     } else {
         if(cell_content.isEmpty()) {
             cells.erase(it);
