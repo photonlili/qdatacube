@@ -85,6 +85,7 @@ void DatacubePrivate::cellAppend(CellPoint point, QList< int > listadd) {
 
 void DatacubePrivate::cellAppend(long int bucket_row, long bucket_column, int to_add) {
     const long i = bucket_row + bucket_column*row_counts.size();
+    Q_ASSERT(!cells[i].contains(to_add));
     cells[i].append(to_add);
 }
 
@@ -364,6 +365,7 @@ Datacube::~Datacube() {
 }
 
 void DatacubePrivate::add(int index) {
+    Q_ASSERT(index < model->rowCount());
 
   // Computer bucket
   int row_section = compute_row_section_for_index(index);
@@ -388,6 +390,7 @@ void DatacubePrivate::add(int index) {
 
   // Actually add
   cellAppend(row_section, column_section,index);
+  Q_ASSERT(!reverse_index.contains(index));
   reverse_index.insert(index, Cell(row_section, column_section));
 
   // Notify various listerners
