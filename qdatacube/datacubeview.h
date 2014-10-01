@@ -61,6 +61,7 @@ class QDATACUBE_EXPORT DatacubeView : public QAbstractScrollArea  {
         virtual void mouseReleaseEvent(QMouseEvent* event );
         virtual void mouseMoveEvent(QMouseEvent* event);
         virtual void resizeEvent(QResizeEvent* event);
+        virtual bool event(QEvent* event);
 
         /**
          * @return rectangle describing the corner area

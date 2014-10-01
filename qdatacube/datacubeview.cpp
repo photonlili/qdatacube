@@ -13,6 +13,7 @@
 #include "datacubeselection.h"
 #include "cell.h"
 #include <QScrollBar>
+#include <QToolTip>
 #include "abstractaggregator.h"
 #include "abstractfilter.h"
 #include "abstractformatter.h"
@@ -693,6 +694,61 @@ void DatacubeViewPrivate::datacube_deleted() {
     selection->deleteLater();
     q->d.reset(new DatacubeViewPrivate(q));
 }
+
+bool DatacubeView::event(QEvent* event) {
+    if(event->type() == QEvent::ToolTip) {
+        do {
+            QHelpEvent* helpEvent = static_cast<QHelpEvent*>(event);
+            Cell press = d->cell_for_position(helpEvent->pos(), verticalScrollBar()->value(), horizontalScrollBar()->value());
+            if(press.invalid()) {
+                // completely out of relevance
+                break;
+            }
+            if(press.column() >= 0 && press.row() >= 0) {
+                // within the cells
+                break;
+            }
+            if(press.column() < 0 && press.row() < 0) {
+                // top left corner
+                QString toolTipText;
+                Q_FOREACH(AbstractFilter::Ptr filter, d->datacube->filters()) {
+                    if(!toolTipText.isEmpty()) {
+                        toolTipText += QStringLiteral("\n");
+                    }
+                    toolTipText += filter->name();
+                }
+                if(!toolTipText.isEmpty()) {
+                    QToolTip::showText(helpEvent->globalPos(), toolTipText);
+                }
+                break;
+            }
+            if(press.column() > d->datacube->columnCount()) {
+                // in the sums
+                break;
+            }
+            if(press.row() > d->datacube->rowCount()) {
+                // in the sums
+                break;
+            }
+            Qt::Orientation direction =  press.row() < 0 ? Qt::Horizontal : Qt::Vertical;
+
+            int aggregatorNumber = (direction == Qt::Horizontal) ? (press.row() + d->datacube->headerCount(direction)) : (press.column() + d->datacube->headerCount(direction));
+
+            AbstractAggregator::Ptr aggregator = (direction == Qt::Horizontal) ? d->datacube->columnAggregators().at(aggregatorNumber) : d->datacube->rowAggregators().at(aggregatorNumber);
+            int category = d->datacube->categoryIndex(direction, aggregatorNumber, direction == Qt::Horizontal ? press.column() : press.row());
+
+            QVariant toolTipVariant = aggregator->categoryHeaderData(category, Qt::ToolTipRole);
+
+            if(toolTipVariant.isValid()) {
+                QToolTip::showText(helpEvent->globalPos(), toolTipVariant.toString());
+            }
+        } while (0);
+        event->accept();
+        return true;
+    }
+    return QAbstractScrollArea::event(event);
+}
+
 
 
 } // end of namespace

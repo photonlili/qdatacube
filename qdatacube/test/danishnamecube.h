@@ -49,6 +49,9 @@ class SexAggregator : public qdatacube::ColumnAggregator {
                 return QColor(Qt::gray);
 
             }
+            if(role == Qt::ToolTipRole) {
+                return displayrole;
+            }
             return QVariant();
         }
 };
