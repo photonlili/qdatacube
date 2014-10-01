@@ -175,10 +175,15 @@ void DatacubeViewPrivate::paint_datacube(QPaintEvent* event) const {
   QRect cornerRect(options.rect.topLeft(), QSize(vertical_header_width,horizontal_header_height));
   painter.drawRect(cornerRect);
   painter.setPen(q->palette().buttonText().color());
-  if (AbstractFilter::Ptr first_filter = datacube->filters().value(0)) {
-    QString first_filter_category = first_filter->shortName();
-    painter.drawText(cornerRect.adjusted(1, 1, -1, -1), Qt::AlignCenter, first_filter_category);
-  }
+    if (!datacube->filters().isEmpty()) {
+        QString firstFilterCategory;
+        if(datacube->filters().size() == 1) {
+            firstFilterCategory = datacube->filters().first()->shortName();
+        } else {
+            firstFilterCategory = QStringLiteral("+++");
+        }
+        painter.drawText(cornerRect.adjusted(1, 1, -1, -1), Qt::AlignCenter, firstFilterCategory);
+    }
 
 
   // Draw horizontal header
