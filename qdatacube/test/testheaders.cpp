@@ -27,8 +27,8 @@
 #include <qmenubar.h>
 #include "columnsumformatter.h"
 #include <countformatter.h>
-#include <QDebug>
-#include <QtTest/QTest>
+
+#include <QTest>
 
 using namespace qdatacube;
 
