@@ -727,11 +727,11 @@ bool DatacubeView::event(QEvent* event) {
                 }
                 break;
             }
-            if(press.column() > d->datacube->columnCount()) {
+            if(press.column() >= d->datacube->columnCount()) {
                 // in the sums
                 break;
             }
-            if(press.row() > d->datacube->rowCount()) {
+            if(press.row() >= d->datacube->rowCount()) {
                 // in the sums
                 break;
             }
