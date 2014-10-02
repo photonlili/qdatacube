@@ -28,7 +28,7 @@ class QDATACUBE_EXPORT AbstractAggregator : public QObject {
     Q_OBJECT
     public:
         typedef QSharedPointer<AbstractAggregator> Ptr;
-        explicit AbstractAggregator(QAbstractItemModel* model);
+        explicit AbstractAggregator(const QAbstractItemModel* model);
 
         /**
          * @param row number in m_model
@@ -57,7 +57,7 @@ class QDATACUBE_EXPORT AbstractAggregator : public QObject {
         /**
         * @return underlying model
         */
-        QAbstractItemModel* underlyingModel() const;
+        const QAbstractItemModel* underlyingModel() const;
 
         /**
         * dtor

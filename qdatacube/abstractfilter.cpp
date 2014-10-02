@@ -4,12 +4,12 @@ namespace qdatacube {
 
 class AbstractFilterPrivate {
     public:
-        AbstractFilterPrivate(QAbstractItemModel* underlyingModel) : m_underlyingModel(underlyingModel) {}
-        QAbstractItemModel* m_underlyingModel;
+        AbstractFilterPrivate(const QAbstractItemModel* underlyingModel) : m_underlyingModel(underlyingModel) {}
+        const QAbstractItemModel* m_underlyingModel;
         QString m_name;
         QString m_shortName;
 };
-AbstractFilter::AbstractFilter(QAbstractItemModel* underlyingModel)
+AbstractFilter::AbstractFilter(const QAbstractItemModel* underlyingModel)
   : d(new AbstractFilterPrivate(underlyingModel))
 {
     Q_ASSERT(underlyingModel);
@@ -31,7 +31,7 @@ QString AbstractFilter::shortName() const {
     return d->m_shortName;
 }
 
-QAbstractItemModel* AbstractFilter::underlyingModel() const {
+const QAbstractItemModel* AbstractFilter::underlyingModel() const {
     return d->m_underlyingModel;
 }
 

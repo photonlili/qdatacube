@@ -36,8 +36,6 @@
 
 namespace qdatacube {
 
-
-
 int DatacubePrivate::compute_section_for_index(Qt::Orientation orientation, int index) {
   qdatacube::Datacube::Aggregators& aggregators = orientation == Qt::Horizontal ? col_aggregators : row_aggregators;
   int stride = 1;

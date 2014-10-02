@@ -38,7 +38,7 @@ class ColumnAggregatorPrivate;
 class QDATACUBE_EXPORT ColumnAggregator : public AbstractAggregator {
     Q_OBJECT
     public:
-        ColumnAggregator(QAbstractItemModel* model,  int section);
+        ColumnAggregator(const QAbstractItemModel* model,  int section);
         ~ColumnAggregator();
         virtual int operator()(int row) const;
         /**

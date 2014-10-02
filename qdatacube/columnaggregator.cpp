@@ -62,7 +62,7 @@ QVariant ColumnAggregator::categoryHeaderData(int category, int role) const {
     return QVariant();
 }
 
-ColumnAggregator::ColumnAggregator(QAbstractItemModel* model, int section): AbstractAggregator(model), d(new ColumnAggregatorPrivate(this,section)) {
+ColumnAggregator::ColumnAggregator(const QAbstractItemModel* model, int section): AbstractAggregator(model), d(new ColumnAggregatorPrivate(this,section)) {
   QSet<QString> categories;
   for (int i=0, iend = underlyingModel()->rowCount(); i<iend; ++i) {
     QString cat = underlyingModel()->data(underlyingModel()->index(i, d->section)).toString();

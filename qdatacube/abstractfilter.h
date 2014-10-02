@@ -15,7 +15,7 @@ class QDATACUBE_EXPORT AbstractFilter : public QObject {
     Q_OBJECT
     public:
         typedef QSharedPointer<AbstractFilter> Ptr;
-        explicit AbstractFilter(QAbstractItemModel* underlying_model);
+        explicit AbstractFilter(const QAbstractItemModel* underlying_model);
 
         /**
          * @return true if row is to be included
@@ -35,7 +35,7 @@ class QDATACUBE_EXPORT AbstractFilter : public QObject {
         /**
          * @return underlying model
          */
-        QAbstractItemModel* underlyingModel() const;
+        const QAbstractItemModel* underlyingModel() const;
         /**
          * dtor
          */
