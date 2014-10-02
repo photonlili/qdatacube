@@ -214,6 +214,7 @@ void DatacubeSelectionPrivate::reset() {
     nrows = datacube->d->number_of_buckets(Qt::Vertical);
     ncolumns = datacube->d->number_of_buckets(Qt::Horizontal);
     QList<int> old_selected_elements = selected_elements.toList();
+    cells.clear();
     selected_elements.clear();
     q->addElements(old_selected_elements);
 }
