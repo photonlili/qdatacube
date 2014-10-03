@@ -1,17 +1,19 @@
 #ifndef DATACUBE_SELECTION_H
 #define DATACUBE_SELECTION_H
 
-#include <QObject>
 #include "qdatacube_export.h"
-#include <QItemSelectionModel>
+
+#include <QItemSelection>
+#include <QObject>
+
+class QItemSelectionModel;
+namespace qdatacube {
+class Datacube;
+class DatacubeSelectionPrivate;
+class DatacubeView;
+}
 
 namespace qdatacube {
-
-class DatacubeView;
-
-
-class Datacube;
-
 
 /**
  * Handles tracking of selection on a datacube
@@ -22,7 +24,6 @@ class Datacube;
  * Usually, there is no need to instantiate this class manually, as one is created automatically by
  * the datacube_view_t
  */
-class DatacubeSelectionPrivate;
 class QDATACUBE_EXPORT DatacubeSelection : public QObject {
     Q_OBJECT
     public:

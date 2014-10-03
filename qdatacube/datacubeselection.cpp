@@ -12,6 +12,7 @@
 #include "datacubeselection_p.h"
 #include <QAbstractProxyModel>
 #include <QDate>
+#include <QItemSelectionModel>
 
 namespace qdatacube {
 

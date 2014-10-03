@@ -6,7 +6,11 @@
 
 #include "cell.h"
 #include "datacube.h"
+
 class QAbstractItemModel;
+namespace qdatacube {
+class DatacubeSelection;
+}
 
 namespace qdatacube {
 
@@ -24,13 +28,13 @@ class DatacubePrivate : public QObject {
                 AbstractAggregator::Ptr column_aggregator);
         DatacubePrivate(Datacube* datacube, const QAbstractItemModel* model);
         Datacube* q;
-        int compute_row_section_for_index(int index) {
-            return compute_section_for_index(Qt::Vertical, index);
+        int computeRowBucketForIndex(int index) {
+            return computeBucketForIndex(Qt::Vertical, index);
         }
-        int compute_column_section_for_index(int index) {
-            return compute_section_for_index(Qt::Horizontal, index);
+        int computeColumnBucketForIndex(int index) {
+            return computeBucketForIndex(Qt::Horizontal, index);
         }
-        int compute_section_for_index(Qt::Orientation orientation, int index);
+        int computeBucketForIndex(Qt::Orientation orientation, int index);
         const QList<int>& cell(long int bucket_row, long int bucket_column) const;
         int hasCell(long int bucket_row, long int bucket_column) const;
         void setCell(long int bucket_row, long int bucket_column, const QList< int >& cell_content);
@@ -46,17 +50,16 @@ class DatacubePrivate : public QObject {
         bool cellRemoveOne(long int row, long int column, int index);
 
         const QAbstractItemModel* model;
+        QList<DatacubeSelection*> selection_models;
         Datacube::Aggregators row_aggregators;
         Datacube::Aggregators col_aggregators;
-        QVector<unsigned> row_counts;
+        QVector<unsigned> row_counts; // list counting number of items in each row indexed by bucket number
         QVector<unsigned> col_counts;
-        typedef QHash<long, QList<int> > cells_t;
         Datacube::Filters filters;
+        typedef QHash<long, QList<int> > cells_t;
+        cells_t cells; // maps from cell index (computed from bucket coordinates) to lists of indexes in underlying model
         typedef QHash<int, Cell> reverse_index_t;
-        reverse_index_t reverse_index;
-        QList<DatacubeSelection*> selection_models;
-        const QList<int> empty_list;
-        cells_t cells;
+        reverse_index_t reverse_index; // maps from underlying model index to coordinates in datacube (in buckets)
 
         void remove(int index);
         void add(int index);

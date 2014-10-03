@@ -2,7 +2,6 @@
  Author: Ange Optimization <esben@ange.dk>  (C) Ange Optimization ApS 2009
 
  Copyright: See COPYING file that comes with this distribution
-
 */
 
 #ifndef Q_DATACUBE_DATACUBE_H
@@ -14,21 +13,14 @@
 
 #include <QObject>
 #include <QPair>
-#include <QAbstractItemModel>
 
 class QAbstractItemModel;
+namespace qdatacube {
+class Cell;
+class DatacubePrivate;
+}
 
 namespace qdatacube {
-
-class DatacubeSelectionPrivate;
-
-class AbstractFilter;
-
-
-class AbstractAggregator;
-class Cell;
-class DatacubeSelection;
-class datacube_colrow_t;
 
 /**
  * row: row in datacube
@@ -37,7 +29,6 @@ class datacube_colrow_t;
  * element: row number in underlying model
  * bucket(no): "raw" section, that is, including autocollapsed (empty) rows and columns
  */
-class DatacubePrivate;
 class QDATACUBE_EXPORT Datacube : public QObject {
     Q_OBJECT
     public:
@@ -126,11 +117,10 @@ class QDATACUBE_EXPORT Datacube : public QObject {
 
         /**
          * @return number of elements corresponding to header section
-         * equivalent (but much faster) as elements(direction, headerno, section);
+         * equivalent (but much faster) to elements(direction, headerno, section).size()
          * @param orientation Qt::Vertical for rows, Qt::Horizontal for columns
          * @param headerno index of header, 0 for top or leftmost
-         * @param section section of header. Note that this is not the same as the row or column for the datacube,
-         *    except for the bottommost/rightmost header.
+         * @param section section of header. For headerno!=0 header section is not necessarily the same as item section
          */
         int elementCount(Qt::Orientation orientation, int headerno, int header_section) const;
 
@@ -138,8 +128,7 @@ class QDATACUBE_EXPORT Datacube : public QObject {
          * @return elements corresponding to header section
          * @param orientation Qt::Vertical for rows, Qt::Horizontal for columns
          * @param headerno index of header, 0 for top or leftmost
-         * @param section section of header. Note that this is not the same as the row or column for the datacube,
-         *    except for the bottommost/rightmost header.
+         * @param section section of header. For headerno!=0 header section is not necessarily the same as item section
          */
         QList< int > elements(Qt::Orientation orientation, int headerno, int header_section) const;
 
@@ -184,7 +173,7 @@ class QDATACUBE_EXPORT Datacube : public QObject {
         void split(Qt::Orientation orientation, int headerno, AbstractAggregator::Ptr aggregator);
 
         /**
-         * Collapse header, removing it from datacube. Requries headercount(orientation)>=2
+         * Collapse header, removing it from datacube.
          * @param orientation collapse row or column
          * @param headerno which header to remove. Must be less that header_count(orientation)
          */
@@ -307,7 +296,6 @@ class QDATACUBE_EXPORT Datacube : public QObject {
 
     private:
         QScopedPointer<DatacubePrivate> d;
-        friend class DatacubePrivate;
         friend class DatacubeSelection;
         friend class DatacubeSelectionPrivate;
 

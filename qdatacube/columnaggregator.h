@@ -51,7 +51,10 @@ class QDATACUBE_EXPORT ColumnAggregator : public AbstractAggregator {
         virtual QVariant categoryHeaderData(int category, int role = Qt::DisplayRole) const;
 
         /**
-         * trim (new) categories from the right to max max_chars characters
+         * Trim categories from the right to max max_chars characters.
+         * NOTICE This also trims existing categories in spite of the functions name.
+         * WARNING Do not call this on an aggregator that is in use as the datacube is not build for categories to
+         *         change for data items except when the item is changing itself.
          **/
         void setTrimNewCategoriesFromRight(int max_chars);
     public Q_SLOTS:

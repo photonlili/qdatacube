@@ -1,5 +1,6 @@
 #ifndef QDATACUBE_DATACUBESELECTION_P
 #define QDATACUBE_DATACUBESELECTION_P
+
 #include <QObject>
 #include <QHash>
 #include <QItemSelectionModel>
@@ -17,12 +18,12 @@ class DatacubeSelectionPrivate : public QObject {
         DatacubeSelectionPrivate(DatacubeSelection* datacubeselection);
         DatacubeSelection* q;
         Datacube* datacube;
-        QHash<long,int> cells;
-        QSet<int> selected_elements;
+        QHash<long, int> cells; // maps from bucket index to number of selected items
+        QSet<int> selected_elements; // set of the selected rows in the underlying model from the datacube
         QItemSelectionModel* synchronized_selection_model;
         bool ignore_synchronized;
-        int nrows;
-        int ncolumns;
+        int nrows; // bucket size of datacube
+        int ncolumns; // bucket size of datacube
 
         /**
          * \return the value in cell \param row, \param value

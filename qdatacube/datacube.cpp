@@ -9,8 +9,9 @@
 /**
  * Vocabulary:
  *
- * In several functions, normal_count, normal_parallel_counts and similar constructs are used.
+ * In several functions, normal_count, normal_counts and similar constructs are used.
  * Normal in this context means 'surface normal', or 'the other direction' than what the function is working on.
+ * parallel_* is used in the meaning 'the same direction'.
  *
  * Stride is used as the (final) number of buckets created in this direction with the given aggregator.
  */
@@ -36,7 +37,7 @@
 
 namespace qdatacube {
 
-int DatacubePrivate::compute_section_for_index(Qt::Orientation orientation, int index) {
+int DatacubePrivate::computeBucketForIndex(Qt::Orientation orientation, int index) {
   qdatacube::Datacube::Aggregators& aggregators = orientation == Qt::Horizontal ? col_aggregators : row_aggregators;
   int stride = 1;
   int rv = 0;
@@ -51,11 +52,10 @@ int DatacubePrivate::compute_section_for_index(Qt::Orientation orientation, int 
 
 int DatacubePrivate::bucket_for_row(const int row) const {
   int r = row;
-  int section=0;
-  for (; section<row_counts.size(); ++section) {
-    if (row_counts[section]>0) {
+  for (int bucket = 0; bucket < row_counts.size(); ++bucket) {
+    if (row_counts[bucket] > 0) {
       if (r-- == 0) {
-        return section;
+        return bucket;
       }
     }
   }
@@ -64,12 +64,11 @@ int DatacubePrivate::bucket_for_row(const int row) const {
 }
 
 int DatacubePrivate::bucket_for_column(int column) const {
-  int section=0;
   int c = column;
-  for (; section<col_counts.size(); ++section) {
-    if (col_counts[section]>0) {
+  for (int bucket = 0; bucket < col_counts.size(); ++bucket) {
+    if (col_counts[bucket] > 0) {
       if (c-- == 0) {
-        return section;
+        return bucket;
       }
     }
   }
@@ -80,6 +79,7 @@ int DatacubePrivate::bucket_for_column(int column) const {
 const QList< int >& DatacubePrivate::cell(long bucket_row, long bucket_column) const {
   const long i = bucket_row + bucket_column*row_counts.size();
   cells_t::const_iterator it = cells.constFind(i);
+  static const QList<int> empty_list;
   if(it == cells.constEnd()) {
     return empty_list;
   }
@@ -376,43 +376,43 @@ Datacube::~Datacube() {
 void DatacubePrivate::add(int index) {
     Q_ASSERT(index < model->rowCount());
 
-  // Computer bucket
-  int row_section = compute_row_section_for_index(index);
-  if (row_section == -1) {
+  // Compute bucket
+  int rowBucket = computeRowBucketForIndex(index);
+  if (rowBucket == -1) {
     // Our datacube does not cover that container. Just ignore it.
     return;
   }
-  int column_section = compute_column_section_for_index(index);
-  Q_ASSERT(column_section>=0); // Every container should be in both rows and columns, or neither place.
+  int columnBucket = computeColumnBucketForIndex(index);
+  Q_ASSERT(columnBucket>=0); // Every container should be in both rows and columns, or neither place.
 
   // Check if rows/columns are added, and notify listernes as neccessary
   int row_to_add = -1;
   int column_to_add = -1;
     {
-        unsigned int& section_count = row_counts[row_section];
+        unsigned int& section_count = row_counts[rowBucket];
         section_count += 1;
         if(section_count == 1) {
-            row_to_add = bucket_to_row(row_section);;
+            row_to_add = bucket_to_row(rowBucket);;
             emit q->rowsAboutToBeInserted(row_to_add,1);
         }
     }
     {
-        unsigned int& section_count = col_counts[column_section];
+        unsigned int& section_count = col_counts[columnBucket];
         section_count += 1;
         if(section_count == 1) {
-            column_to_add = bucket_to_column(column_section);
+            column_to_add = bucket_to_column(columnBucket);
             emit q->columnsAboutToBeInserted(column_to_add,1);
         }
     }
 
   // Actually add
-  cellAppend(row_section, column_section,index);
+  cellAppend(rowBucket, columnBucket,index);
   Q_ASSERT(!reverse_index.contains(index));
-  reverse_index.insert(index, Cell(row_section, column_section));
+  reverse_index.insert(index, Cell(rowBucket, columnBucket));
 
   // Notify various listerners
   Q_FOREACH(DatacubeSelection* selection, selection_models) {
-    selection->d->datacube_adds_element_to_bucket(row_section, column_section, index);
+    selection->d->datacube_adds_element_to_bucket(rowBucket, columnBucket, index);
   }
   if(column_to_add>=0) {
     emit q->columnsInserted(column_to_add,1);
@@ -421,7 +421,7 @@ void DatacubePrivate::add(int index) {
     emit q->rowsInserted(row_to_add,1);
   }
   if(row_to_add==-1 && column_to_add==-1) {
-    emit q->dataChanged(bucket_to_row(row_section),bucket_to_column(column_section));
+    emit q->dataChanged(bucket_to_row(rowBucket),bucket_to_column(columnBucket));
   }
 }
 
@@ -465,12 +465,12 @@ void DatacubePrivate::update_data(QModelIndex topleft, QModelIndex bottomRight) 
   const int buttomrow = bottomRight.row();
   for (int element = toprow; element <= buttomrow; ++element) {
     const bool filtered_out = !filtered_in(element);
-    int new_row_section = compute_section_for_index(Qt::Vertical, element);
-    int new_column_section = compute_section_for_index(Qt::Horizontal, element);
+    int new_row_section = computeBucketForIndex(Qt::Vertical, element);
+    int new_column_section = computeBucketForIndex(Qt::Horizontal, element);
     Cell old_cell = reverse_index.value(element);
     const bool rowchanged = old_cell.row() != new_row_section;
     const bool colchanged = old_cell.column() != new_column_section;
-    if (rowchanged || colchanged | filtered_out) {
+    if (rowchanged || colchanged || filtered_out) {
       remove(element);
       if (!filtered_out) {
         add(element);
@@ -635,7 +635,7 @@ void DatacubePrivate::split_column(int headerno, AbstractAggregator::Ptr aggrega
   col_counts = QVector<unsigned>(int(new_column_countl));
   reverse_index = DatacubePrivate::reverse_index_t();
   // Sort out elements in new categories. Note that the old d->row_counts are unchanged
- 
+
   for(DatacubePrivate::cells_t::const_iterator it = oldcells.constBegin(), end = oldcells.constEnd(); it!= end; ++it) {
         const long index = it.key();
         const long r = index % row_count;
@@ -708,7 +708,7 @@ void Datacube::collapse(Qt::Orientation orientation, int headerno) {
 }
 
 int Datacube::sectionForElement(int element, Qt::Orientation orientation) const {
-  const int section = d->compute_section_for_index(orientation, element);
+  const int section = d->computeBucketForIndex(orientation, element);
   return orientation == Qt::Horizontal ? d->bucket_to_column(section) : d->bucket_to_row(section);
 }
 
@@ -754,38 +754,39 @@ void qdatacube::Datacube::dump(bool cells, bool rowcounts, bool col_counts) cons
   }
 
 }
-void qdatacube::DatacubePrivate::slot_aggregator_category_added(int index) {
+
+void qdatacube::DatacubePrivate::slot_aggregator_category_added(int newCategoryIndex) {
   if (AbstractAggregator* aggregator = qobject_cast<AbstractAggregator*>(sender())) {
     int headerno = 0;
     Q_FOREACH(AbstractAggregator::Ptr f, row_aggregators) {
       if (f == aggregator) {
-        aggregator_category_added(f, headerno,index, Qt::Vertical);
+        aggregator_category_added(f, headerno, newCategoryIndex, Qt::Vertical);
       }
       ++headerno;
     }
     headerno = 0;
     Q_FOREACH(AbstractAggregator::Ptr f, col_aggregators) {
       if (f == aggregator) {
-        aggregator_category_added(f, headerno, index, Qt::Horizontal);
+        aggregator_category_added(f, headerno, newCategoryIndex, Qt::Horizontal);
       }
       ++headerno;
     }
   }
 }
 
-void qdatacube::DatacubePrivate::slot_aggregator_category_removed(int index) {
+void qdatacube::DatacubePrivate::slot_aggregator_category_removed(int categoryIndex) {
   if (AbstractAggregator* aggregator = qobject_cast<AbstractAggregator*>(sender())) {
     int headerno = 0;
     Q_FOREACH(AbstractAggregator::Ptr f, row_aggregators) {
       if (f == aggregator) {
-        aggregator_category_removed(f, headerno,index, Qt::Vertical);
+        aggregator_category_removed(f, headerno, categoryIndex, Qt::Vertical);
       }
       ++headerno;
     }
     headerno = 0;
     Q_FOREACH(AbstractAggregator::Ptr f, col_aggregators) {
       if (f == aggregator) {
-        aggregator_category_removed(f, headerno, index, Qt::Horizontal);
+        aggregator_category_removed(f, headerno, categoryIndex, Qt::Horizontal);
       }
       ++headerno;
     }
@@ -794,12 +795,12 @@ void qdatacube::DatacubePrivate::slot_aggregator_category_removed(int index) {
 }
 
 
-void qdatacube::DatacubePrivate::aggregator_category_added(qdatacube::AbstractAggregator::Ptr aggregator, int headerno, int index, Qt::Orientation orientation)
+void qdatacube::DatacubePrivate::aggregator_category_added(qdatacube::AbstractAggregator::Ptr aggregator, int headerno, int newCategoryIndex, Qt::Orientation orientation)
 {
   const Datacube::Aggregators& parallel_aggregators = orientation == Qt::Horizontal ? col_aggregators : row_aggregators;
   QVector<unsigned>& new_parallel_counts = orientation == Qt::Horizontal ? col_counts : row_counts;
-  const int normal_count = orientation == Qt::Horizontal ? row_counts.size() : col_counts.size();
-  const QVector<unsigned>& normal_parallel_counts = orientation == Qt::Horizontal ? row_counts : col_counts;
+  const QVector<unsigned>& normal_counts = orientation == Qt::Horizontal ? row_counts : col_counts;
+  const int normal_count = normal_counts.size();
   const QVector<unsigned> old_parallel_counts = new_parallel_counts;
   DatacubePrivate::cells_t old_cells = cells;
   int nsuper_categories = 1;
@@ -818,7 +819,7 @@ void qdatacube::DatacubePrivate::aggregator_category_added(qdatacube::AbstractAg
     const int stride = old_parallel_counts.size()/old_ncats/nsuper_categories;
     reverse_index.clear();
     for (int normal_index=0; normal_index<normal_count; ++normal_index) {
-        if(normal_parallel_counts[normal_index] == 0) {
+        if (normal_counts[normal_index] == 0) {
             continue;
         }
       for (int super_index=0; super_index<nsuper_categories; ++super_index) {
@@ -828,7 +829,7 @@ void qdatacube::DatacubePrivate::aggregator_category_added(qdatacube::AbstractAg
             if(old_parallel_counts[old_p] == 0) {
                 continue;
             }
-            const int new_category_index = index<=category_index ? category_index+1 : category_index;
+            const int new_category_index = newCategoryIndex <=category_index ? category_index+1 : category_index;
             const int p = super_index*stride*new_ncats + new_category_index*stride + sub_index;
             new_parallel_counts[p] = old_parallel_counts[old_p];
             const QList<int>& values = orientation == Qt::Horizontal ? old_cells.value(normal_index+ old_p*normal_count) : old_cells.value(normal_index*old_parallel_counts.size()+old_p);
@@ -853,7 +854,7 @@ void qdatacube::DatacubePrivate::aggregator_category_removed(qdatacube::Abstract
   const Datacube::Aggregators& parallel_aggregators = orientation == Qt::Horizontal ? col_aggregators : row_aggregators;
   QVector<unsigned>& new_parallel_counts = orientation == Qt::Horizontal ? col_counts : row_counts;
   const int normal_count = orientation == Qt::Horizontal ? row_counts.size() : col_counts.size();
-  const QVector<unsigned>& normal_parallel_counts = orientation == Qt::Horizontal ? row_counts : col_counts;
+  const QVector<unsigned>& normal_counts = orientation == Qt::Horizontal ? row_counts : col_counts;
   const QVector<unsigned> old_parallel_counts = new_parallel_counts;
   DatacubePrivate::cells_t old_cells = cells;
   int nsuper_categories = 1;
@@ -868,7 +869,7 @@ void qdatacube::DatacubePrivate::aggregator_category_removed(qdatacube::Abstract
   cells = DatacubePrivate::cells_t();
   reverse_index.clear();
   for (int normal_index=0; normal_index<normal_count; ++normal_index) {
-    if(normal_parallel_counts[normal_index] == 0) {
+    if(normal_counts[normal_index] == 0) {
         continue;
     }
     for (int super_index=0; super_index<nsuper_categories; ++super_index) {
@@ -876,7 +877,7 @@ void qdatacube::DatacubePrivate::aggregator_category_removed(qdatacube::Abstract
         for (int sub_index=0; sub_index<stride; ++sub_index) {
           const int old_category_index = index<=category_index ? category_index+1 : category_index;
           const int old_p = super_index*stride*old_ncats + old_category_index*stride + sub_index;
-          if(old_parallel_counts[old_p] == 0) {
+          if (old_parallel_counts[old_p] == 0) {
               continue;
           }
           const int p = super_index*stride*new_ncats + category_index*stride + sub_index;
