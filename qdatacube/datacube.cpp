@@ -813,11 +813,14 @@ void qdatacube::DatacubePrivate::aggregator_category_added(qdatacube::AbstractAg
     n_new_parallel_counts *= parallel_aggregators[h]->categoryCount();
   }
   new_parallel_counts = QVector<unsigned>(n_new_parallel_counts);
-  cells = DatacubePrivate::cells_t();
+  cells.clear();
+#if !QT_NO_DEBUG
+  int debug_reverseIndexSize = reverse_index.size();
+#endif
   if (!reverse_index.empty()) { // If there is no elements in the recap, it is possible some of the aggregators have no categories.
     const int old_ncats = new_ncats - 1;
     const int stride = old_parallel_counts.size()/old_ncats/nsuper_categories;
-    reverse_index.clear();
+    reverse_index.clear(); // TODO This should not be needed as we rewrite the entire reverse index
     for (int normal_index=0; normal_index<normal_count; ++normal_index) {
         if (normal_counts[normal_index] == 0) {
             continue;
@@ -845,6 +848,7 @@ void qdatacube::DatacubePrivate::aggregator_category_added(qdatacube::AbstractAg
       }
     }
   }
+  Q_ASSERT(debug_reverseIndexSize == reverse_index.size());
   emit q->reset(); // TODO: It is not impossible to emit the correct row/column changed instead
   // we can't do a check here because a element might be added to the model and about to be registered in the datacube
 }
