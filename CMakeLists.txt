@@ -14,7 +14,7 @@ add_compiler_export_flags()
 
 enable_testing()
 
-set(QDATACUBE_VERSION "3.0")
+set(QDATACUBE_VERSION "3.1")
 set(QDATACUBE_SO_VERSION 4)
 
 find_package(Qt5Core 5.2.0 REQUIRED NO_MODULE)
