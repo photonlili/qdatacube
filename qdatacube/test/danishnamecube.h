@@ -1,10 +1,3 @@
-/*
- Author: Ange Optimization <contact@ange.dk>  (C) Ange Optimization ApS 2010
-
- Copyright: See COPYING file that comes with this distribution
-
-*/
-
 #ifndef DANISHNAMECUBE_H
 #define DANISHNAMECUBE_H
 
@@ -59,7 +52,7 @@ class SexAggregator : public qdatacube::ColumnAggregator {
 
 class danishnamecube_t : public QObject {
   Q_OBJECT
-  protected:
+public:
     danishnamecube_t(QObject* parent = 0);
     static int printdatacube(const qdatacube::Datacube* datacube);
     void load_model_data(QString filename);
@@ -70,7 +63,7 @@ class danishnamecube_t : public QObject {
     QStandardItemModel* m_underlying_model;
     qdatacube::AbstractAggregator::Ptr first_name_aggregator;
     qdatacube::AbstractAggregator::Ptr last_name_aggregator;
-    qdatacube::AbstractAggregator::Ptr sex_aggregator;
+    QSharedPointer<qdatacube::ColumnAggregator> sex_aggregator;
     qdatacube::AbstractAggregator::Ptr age_aggregator;
     qdatacube::AbstractAggregator::Ptr weight_aggregator;
     qdatacube::AbstractAggregator::Ptr kommune_aggregator;

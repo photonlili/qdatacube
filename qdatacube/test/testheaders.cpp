@@ -1,11 +1,5 @@
-/*
- Author: Ange Optimization <contact@ange.dk>  (C) Ange Optimization ApS 2010
-
- Copyright: See COPYING file that comes with this distribution
-
-*/
-
 #include "testheaders.h"
+
 #include "columnaggregator.h"
 #include "datacube.h"
 #include <QStandardItemModel>
@@ -33,7 +27,7 @@
 using namespace qdatacube;
 
 testheaders::testheaders(QObject* parent) : danishnamecube_t(parent), m_underlying_table_view(0L) {
-  load_model_data("plaincubedata.txt");
+  load_model_data(QFINDTESTDATA("data/plaincubedata.txt"));
 
   m_datacube = new Datacube(m_underlying_model, first_name_aggregator, last_name_aggregator);
   m_row_used_aggregator_actions << create_aggregator_action(first_name_aggregator);

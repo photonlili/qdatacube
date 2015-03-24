@@ -2,8 +2,6 @@
 # Copyright Ange Optimization 2014
 #
 
-add_compile_options(-include QDebug)
-
 add_library(qdatacube SHARED
     abstractaggregator.cpp
     abstractfilter.cpp

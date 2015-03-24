@@ -311,7 +311,7 @@ void testplaincube::test_columnaggregator()
 }
 
 testplaincube::testplaincube(QObject* parent): danishnamecube_t(parent) {
-  load_model_data("plaincubedata.txt");
+    load_model_data(QFINDTESTDATA("data/plaincubedata.txt"));
 }
 
 void testplaincube::test_autocollapse() {
@@ -917,7 +917,6 @@ void testplaincube::test_many_buckets()
     }
 }
 
-
-QTEST_MAIN(testplaincube)
+QTEST_GUILESS_MAIN(testplaincube)
 
 #include "testplaincube.moc"

@@ -1,9 +1,3 @@
-/*
- Author: Ange Optimization <esben@ange.dk>  (C) Ange Optimization ApS 2009
-
- Copyright: See COPYING file that comes with this distribution
-*/
-
 #ifndef Q_DATACUBE_DATACUBE_H
 #define Q_DATACUBE_DATACUBE_H
 

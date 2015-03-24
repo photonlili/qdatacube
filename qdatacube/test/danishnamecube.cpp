@@ -1,16 +1,8 @@
-/*
- Author: Ange Optimization <contact@ange.dk>  (C) Ange Optimization ApS 2010
-
- Copyright: See COPYING file that comes with this distribution
-
-*/
-
 #include "danishnamecube.h"
 #include <QTextStream>
 #include <QFile>
 #include <QStandardItemModel>
 #include <QDebug>
-#include <QtTest/QTest>
 
 #include "columnaggregator.h"
 #include "datacube.h"
@@ -49,9 +41,8 @@ int danishnamecube_t::printdatacube(const qdatacube::Datacube* datacube) {
   return total;
 }
 
-void danishnamecube_t::load_model_data(QString filename) {
-    QString datapath = QFINDTESTDATA("data/"+filename);
-    QFile data(datapath);
+void danishnamecube_t::load_model_data(QString fileName) {
+    QFile data(fileName);
     data.open(QIODevice::ReadOnly);
   while (!data.atEnd()) {
     QString line = QString::fromLocal8Bit(data.readLine());
@@ -77,7 +68,7 @@ danishnamecube_t::danishnamecube_t(QObject* parent):
     m_underlying_model->setHorizontalHeaderLabels(labels);
     first_name_aggregator = AbstractAggregator::Ptr(new ColumnAggregator(m_underlying_model, FIRST_NAME));
     last_name_aggregator = AbstractAggregator::Ptr(new ColumnAggregator(m_underlying_model, LAST_NAME));
-    sex_aggregator = AbstractAggregator::Ptr(new SexAggregator(m_underlying_model, SEX));
+    sex_aggregator = QSharedPointer<ColumnAggregator>(new SexAggregator(m_underlying_model, SEX));
     age_aggregator = AbstractAggregator::Ptr(new ColumnAggregator(m_underlying_model, AGE));
     weight_aggregator = AbstractAggregator::Ptr(new ColumnAggregator(m_underlying_model, WEIGHT));
     kommune_aggregator = AbstractAggregator::Ptr(new ColumnAggregator(m_underlying_model, KOMMUNE));
