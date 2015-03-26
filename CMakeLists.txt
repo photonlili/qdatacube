@@ -32,4 +32,4 @@ add_compile_options(-ggdb3)
 
 enable_testing()
 
-add_subdirectory(qdatacube)
+add_subdirectory(src)
