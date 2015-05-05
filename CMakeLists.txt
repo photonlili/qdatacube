@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.0)
 cmake_policy(VERSION 3.0)
 
 project(qdatacube)
-set(QDATACUBE_VERSION "3.1.1")
+set(QDATACUBE_VERSION "3.1.2")
 set(QDATACUBE_SO_VERSION 4)
 
 include(CMakePackageConfigHelpers)
